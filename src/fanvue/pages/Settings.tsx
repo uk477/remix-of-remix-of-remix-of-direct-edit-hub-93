@@ -411,7 +411,7 @@ Always provide your **Order ID** when contacting support.`,
             <motion.button
               className="card"
               style={{ padding: '6px 12px', color: 'var(--t-muted)', fontSize: 12 }}
-              onClick={onClose}
+              onClick={closeSheet}
               whileTap={{ scale: 0.95 }}
             >
               {lang === 'ru' ? 'Закрыть' : 'Close'}
