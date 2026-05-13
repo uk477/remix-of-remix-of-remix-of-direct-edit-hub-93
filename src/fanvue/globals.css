@@ -3590,10 +3590,12 @@ body::after { display: none; }
   display: inline-grid;
   place-items: center;
   z-index: 1;
+  animation: shopBoltZap 60s linear infinite;
+  transform-origin: 50% 50%;
 }
 .shop-live-cell--green .shop-live-ic {
   color: var(--fv-green);
-  animation: shopBoltFlick 2.8s ease-in-out infinite, shopBoltZap 60s linear infinite;
+  animation: shopBoltFlick 2.8s ease-in-out infinite;
   transform-origin: 50% 50%;
 }
 .shop-live-cell--green {
