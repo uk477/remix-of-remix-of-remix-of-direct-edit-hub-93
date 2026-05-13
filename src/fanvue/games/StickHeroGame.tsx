@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
+import heroSpriteUrl from '@/assets/fanvue-ninja.png'
 
 /* ───────── constants ───────── */
 const STICK_GROW = 240
@@ -9,8 +10,8 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 42
-const HERO_H = 54
+const HERO_W = 56
+const HERO_H = 70
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
