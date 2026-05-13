@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -194,33 +194,12 @@ function ContentSheet({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const sheetRef = useRef<HTMLDivElement | null>(null)
   const closingRef = useRef(false)
-  const [isClosing, setIsClosing] = useState(false)
   const admin = isAdmin()
-  const y = useMotionValue(0)
-  const controls = useAnimationControls()
-  const overlayOpacity = useTransform(y, (v) => {
-    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    return Math.max(0, 1 - v / h)
-  })
-  useEffect(() => {
-    closingRef.current = false
-    setIsClosing(false)
-    y.set(0)
-    controls.start({ y: 0 }, { type: 'spring', stiffness: 320, damping: 34, mass: 0.8 })
-  }, [controls, y])
+
   const closeSheet = async () => {
     if (closingRef.current) return
     closingRef.current = true
-    setIsClosing(true)
-    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    try {
-      await Promise.race([
-        controls.start({ y: h }, { type: 'spring', stiffness: 420, damping: 42, mass: 0.7 }),
-        new Promise((resolve) => window.setTimeout(resolve, 320)),
-      ])
-    } finally {
-      onClose()
-    }
+    onClose()
   }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
@@ -375,16 +354,16 @@ Always provide your **Order ID** when contacting support.`,
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ opacity: overlayOpacity }}
-      data-closing={isClosing ? 'true' : 'false'}
       onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
     >
       <motion.div
         ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={controls}
-        style={{ y, maxHeight: '85dvh', willChange: 'transform' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 340, damping: 34, mass: 0.75 }}
+        style={{ maxHeight: '85dvh', willChange: 'transform' }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
@@ -400,7 +379,6 @@ Always provide your **Order ID** when contacting support.`,
           const h = sheetRef.current?.offsetHeight ?? window.innerHeight
           const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
           if (shouldClose) closeSheet()
-          else controls.start({ y: 0 }, { type: 'spring', stiffness: 420, damping: 36, mass: 0.7 })
         }}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
@@ -621,8 +599,9 @@ export default function Settings() {
 
 
   return (
-    <PageTransition>
-      <motion.div
+    <>
+      <PageTransition>
+        <motion.div
         className="page"
         variants={stagger}
         initial="hidden"
@@ -996,6 +975,8 @@ export default function Settings() {
         </div>
       </motion.div>
 
+      </PageTransition>
+
       <AnimatePresence>
         {openSheet && (
           <ContentSheet
@@ -1006,7 +987,7 @@ export default function Settings() {
           />
         )}
       </AnimatePresence>
-    </PageTransition>
+    </>
   )
 }
 
