@@ -9,7 +9,7 @@ import { useToast } from '../components/Toast'
 import { CONFIG } from '../config'
 import type { Lang } from '../store/types'
 import type { SiteContent } from '../store'
-import fanvueLogoSrc from '../assets/fanvue-logo.png'
+import fanvueMarkSrc from '../assets/fanvue-mark.png'
 
 const NEON = '#00FF88'
 const FONT_LINK_ID = 'fv-settings-fonts'
@@ -495,41 +495,42 @@ export default function Settings() {
               fontFamily: inter, color: '#fff',
               display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
             }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
                 <motion.span
-                  initial={{ opacity: 0, scale: 0.6, rotate: -18 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                  whileHover={{ rotate: [0, -6, 6, 0], transition: { duration: 0.6 } }}
+                  initial={{ opacity: 0, x: -14, rotate: -12 }}
+                  animate={{ opacity: 1, x: 0, rotate: 0 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                  whileHover={{ rotate: [0, -4, 4, 0], transition: { duration: 0.6 } }}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 46, height: 46, marginRight: 2,
-                    position: 'relative',
+                    display: 'inline-block', position: 'relative',
+                    width: 56, height: 44,
+                    transform: 'translateY(4px)',
                   }}
                 >
-                  {/* Neon halo behind logo */}
+                  {/* Neon glow underneath the mark */}
                   <motion.span
                     aria-hidden
-                    animate={{ opacity: [0.5, 0.95, 0.5], scale: [0.95, 1.08, 0.95] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={{ opacity: [0.45, 0.85, 0.45] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
                     style={{
-                      position: 'absolute', inset: -6, borderRadius: '50%',
-                      background: `radial-gradient(circle, ${NEON}55, transparent 65%)`,
-                      filter: 'blur(8px)', pointerEvents: 'none',
+                      position: 'absolute', inset: -10,
+                      background: `radial-gradient(ellipse at center, ${NEON}88, transparent 60%)`,
+                      filter: 'blur(14px)', pointerEvents: 'none', zIndex: 0,
                     }}
                   />
                   <img
-                    src={fanvueLogoSrc}
-                    alt="Fanvue"
+                    src={fanvueMarkSrc}
+                    alt="F"
                     draggable={false}
                     style={{
-                      width: 46, height: 46, borderRadius: 11,
-                      objectFit: 'cover', display: 'block',
-                      boxShadow: `0 6px 20px -6px ${NEON}88, inset 0 0 0 1px rgba(255,255,255,0.08)`,
+                      position: 'relative', zIndex: 1,
+                      width: '100%', height: '100%',
+                      objectFit: 'contain', display: 'block',
+                      filter: `drop-shadow(0 2px 8px ${NEON}66)`,
                     }}
                   />
                 </motion.span>
-                <span style={{ transform: 'translateY(1px)' }}>anvue</span>
+                <span>anvue</span>
               </span>
               <span style={{ color: NEON }}>MARKET</span>
             </h1>
