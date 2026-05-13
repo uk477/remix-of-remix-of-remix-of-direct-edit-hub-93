@@ -3549,7 +3549,7 @@ body::after { display: none; }
 /* ── LIVE STATUS — full-width pill, 3 cells ───────── */
 .shop-live {
   display: grid;
-  grid-template-columns: 0.72fr 1.32fr 1.25fr;
+  grid-template-columns: 68px minmax(139px, 1fr) minmax(137px, 0.98fr);
   align-items: stretch;
   gap: 0;
   width: 100%;
@@ -3569,24 +3569,32 @@ body::after { display: none; }
 }
 .shop-live-cell {
   display: inline-flex; align-items: center; justify-content: flex-start;
-  gap: 7px; min-width: 0;
-  padding: 10px 6px 10px 10px;
-  font-size: 11.5px; color: var(--fv-soft);
+  gap: 5px; min-width: 0;
+  padding: 10px 5px 10px 8px;
+  font-size: 10.5px; color: var(--fv-soft);
   white-space: nowrap;
   border-right: 1px solid var(--fv-line);
   position: relative;
 }
-.shop-live-cell:last-child { border-right: none; justify-content: center; padding: 10px 8px; }
+.shop-live-cell:first-child { padding-left: 8px; padding-right: 3px; }
+.shop-live-cell:last-child { border-right: none; justify-content: center; padding: 10px 6px; }
 .shop-live-cell--green {
   background: linear-gradient(180deg, rgba(57,255,99,0.10), rgba(57,255,99,0.02));
 }
-.shop-live-ic { width: 13px; height: 13px; color: var(--fv-soft); flex: 0 0 auto; }
+.shop-live-ic { width: 12px; height: 12px; color: var(--fv-soft); flex: 0 0 auto; }
+.shop-live-bolt {
+  position: relative;
+  flex: 0 0 13px;
+  width: 13px;
+  height: 13px;
+  display: inline-grid;
+  place-items: center;
+  z-index: 1;
+}
 .shop-live-cell--green .shop-live-ic {
   color: var(--fv-green);
   animation: shopBoltFlick 2.8s ease-in-out infinite, shopBoltZap 60s linear infinite;
   transform-origin: 50% 50%;
-  position: relative;
-  z-index: 1;
 }
 .shop-live-cell--green {
   position: relative;
@@ -3603,7 +3611,7 @@ body::after { display: none; }
 }
 .shop-live-cell--green::before {
   /* expanding ring */
-  left: 14px; top: 50%;
+  left: 13px; top: 50%;
   width: 14px; height: 14px;
   margin: -7px 0 0 -7px;
   border-radius: 999px;
