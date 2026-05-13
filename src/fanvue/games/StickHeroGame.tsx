@@ -505,7 +505,15 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         )}
       </AnimatePresence>
 
-      <div ref={wrapRef} style={{ flex: 1, position: 'relative' }}>
+      <div
+        ref={wrapRef}
+        style={{
+          flex: 1, position: 'relative',
+          transform: flipped ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.65s cubic-bezier(0.65,0,0.35,1)',
+          transformOrigin: 'center center',
+        }}
+      >
         <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
       </div>
 
