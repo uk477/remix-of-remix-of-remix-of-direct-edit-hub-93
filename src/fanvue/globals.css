@@ -3549,7 +3549,7 @@ body::after { display: none; }
 /* ── LIVE STATUS — full-width pill, 3 cells ───────── */
 .shop-live {
   display: grid;
-  grid-template-columns: 0.85fr 1.35fr 0.95fr;
+  grid-template-columns: 0.78fr 1.5fr 1fr;
   align-items: stretch;
   gap: 0;
   width: 100%;
