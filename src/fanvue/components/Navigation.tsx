@@ -150,7 +150,7 @@ export default function Navigation() {
     peekingRef.current = true
     setPeeking(true)
     haptic('medium')
-    positionPill(e.clientX)
+    positionPill(e.clientX, true)
     setHover(idxFromClientX(e.clientX))
     try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
   }
@@ -200,6 +200,7 @@ export default function Navigation() {
   const onPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (timerRef.current) window.clearTimeout(timerRef.current)
     if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+    stopSmoothPill()
     if (peekingRef.current) {
       e.preventDefault()
       const i = idxFromClientX(e.clientX)
@@ -229,6 +230,7 @@ export default function Navigation() {
   const onPointerCancel = () => {
     if (timerRef.current) window.clearTimeout(timerRef.current)
     if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+    stopSmoothPill()
     if (peekingRef.current) close()
     startRef.current = null
   }
@@ -261,6 +263,12 @@ export default function Navigation() {
     const onResize = () => { layoutRef.current = null }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => () => {
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+    stopSmoothPill()
   }, [])
 
   // Close on scroll
