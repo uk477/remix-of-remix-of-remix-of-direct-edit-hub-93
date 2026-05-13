@@ -864,16 +864,16 @@ function drawHero(
   // FANVUE label
   ctx.save()
   ctx.beginPath()
-  ctx.ellipse(capCx, capCy - 1, 16, 11, 0, Math.PI, 2 * Math.PI)
-  ctx.lineTo(capCx + 16, capCy + 1)
-  ctx.lineTo(capCx - 16, capCy + 1)
+  ctx.ellipse(capCx, capCy - 1, 17, 11, 0, Math.PI, 2 * Math.PI)
+  ctx.lineTo(capCx + 17, capCy + 1)
+  ctx.lineTo(capCx - 17, capCy + 1)
   ctx.closePath()
   ctx.clip()
   ctx.fillStyle = '#0d2618'
-  ctx.font = '700 8px ui-sans-serif, system-ui, -apple-system'
+  ctx.font = '800 6.5px ui-sans-serif, system-ui, -apple-system'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('FANVUE', capCx, capCy - 4)
+  ctx.fillText('FANVUE', capCx, capCy - 5)
   ctx.restore()
 
   ctx.restore() // cap
