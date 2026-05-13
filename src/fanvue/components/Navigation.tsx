@@ -181,9 +181,16 @@ export default function Navigation() {
     startRef.current = null
   }
 
-  // Sync hover to active when route changes & not peeking
+  // Sync hover + pill position to active when route changes & not peeking
   useEffect(() => {
-    if (!peeking) setHoverIdx(activeIdx === -1 ? 0 : activeIdx)
+    if (peeking) return
+    const i = activeIdx === -1 ? 0 : activeIdx
+    setHoverIdx(i)
+    // Wait a frame for layout to be ready (esp. on first mount)
+    requestAnimationFrame(() => {
+      if (!layoutRef.current) measure()
+      snapPillToIdx(i)
+    })
   }, [activeIdx, peeking])
 
   // Re-measure on resize
