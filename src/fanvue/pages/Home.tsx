@@ -199,6 +199,7 @@ export default function Home() {
       {/* ── LIVE STATUS BAR ── */}
       <motion.div
         className="shop-live"
+        style={{ gridTemplateColumns: '1fr 1.35fr 1.1fr' }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
@@ -230,7 +231,7 @@ export default function Home() {
                 transition={{ duration: 0.18, ease: EASE }}
               >{Math.round(shownTotal)}</motion.b>
             </AnimatePresence>
-            {' '}{lang === 'ru' ? 'продаж за всё время' : 'sales all time'}
+            {' '}{lang === 'ru' ? 'продаж всего' : 'total sales'}
           </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">
