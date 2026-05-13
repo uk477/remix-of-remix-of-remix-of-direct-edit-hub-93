@@ -451,6 +451,7 @@ export function PayPanel({
   onSuccess: () => void
 }) {
   const { haptic } = useTelegram()
+  const toast = useToast()
   const [timer, setTimer] = useState(() => {
     if (!createdAt) return TOTAL_SECONDS
     const elapsed = Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000)
