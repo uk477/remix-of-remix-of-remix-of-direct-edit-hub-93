@@ -6776,7 +6776,7 @@ body::after { display: none; }
 .dpz .dpz-pay-hero-num em {
   font-family: var(--font-display);
   font-style: normal;
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
