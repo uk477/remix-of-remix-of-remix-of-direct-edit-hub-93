@@ -9,19 +9,19 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 38
-const HERO_H = 46
+const HERO_W = 42
+const HERO_H = 54
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
 const MAX_PW = 110
 const PERFECT_R = 8
+const EGG_SCORE = 20
 
-// Sequence: F-A-N-V-U-E- -M-A-R-K-E-T then meme emojis
-const GLYPHS = ['F','A','N','V','U','E','·','M','A','R','K','E','T']
-const MEMES  = ['🌈','🐱','🐶','🐸','🐵','🦄','🐙','🐼','🐲','🍕','👾','🤖','💎','🔥','⚡','🌟']
-
-type Phase = 'name' | 'waiting' | 'growing' | 'falling' | 'walking' | 'camera' | 'falling_off' | 'gameover'
+type Phase =
+  | 'name' | 'waiting' | 'growing' | 'falling' | 'walking'
+  | 'camera' | 'falling_off' | 'gameover'
+  | 'egg_fall' | 'egg_flip' | 'egg_unflip'
 interface Plat { x: number; w: number }
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number }
 
@@ -35,6 +35,8 @@ interface GameState {
   heroY: number
   heroVy: number
   heroRot: number
+  walkPhase: number       // for legs
+  capWobble: number       // base wobble timer
   cameraX: number
   cameraStartX: number
   cameraTargetX: number
@@ -42,13 +44,14 @@ interface GameState {
   cameraDur: number
   cameraDone?: () => void
   score: number
-  glyphIdx: number
   last: number
   perfect: boolean
   perfectFlash: number
   particles: Particle[]
   bgT: number
   shake: number
+  eggDone: boolean
+  eggT: number
 }
 
 export default function StickHeroGame({ onExit }: { onExit: () => void }) {
@@ -67,6 +70,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
   const [over, setOver] = useState(false)
   const [needName, setNeedName] = useState(!savedName)
   const [nameInput, setNameInput] = useState('')
+  const [flipped, setFlipped] = useState(false)
 
   const stRef = useRef<GameState>({
     phase: needName ? 'name' : 'waiting',
@@ -78,19 +82,22 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     heroY: 0,
     heroVy: 0,
     heroRot: 0,
+    walkPhase: 0,
+    capWobble: 0,
     cameraX: 0,
     cameraStartX: 0,
     cameraTargetX: 0,
     cameraT: 0,
     cameraDur: 0.35,
     score: 0,
-    glyphIdx: 0,
     last: 0,
     perfect: false,
     perfectFlash: 0,
     particles: [],
     bgT: 0,
     shake: 0,
+    eggDone: false,
+    eggT: 0,
   })
 
   // Resize
@@ -217,7 +224,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       ctx.globalAlpha = 1
 
       // hero
-      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, currentGlyph(st.glyphIdx))
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
 
       ctx.restore()
 
@@ -240,6 +247,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       const dt = Math.min(0.05, (t - st.last) / 1000)
       st.last = t
       st.bgT += dt
+      st.capWobble += dt
       if (st.perfectFlash > 0) st.perfectFlash = Math.max(0, st.perfectFlash - dt * 2.4)
       if (st.shake > 0) st.shake = Math.max(0, st.shake - dt * 3)
 
@@ -284,10 +292,57 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         const target = st.next.x + st.next.w - HERO_W
         const dir = target > st.heroX ? 1 : -1
         st.heroX += dir * HERO_WALK * dt
+        st.walkPhase += dt * 14
         if ((dir > 0 && st.heroX >= target) || (dir < 0 && st.heroX <= target)) {
           st.heroX = target
-          // advance glyph on successful step
-          st.glyphIdx = (st.glyphIdx + 1) % (GLYPHS.length + MEMES.length)
+          st.walkPhase = 0
+          // Easter egg at exactly EGG_SCORE — fake fall + flip
+          if (!st.eggDone && st.score >= EGG_SCORE) {
+            st.eggDone = true
+            st.heroVy = 0; st.heroY = 0; st.heroRot = 0
+            st.eggT = 0
+            st.phase = 'egg_fall'
+            haptic('warning')
+          } else {
+            animateCamera(st, () => {
+              st.cur = { ...st.next }
+              st.heroX = st.cur.x + st.cur.w - HERO_W
+              st.cameraX = st.cur.x - 30
+              spawnNext()
+              st.stickLen = 0
+              st.stickAngle = 0
+              st.phase = 'waiting'
+            })
+          }
+        }
+      } else if (st.phase === 'camera') {
+        cameraTween(st, dt)
+      } else if (st.phase === 'egg_fall') {
+        // looks like real fall, but instead of game-over we trigger flip
+        st.heroVy += 1800 * dt
+        st.heroY += st.heroVy * dt
+        st.heroRot += 220 * dt
+        if (st.heroY > 200) {
+          st.phase = 'egg_flip'
+          st.eggT = 0
+          setFlipped(true)
+          haptic('medium')
+        }
+      } else if (st.phase === 'egg_flip') {
+        // hold flipped state briefly while hero "rests" off-screen
+        st.eggT += dt
+        if (st.eggT > 0.9) {
+          setFlipped(false)
+          st.phase = 'egg_unflip'
+          st.eggT = 0
+        }
+      } else if (st.phase === 'egg_unflip') {
+        st.eggT += dt
+        if (st.eggT > 0.55) {
+          // restore hero on current platform & continue normally
+          st.heroY = 0; st.heroVy = 0; st.heroRot = 0
+          st.heroX = st.cur.x + st.cur.w - HERO_W
+          haptic('success')
           animateCamera(st, () => {
             st.cur = { ...st.next }
             st.heroX = st.cur.x + st.cur.w - HERO_W
@@ -298,19 +353,15 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
             st.phase = 'waiting'
           })
         }
-      } else if (st.phase === 'camera') {
-        cameraTween(st, dt)
       } else if (st.phase === 'falling_off') {
         const tip = st.cur.x + st.cur.w + st.stickLen
         const target = tip - HERO_W / 2
         if (st.heroX < target - 1) {
           st.heroX += HERO_WALK * dt
         } else {
-          // proper gravity, fast game over
           st.heroVy += 1800 * dt
           st.heroY += st.heroVy * dt
           st.heroRot += 360 * dt
-          // game over as soon as hero clears the platform top by ~150px (off-screen feel)
           if (st.heroY > 180) {
             st.phase = 'gameover'
             setOver(true)
@@ -365,10 +416,11 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     st.next = { x: st.cur.x + st.cur.w + 80 + Math.random() * 60, w: 70 }
     st.cameraX = 0; st.phase = 'waiting'
     st.stickLen = 0; st.stickAngle = 0
-    st.score = 0; st.glyphIdx = 0
+    st.score = 0
+    st.eggDone = false; st.eggT = 0; st.walkPhase = 0
     st.perfectFlash = 0; st.particles = []; st.shake = 0
     submittedRef.current = false
-    setScore(0); setOver(false)
+    setScore(0); setOver(false); setFlipped(false)
   }
 
   const submitName = () => {
@@ -453,7 +505,15 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         )}
       </AnimatePresence>
 
-      <div ref={wrapRef} style={{ flex: 1, position: 'relative' }}>
+      <div
+        ref={wrapRef}
+        style={{
+          flex: 1, position: 'relative',
+          transform: flipped ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.65s cubic-bezier(0.65,0,0.35,1)',
+          transformOrigin: 'center center',
+        }}
+      >
         <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
       </div>
 
@@ -662,17 +722,11 @@ const primaryBtnStyle: React.CSSProperties = {
   boxShadow: '0 8px 22px rgba(57,255,99,0.35)',
 }
 
-function currentGlyph(idx: number): string {
-  if (idx < GLYPHS.length) return GLYPHS[idx]
-  return MEMES[(idx - GLYPHS.length) % MEMES.length]
-}
-
 function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t: number) {
   const grad = ctx.createLinearGradient(0, groundY, 0, groundY + PLAT_H)
   grad.addColorStop(0, '#1d2630'); grad.addColorStop(1, '#070a0e')
   ctx.fillStyle = grad
   ctx.fillRect(p.x, groundY, p.w, PLAT_H)
-  // animated top edge
   const edgeAlpha = 0.7 + 0.3 * Math.sin(t * 3 + p.x * 0.05)
   ctx.fillStyle = `rgba(57,255,99,${edgeAlpha})`
   ctx.fillRect(p.x, groundY - 2, p.w, 2)
@@ -681,7 +735,15 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
   ctx.fillRect(p.x + p.w - 1, groundY, 1, PLAT_H)
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number, rot: number, glyph: string) {
+/**
+ * Fanvue ninja: light pill body, white pearl eye, neon-green cap with F·anvue,
+ * subtle cap wobble, animated legs while walking.
+ */
+function drawHero(
+  ctx: CanvasRenderingContext2D,
+  x: number, baseY: number, rot: number,
+  walkPhase: number, capWobble: number, walking: boolean,
+) {
   const y = baseY - HERO_H
   const cx = x + HERO_W / 2, cy = y + HERO_H / 2
   ctx.save()
@@ -689,26 +751,88 @@ function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number, rot: 
   if (rot) ctx.rotate(rot * Math.PI / 180)
   ctx.translate(-cx, -cy)
 
-  const isEmoji = glyph.length > 1 || /\p{Extended_Pictographic}/u.test(glyph)
-  if (!isEmoji) {
-    ctx.fillStyle = '#39ff63'
-    roundRect(ctx, x, y, HERO_W, HERO_H, 9); ctx.fill()
-    ctx.strokeStyle = 'rgba(57,255,99,0.7)'
-    ctx.lineWidth = 1.5
-    ctx.shadowColor = 'rgba(57,255,99,0.7)'; ctx.shadowBlur = 12
-    ctx.stroke(); ctx.shadowBlur = 0
-    ctx.fillStyle = '#062612'
-    ctx.font = '900 26px ui-sans-serif, system-ui, -apple-system'
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(glyph, cx, cy + 1)
-  } else {
-    // emoji hero — soft halo
-    ctx.shadowColor = 'rgba(255,255,255,0.35)'; ctx.shadowBlur = 16
-    ctx.font = '36px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(glyph, cx, cy)
-    ctx.shadowBlur = 0
-  }
+  // ── legs (animated when walking) ────────────────────────────
+  const legW = 6, legH = 9
+  const legBaseY = baseY - 2
+  const swing = walking ? Math.sin(walkPhase) * 4 : Math.sin(capWobble * 1.6) * 0.8
+  const legL_x = x + HERO_W * 0.28 - legW / 2
+  const legR_x = x + HERO_W * 0.72 - legW / 2
+  const legL_h = legH + (walking ? Math.max(0, swing) : 0)
+  const legR_h = legH + (walking ? Math.max(0, -swing) : 0)
+  ctx.fillStyle = '#cfd6df'
+  roundRect(ctx, legL_x, legBaseY - legL_h, legW, legL_h + 3, 2.5); ctx.fill()
+  roundRect(ctx, legR_x, legBaseY - legR_h, legW, legR_h + 3, 2.5); ctx.fill()
+  // shadow under feet
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'
+  ctx.beginPath()
+  ctx.ellipse(x + HERO_W / 2, baseY + 2, HERO_W * 0.42, 2.4, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // ── body (light pill) ───────────────────────────────────────
+  const bodyTop = y + 14
+  const bodyH = HERO_H - 18
+  const bg = ctx.createLinearGradient(0, bodyTop, 0, bodyTop + bodyH)
+  bg.addColorStop(0, '#f3f5f8')
+  bg.addColorStop(1, '#cdd3dc')
+  ctx.fillStyle = bg
+  roundRect(ctx, x + 3, bodyTop, HERO_W - 6, bodyH, (HERO_W - 6) / 2)
+  ctx.fill()
+  // body inner shading
+  ctx.fillStyle = 'rgba(0,0,0,0.06)'
+  roundRect(ctx, x + HERO_W - 12, bodyTop + 4, 6, bodyH - 8, 3); ctx.fill()
+  // pearl eye
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 2.2, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'
+  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 1.1, 0, Math.PI * 2); ctx.fill()
+
+  // ── cap (with subtle wobble) ────────────────────────────────
+  const capWobbleDeg = Math.sin(capWobble * 1.4) * 1.6 + (walking ? Math.sin(walkPhase * 0.5) * 1.2 : 0)
+  const capCx = x + HERO_W / 2
+  const capCy = y + 9
+  ctx.save()
+  ctx.translate(capCx, capCy)
+  ctx.rotate((capWobbleDeg * Math.PI) / 180)
+  ctx.translate(-capCx, -capCy)
+
+  // cap halo glow
+  const halo = ctx.createRadialGradient(capCx, capCy, 2, capCx, capCy, 26)
+  halo.addColorStop(0, 'rgba(57,255,99,0.55)')
+  halo.addColorStop(1, 'rgba(57,255,99,0)')
+  ctx.fillStyle = halo
+  ctx.beginPath(); ctx.arc(capCx, capCy, 26, 0, Math.PI * 2); ctx.fill()
+
+  // brim
+  ctx.fillStyle = '#2cd74f'
+  ctx.beginPath()
+  ctx.ellipse(capCx + 6, y + 14, HERO_W * 0.55, 3.2, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // crown (dome)
+  const cg = ctx.createLinearGradient(0, y + 1, 0, y + 14)
+  cg.addColorStop(0, '#7bff8e')
+  cg.addColorStop(1, '#2cd74f')
+  ctx.fillStyle = cg
+  ctx.beginPath()
+  ctx.moveTo(x + 4, y + 13)
+  ctx.quadraticCurveTo(x + HERO_W / 2, y - 4, x + HERO_W - 4, y + 13)
+  ctx.closePath()
+  ctx.fill()
+
+  // top button
+  ctx.fillStyle = '#1fae3c'
+  ctx.beginPath(); ctx.arc(x + HERO_W / 2, y + 1.5, 1.6, 0, Math.PI * 2); ctx.fill()
+
+  // Fanvue mark on cap: bold "F" + small "anvue"
+  ctx.fillStyle = '#0a3d18'
+  ctx.font = '900 9px "Space Grotesk", ui-sans-serif, system-ui'
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
+  const labelY = y + 8
+  ctx.fillText('F', x + HERO_W * 0.3, labelY)
+  ctx.font = '800 6px "Inter", ui-sans-serif, system-ui'
+  ctx.fillText('anvue', x + HERO_W * 0.3 + 5.5, labelY + 0.4)
+
+  ctx.restore()
   ctx.restore()
 }
 
