@@ -147,182 +147,187 @@ export default function ProductDetail() {
 
   return (
     <PageTransition>
-      <main className="fv-detail-shell">
-        <motion.button
-          className="fv-back"
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, ease: EASE, delay: 0.1 }}
-          whileTap={{ scale: 0.92 }}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M11.5 4.5 7 9l4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </motion.button>
-
-        <section className="fv-detail-hero fv-detail-hero--console">
-          <div className="fv-hero-mesh" aria-hidden />
-          <div className="fv-hero-grid" aria-hidden />
-          <div className="fv-detail-copy">
-            <motion.div
-              className="fv-product-label"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE, delay: 0.18 }}
-            >
-              <span className="fv-tag-hot">{categoryName}</span>
-              <span>{deliveryLabel}</span>
-              <span>${product.price.toFixed(0)}</span>
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 22, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.26 }}
-            >
-              {title}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: EASE, delay: 0.4 }}
-            >
-              {desc}
-            </motion.p>
+      <main className="pd-shell">
+        <header className="pd-topbar">
+          <motion.button
+            className="pd-back"
+            onClick={() => navigate(-1)}
+            aria-label="Back"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, ease: EASE }}
+            whileTap={{ scale: 0.92 }}
+          >
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+              <path d="M11.5 4.5 7 9l4.5 4.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>{lang === 'ru' ? 'Назад' : 'Back'}</span>
+          </motion.button>
+          <div className="pd-crumb">
+            <i />
+            <span>{categoryName}</span>
           </div>
+        </header>
+
+        <section className="pd-hero">
+          <div className="pd-hero-glow" aria-hidden />
+          <motion.div
+            className="pd-tags"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: EASE, delay: 0.08 }}
+          >
+            <span className="pd-tag pd-tag--hot">
+              <i /> {lang === 'ru' ? 'В наличии' : 'In stock'}
+            </span>
+            <span className="pd-tag">{deliveryLabel}</span>
+            {lowStock && (
+              <span className="pd-tag pd-tag--warn">
+                {lang === 'ru' ? `Осталось ${product.stock}` : `Only ${product.stock} left`}
+              </span>
+            )}
+          </motion.div>
+
+          <motion.h1
+            className="pd-title"
+            initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.16 }}
+          >
+            {title}
+          </motion.h1>
+
+          <motion.p
+            className="pd-desc"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.28 }}
+          >
+            {desc}
+          </motion.p>
 
           <motion.div
-            className="fv-hero-facts"
-            initial={{ opacity: 0, y: 16 }}
+            className="pd-price-row"
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.46 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.36 }}
           >
-            <div>
-              <span>{lang === 'ru' ? 'Доставка' : 'Delivery'}</span>
-              <strong>{deliveryLabel}</strong>
+            <div className="pd-price">
+              <span className="pd-price-cur">$</span>
+              <motion.strong
+                key={total.toFixed(2)}
+                initial={{ y: 6, opacity: 0, filter: 'blur(6px)' }}
+                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                transition={{ duration: 0.32, ease: EASE }}
+              >
+                {total.toFixed(2)}
+              </motion.strong>
             </div>
-            <div>
-              <span>{lang === 'ru' ? 'Остаток' : 'Stock'}</span>
-              <strong>{product.stock} {lang === 'ru' ? 'шт' : 'pcs'}</strong>
-            </div>
-            <div>
-              <span>{lang === 'ru' ? 'Скидка' : 'Discount'}</span>
-              <strong>3+ / 5%</strong>
+            <div className="pd-price-meta">
+              <AnimatePresence mode="wait">
+                {discountPct > 0 ? (
+                  <motion.div
+                    key="disc"
+                    className="pd-price-disc"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    <s>${originalTotal.toFixed(2)}</s>
+                    <em>−{discountPct}%</em>
+                  </motion.div>
+                ) : (
+                  <motion.span
+                    key="hint"
+                    className="pd-price-hint"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    {lang === 'ru' ? 'от 3 шт — скидка' : 'discount from 3'}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </section>
 
-        <section className="fv-buy-panel">
-          <div className="fv-buy-head">
-            <div className="fv-price-block">
-              <span className="fv-section-kicker">{lang === 'ru' ? 'К оплате' : 'Total'}</span>
-              <div className="fv-price-row">
-                <motion.strong
-                  key={total.toFixed(2)}
-                  initial={{ y: 8, opacity: 0, filter: 'blur(6px)' }}
-                  animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                  transition={{ duration: 0.32, ease: EASE }}
-                >
-                  ${total.toFixed(2)}
-                </motion.strong>
-                <AnimatePresence>
-                  {discountPct > 0 && (
-                    <motion.s
-                      key={originalTotal.toFixed(2)}
-                      initial={{ opacity: 0, x: -6 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -6 }}
-                    >
-                      ${originalTotal.toFixed(2)}
-                    </motion.s>
-                  )}
-                </AnimatePresence>
-              </div>
-              <AnimatePresence>
-                {discountPct > 0 && (
-                  <motion.em
-                    className="fv-save-pill"
-                    key={discountPct}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ type: 'spring', stiffness: 320, damping: 18 }}
-                  >
-                    {lang === 'ru' ? `Экономия −${discountPct}%` : `You save −${discountPct}%`}
-                  </motion.em>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className={`fv-stock-pill${lowStock ? ' is-low' : ''}`}>
-              <i />
-              <b>{product.stock}</b>
-              <span>{lang === 'ru' ? 'в наличии' : 'in stock'}</span>
-            </div>
-          </div>
-
-          <div className="fv-qty-row">
+        <section className="pd-card">
+          <div className="pd-card-head">
             <div>
-              <strong>{lang === 'ru' ? 'Количество' : 'Quantity'}</strong>
-              <span>{lang === 'ru' ? 'Скидка растёт от 3 шт' : 'Discount unlocks from 3'}</span>
+              <span className="pd-kicker">{lang === 'ru' ? 'Количество' : 'Quantity'}</span>
+              <strong className="pd-card-title">
+                {qty} × ${product.price.toFixed(0)}
+              </strong>
             </div>
-            <div className="fv-stepper">
-              <button onClick={() => { haptic('light'); setQty((q) => Math.max(1, q - 1)) }} disabled={qty <= 1}>−</button>
+            <div className="pd-stepper">
+              <button onClick={() => { haptic('light'); setQty((q) => Math.max(1, q - 1)) }} disabled={qty <= 1} aria-label="−">−</button>
               <b>{qty}</b>
-              <button onClick={() => { haptic('light'); setQty((q) => Math.min(product.stock, q + 1)) }} disabled={qty >= product.stock}>+</button>
+              <button onClick={() => { haptic('light'); setQty((q) => Math.min(product.stock, q + 1)) }} disabled={qty >= product.stock} aria-label="+">+</button>
             </div>
           </div>
 
-          <div className="fv-tier-grid">
+          <div className="pd-tiers">
             {TIERS.map((tier) => {
               const active = qty >= tier.min
               return (
                 <button
                   key={tier.min}
-                  className={`fv-tier-card${active ? ' is-hit' : ''}`}
+                  className={`pd-tier${active ? ' is-on' : ''}`}
                   onClick={() => { haptic('light'); setQty(Math.min(product.stock, tier.min)) }}
                 >
-                  <span>{tier.min}+ {lang === 'ru' ? 'шт' : 'pcs'}</span>
+                  <span>{tier.min}+</span>
                   <strong>−{tier.pct}%</strong>
                 </button>
               )
             })}
           </div>
+        </section>
 
+        {similar.length > 0 && (
+          <section className="pd-similar">
+            <span className="pd-kicker">{lang === 'ru' ? 'Похожие' : 'Similar'}</span>
+            <div className="pd-similar-list">
+              {similar.map((item) => (
+                <button key={item.id} className="pd-similar-item" onClick={() => navigate(`/product/${item.id}`)}>
+                  <span>{lang === 'ru' ? item.title : item.title_en}</span>
+                  <strong>${item.price.toFixed(0)}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className="pd-cta-spacer" aria-hidden />
+
+        <motion.div
+          className="pd-cta-dock"
+          initial={{ y: 60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.2 }}
+        >
           <motion.button
-            className="fv-primary fv-sticky-buy"
+            className="pd-cta"
             disabled={isOut}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.985 }}
             onClick={() => {
               if (isOut) return
               haptic('medium')
               setShowPayment(true)
             }}
           >
-            <span className="fv-buy-label">
-              {isOut ? (lang === 'ru' ? 'Нет в наличии' : 'Sold out') : (lang === 'ru' ? 'Купить сейчас' : 'Buy now')}
+            <span className="pd-cta-shimmer" aria-hidden />
+            <span className="pd-cta-label">
+              {isOut ? (lang === 'ru' ? 'Нет в наличии' : 'Sold out') : (lang === 'ru' ? 'Купить' : 'Buy')}
             </span>
+            {!isOut && <span className="pd-cta-amount">${total.toFixed(2)}</span>}
             {!isOut && (
-              <span className="fv-buy-amount">${total.toFixed(2)}</span>
-            )}
-            {!isOut && (
-              <svg className="fv-buy-arrow" viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg className="pd-cta-arrow" viewBox="0 0 24 24" fill="none" width="18" height="18">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             )}
           </motion.button>
-
-        </section>
-
-        {similar.length > 0 && (
-          <section className="fv-similar">
-            <h2>{lang === 'ru' ? 'Похожие варианты' : 'Similar options'}</h2>
-            {similar.map((item) => (
-              <button key={item.id} onClick={() => navigate(`/product/${item.id}`)}>
-                <span>{lang === 'ru' ? item.title : item.title_en}</span>
-                <strong>${item.price.toFixed(0)}</strong>
-              </button>
-            ))}
-          </section>
-        )}
+        </motion.div>
       </main>
 
       <AnimatePresence>
