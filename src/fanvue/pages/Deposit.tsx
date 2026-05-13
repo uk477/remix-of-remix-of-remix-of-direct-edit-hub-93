@@ -552,16 +552,20 @@ export function PayPanel({
       <section className="dpz-pay-stage">
         <span className="dpz-pay-stage-glow" aria-hidden />
         <div className="dpz-pay-hero">
-          <motion.div
-            className="dpz-pay-hero-num"
+          <motion.button
+            type="button"
+            className="dpz-pay-hero-num dpz-pay-hero-num--btn"
+            onClick={onCopyAmount}
             key={String(cryptoAmount)}
             initial={{ y: 6, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.36, ease: EASE }}
+            whileTap={{ scale: 0.97 }}
+            aria-label={lang === 'ru' ? 'Скопировать сумму' : 'Copy amount'}
           >
             <span className="dpz-pay-hero-val">{formatCryptoAmount(cryptoAmount, network)}</span>
             <em>{cryptoSymbol}</em>
-          </motion.div>
+          </motion.button>
           <span className="dpz-pay-hero-eye">
             ≈ ${uniqueAmount.toFixed(2)}
           </span>
