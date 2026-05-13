@@ -693,6 +693,23 @@ export default function Settings() {
                   position: 'relative', overflow: 'hidden',
                 }}
               >
+                {/* sweep shine — reviews (right → left), then hands off to channel */}
+                {sweep === 'reviews' && (
+                  <motion.div
+                    key="sweep-reviews"
+                    aria-hidden
+                    initial={{ x: '220%' }}
+                    animate={{ x: '-120%' }}
+                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    onAnimationComplete={() => setSweep('channel')}
+                    style={{
+                      position: 'absolute', top: 0, bottom: 0, width: 70,
+                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
+                      transform: 'skewX(20deg)', pointerEvents: 'none',
+                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
+                    }}
+                  />
+                )}
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
                     {lang === 'ru' ? 'Сообщество' : 'Community'}
