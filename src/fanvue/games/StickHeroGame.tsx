@@ -367,6 +367,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     st.stickLen = 0; st.stickAngle = 0
     st.score = 0; st.glyphIdx = 0
     st.perfectFlash = 0; st.particles = []; st.shake = 0
+    submittedRef.current = false
     setScore(0); setOver(false)
   }
 
