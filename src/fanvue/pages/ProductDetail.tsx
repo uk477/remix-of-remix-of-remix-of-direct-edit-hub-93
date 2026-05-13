@@ -347,6 +347,7 @@ export default function ProductDetail() {
         {similar.length > 0 && (
           <section className="pdb-section pdb-section--similar">
             <div className="pdb-section-head">
+              <span className="pdb-section-num">03</span>
               <span className="pdb-section-bar" />
               <span className="pdb-section-name">{lang === 'ru' ? 'РЯДОМ' : 'NEARBY'}</span>
             </div>
