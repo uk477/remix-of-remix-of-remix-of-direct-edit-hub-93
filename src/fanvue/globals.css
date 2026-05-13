@@ -6717,11 +6717,12 @@ body::after { display: none; }
 .dpz .dpz-pay-stage {
   position: relative;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 16px 14px;
+  justify-content: center;
+  gap: 18px;
+  padding: 22px 14px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   border-radius: 0;
   background: transparent;
@@ -6734,9 +6735,11 @@ body::after { display: none; }
   z-index: 1;
   display: flex;
   flex-direction: column-reverse;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   min-width: 0;
+  width: 100%;
+  text-align: center;
 }
 .dpz .dpz-pay-hero-eye {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -6754,14 +6757,15 @@ body::after { display: none; }
 .dpz .dpz-pay-hero-num {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  justify-content: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .dpz .dpz-pay-hero-val {
   font-family: var(--font-display);
-  font-size: clamp(26px, 8vw, 36px);
+  font-size: clamp(48px, 14vw, 72px);
   font-weight: 950;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   background: linear-gradient(180deg, #ffffff 0%, #c9f5d6 100%);
@@ -6772,7 +6776,7 @@ body::after { display: none; }
 .dpz .dpz-pay-hero-num em {
   font-family: var(--font-display);
   font-style: normal;
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -6786,24 +6790,27 @@ body::after { display: none; }
 .dpz .dpz-pay-qr {
   position: relative;
   z-index: 1;
-  width: auto;
-  height: auto;
-  padding: 8px;
+  width: min(280px, 78vw);
+  height: min(280px, 78vw);
+  padding: 12px;
   background: #fff;
   border-radius: 0;
   box-shadow: 0 0 0 1px rgba(57,255,99,0.4), 0 16px 36px -12px rgba(57,255,99,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .dpz .dpz-pay-qr-img,
 .dpz .dpz-pay-qr svg {
   border-radius: 0;
-  width: 148px;
-  height: 148px;
+  width: 100%;
+  height: 100%;
 }
 .dpz .dpz-pay-qr-corner {
   border-color: var(--fv-green) !important;
   border-radius: 0 !important;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Address card — brutalist mono row */
