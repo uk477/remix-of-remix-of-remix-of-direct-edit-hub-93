@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -192,7 +192,25 @@ function ContentSheet({
     : `${contentKey}_${lang}`) as keyof SiteContent
   const [draft, setDraft]     = useState(siteContent[langKey] ?? '')
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const sheetRef = useRef<HTMLDivElement | null>(null)
+  const closingRef = useRef(false)
   const admin = isAdmin()
+  const y = useMotionValue(0)
+  const controls = useAnimationControls()
+  const overlayOpacity = useTransform(y, (v) => {
+    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+    return Math.max(0, 1 - v / h)
+  })
+  useEffect(() => {
+    controls.start({ y: 0 }, { type: 'spring', stiffness: 320, damping: 34, mass: 0.8 })
+  }, [controls])
+  const closeSheet = async () => {
+    if (closingRef.current) return
+    closingRef.current = true
+    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+    await controls.start({ y: h }, { type: 'spring', stiffness: 380, damping: 40, mass: 0.7 })
+    onClose()
+  }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
     offer_ru: `## Публичная оферта
@@ -345,21 +363,32 @@ Always provide your **Order ID** when contacting support.`,
       className="modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      onClick={(e) => { if (e.target === e.currentTarget && !editing) onClose() }}
+      exit={{ opacity: 0 }}
+      style={{ opacity: overlayOpacity }}
+      onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
     >
       <motion.div
+        ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-        style={{ maxHeight: '85dvh' }}
+        animate={controls}
+        style={{ y, maxHeight: '85dvh', willChange: 'transform' }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
-        dragConstraints={{ top: 0 }}
-        dragElastic={{ top: 0, bottom: 0.35 }}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 1 }}
+        onDrag={(_, info) => {
+          if (editing || closingRef.current) return
+          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+          if (info.offset.y > h * 0.7) closeSheet()
+        }}
         onDragEnd={(_, info) => {
-          if (!editing && (info.offset.y > 70 || info.velocity.y > 650)) onClose()
+          if (editing) return
+          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+          const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
+          if (shouldClose) closeSheet()
+          else controls.start({ y: 0 }, { type: 'spring', stiffness: 420, damping: 36, mass: 0.7 })
         }}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
@@ -379,7 +408,7 @@ Always provide your **Order ID** when contacting support.`,
             <motion.button
               className="card"
               style={{ padding: '6px 12px', color: 'var(--t-muted)', fontSize: 12 }}
-              onClick={onClose}
+              onClick={closeSheet}
               whileTap={{ scale: 0.95 }}
             >
               {lang === 'ru' ? 'Закрыть' : 'Close'}
