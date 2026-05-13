@@ -219,7 +219,7 @@ export default function Home() {
             {' '}{lang === 'ru' ? 'онлайн' : 'online'}
           </span>
         </span>
-        <span className="shop-live-cell">
+        <span className="shop-live-cell" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M3 4v4h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <span className="shop-live-t">
             <AnimatePresence mode="popLayout" initial={false}>
