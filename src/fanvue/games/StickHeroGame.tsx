@@ -802,32 +802,52 @@ function drawHero(
   ctx.fillStyle = halo
   ctx.beginPath(); ctx.arc(capCx, capCy, 26, 0, Math.PI * 2); ctx.fill()
 
-  // brim
+  // brim — symmetric, slightly forward
+  const brimY = y + 13
+  ctx.fillStyle = '#1fae3c'
+  ctx.beginPath()
+  ctx.ellipse(capCx, brimY + 1, HERO_W * 0.58, 2.6, 0, 0, Math.PI * 2)
+  ctx.fill()
   ctx.fillStyle = '#2cd74f'
   ctx.beginPath()
-  ctx.ellipse(capCx + 6, y + 14, HERO_W * 0.55, 3.2, 0, 0, Math.PI * 2)
+  ctx.ellipse(capCx, brimY, HERO_W * 0.58, 2.4, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  // crown (dome)
-  const cg = ctx.createLinearGradient(0, y + 1, 0, y + 14)
-  cg.addColorStop(0, '#7bff8e')
+  // crown (dome) — clipped to keep label inside
+  const cg = ctx.createLinearGradient(0, y, 0, brimY)
+  cg.addColorStop(0, '#9bff9e')
   cg.addColorStop(1, '#2cd74f')
   ctx.fillStyle = cg
   ctx.beginPath()
-  ctx.moveTo(x + 4, y + 13)
-  ctx.quadraticCurveTo(x + HERO_W / 2, y - 4, x + HERO_W - 4, y + 13)
+  ctx.moveTo(x + 6, brimY)
+  ctx.quadraticCurveTo(capCx, y - 5, x + HERO_W - 6, brimY)
   ctx.closePath()
   ctx.fill()
+  // crown highlight
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(x + 9, brimY - 1)
+  ctx.quadraticCurveTo(capCx - 4, y - 1, capCx + 2, y + 1)
+  ctx.stroke()
 
   // top button
   ctx.fillStyle = '#1fae3c'
-  ctx.beginPath(); ctx.arc(x + HERO_W / 2, y + 1.5, 1.6, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(capCx, y + 0.5, 1.4, 0, Math.PI * 2); ctx.fill()
 
-  // Fanvue mark on cap: bold "F" + small "anvue"
+  // Fanvue "F" mark — single, centered, fits the cap
+  ctx.save()
+  ctx.beginPath()
+  ctx.moveTo(x + 6, brimY)
+  ctx.quadraticCurveTo(capCx, y - 5, x + HERO_W - 6, brimY)
+  ctx.closePath()
+  ctx.clip()
   ctx.fillStyle = '#0a3d18'
   ctx.font = '900 9px "Space Grotesk", ui-sans-serif, system-ui'
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
-  const labelY = y + 8
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('F', capCx, y + 7)
+  ctx.restore()
   ctx.fillText('F', x + HERO_W * 0.3, labelY)
   ctx.font = '800 6px "Inter", ui-sans-serif, system-ui'
   ctx.fillText('anvue', x + HERO_W * 0.3 + 5.5, labelY + 0.4)
