@@ -445,7 +445,10 @@ function LotCard({
         <motion.img
           src={image}
           alt=""
-          loading={index === 0 ? 'eager' : 'lazy'}
+          loading="eager"
+          decoding="async"
+          // @ts-expect-error - valid HTML attr
+          fetchpriority="high"
           style={{ y: mediaY, scale: mediaScale }}
         />
         <div className="shop-lot-shade" />
