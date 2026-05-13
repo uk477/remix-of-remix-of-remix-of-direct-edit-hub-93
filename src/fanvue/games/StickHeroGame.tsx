@@ -760,7 +760,7 @@ function drawHero(
   ctx.ellipse(cx, baseY + 1, (W * 0.40) * shadowSquish, 3.2, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  // body bob
+  // body bob (vertical bounce while walking, gentle idle breathing)
   const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 2.5 : Math.sin(capWobble * 1.4) * 0.6
 
   ctx.save()
@@ -770,13 +770,63 @@ function drawHero(
   ctx.translate(0, bodyBob)
 
   if (heroImg && heroImg.complete && heroImg.naturalWidth > 0) {
-    // The sprite is roughly square with character centered.
-    // Draw it scaled so the character body sits with feet at baseY.
-    const drawW = W * 1.6
-    const drawH = H * 1.6
+    const sW = heroImg.naturalWidth
+    const sH = heroImg.naturalHeight
+    const ar = sW / sH
+    const drawH = H * 1.7
+    const drawW = drawH * ar
     const drawX = cx - drawW / 2
-    const drawY = baseY - drawH + 6 // tuck feet slightly below baseline
-    ctx.drawImage(heroImg, drawX, drawY, drawW, drawH)
+    const drawY = baseY - drawH + 8 // feet sit slightly below baseline
+
+    // Split sprite: top = body+cap, bottom = legs (split L/R for walking).
+    const legCutRel = 0.83
+    const sLegTop = Math.floor(sH * legCutRel)
+    const sBodyH = sLegTop
+    const sLegH = sH - sLegTop
+    const dBodyH = drawH * legCutRel
+    const dLegH = drawH - dBodyH
+    const dLegYBase = drawY + dBodyH
+
+    // Animated legs (vertical lift only — no seams)
+    const liftAmt = dLegH * 0.55
+    const liftL = walking ? Math.max(0, Math.sin(walkPhase)) * liftAmt : 0
+    const liftR = walking ? Math.max(0, -Math.sin(walkPhase)) * liftAmt : 0
+    const halfSW = sW / 2
+    const halfDW = drawW / 2
+    // left leg
+    ctx.drawImage(heroImg, 0, sLegTop, halfSW, sLegH,
+                  drawX, dLegYBase - liftL, halfDW, dLegH)
+    // right leg
+    ctx.drawImage(heroImg, halfSW, sLegTop, halfSW, sLegH,
+                  drawX + halfDW, dLegYBase - liftR, halfDW, dLegH)
+
+    // Body + cap on top of legs
+    ctx.drawImage(heroImg, 0, 0, sW, sBodyH, drawX, drawY, drawW, dBodyH)
+
+    // Blink — briefly cover the highlight "eye" with body color
+    // Eye highlight sits roughly at (0.69, 0.50) of the sprite
+    const blinkCycle = 3.2 // seconds between blinks
+    const blinkDur = 0.13
+    const t = (capWobble % blinkCycle)
+    if (t < blinkDur) {
+      const k = Math.sin((t / blinkDur) * Math.PI) // 0..1..0
+      const eyeX = drawX + drawW * 0.69
+      const eyeY = drawY + drawH * 0.50
+      const eyeRX = drawW * 0.025
+      const eyeRY = drawW * 0.018 * Math.max(0.15, 1 - k)
+      // Closed-lid color matches the body shading
+      ctx.fillStyle = '#cfd3d6'
+      ctx.beginPath()
+      ctx.ellipse(eyeX, eyeY, eyeRX, eyeRY + 0.6, 0, 0, Math.PI * 2)
+      ctx.fill()
+      // tiny lid line
+      ctx.strokeStyle = 'rgba(60,70,80,0.45)'
+      ctx.lineWidth = 0.8
+      ctx.beginPath()
+      ctx.moveTo(eyeX - eyeRX, eyeY)
+      ctx.lineTo(eyeX + eyeRX, eyeY)
+      ctx.stroke()
+    }
   } else {
     // fallback capsule
     const bodyW = 38, bodyH = 52
