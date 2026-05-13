@@ -848,9 +848,6 @@ function drawHero(
   ctx.textBaseline = 'middle'
   ctx.fillText('F', capCx, y + 7)
   ctx.restore()
-  ctx.fillText('F', x + HERO_W * 0.3, labelY)
-  ctx.font = '800 6px "Inter", ui-sans-serif, system-ui'
-  ctx.fillText('anvue', x + HERO_W * 0.3 + 5.5, labelY + 0.4)
 
   ctx.restore()
   ctx.restore()
