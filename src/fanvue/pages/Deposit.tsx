@@ -500,6 +500,13 @@ export function PayPanel({
     setTimeout(() => setCopied(false), 1800)
   }
 
+  const onCopyAmount = async () => {
+    const value = formatCryptoAmount(cryptoAmount, network)
+    try { await navigator.clipboard.writeText(value) } catch { /* ignore */ }
+    haptic('success')
+    toast(lang === 'ru' ? `Сумма ${value} ${cryptoSymbol} скопирована` : `Amount ${value} ${cryptoSymbol} copied`, 'success')
+  }
+
   const fmtTimer = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
   const pct = useMemo(() => (timer / TOTAL_SECONDS), [timer])
   const lowTime = timer < 60
