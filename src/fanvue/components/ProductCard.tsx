@@ -5,10 +5,10 @@ import { useStore } from '../store'
 import type { Product } from '../store/types'
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16, filter: 'blur(4px)' },
+  hidden: { opacity: 0, y: 10 },
   show: (i: number) => ({
-    opacity: 1, y: 0, filter: 'blur(0px)',
-    transition: { duration: 0.45, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] },
+    opacity: 1, y: 0,
+    transition: { duration: 0.28, delay: Math.min(i, 5) * 0.025, ease: [0.16, 1, 0.3, 1] },
   }),
 }
 
