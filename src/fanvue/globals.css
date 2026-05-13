@@ -6348,13 +6348,14 @@ body::after { display: none; }
 }
 .home-topup-label {
   font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 950;
-  letter-spacing: 0.08em;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1;
-  color: #07140a;
-  text-shadow: none;
+  color: #06170a;
+  -webkit-text-stroke: 0.6px #06170a;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.18);
 }
 .home-topup-sub {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
