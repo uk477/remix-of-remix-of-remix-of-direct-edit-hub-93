@@ -65,6 +65,20 @@ function EditorToolbar({
 }) {
   const [showColors, setShowColors] = useState(false)
 
+  const getLinkSelection = (ta: HTMLTextAreaElement) => {
+    let start = ta.selectionStart
+    let end = ta.selectionEnd
+    const value = ta.value
+
+    if (start === end) {
+      while (start > 0 && !/\s/.test(value[start - 1])) start -= 1
+      while (end < value.length && !/\s/.test(value[end])) end += 1
+    }
+
+    const text = value.slice(start, end) || (lang === 'ru' ? 'ссылка' : 'link')
+    return { start, end, text }
+  }
+
   const wrap = (before: string, after: string = before, placeholder = '') => {
     const ta = textareaRef.current
     if (!ta) return
@@ -97,14 +111,10 @@ function EditorToolbar({
   const insertLink = () => {
     const ta = textareaRef.current
     if (!ta) return
+    const { start, end, text } = getLinkSelection(ta)
     const url = window.prompt(lang === 'ru' ? 'Вставьте URL:' : 'Paste URL:', 'https://')
     if (!url) return
-    const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd) || (lang === 'ru' ? 'ссылка' : 'link')
-    wrap(`[${sel}](${url})`, '', '')
-    // wrap inserts placeholder when sel empty; here we pre-built the whole token, so override:
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const token = `[${ta.value.slice(start, end) || (lang === 'ru' ? 'ссылка' : 'link')}](${url})`
+    const token = `[${text}](${url.trim()})`
     const next = ta.value.slice(0, start) + token + ta.value.slice(end)
     setDraft(next)
     requestAnimationFrame(() => {
