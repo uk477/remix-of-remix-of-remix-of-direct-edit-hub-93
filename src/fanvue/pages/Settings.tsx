@@ -246,7 +246,7 @@ Always provide your **Order ID** when contacting support.`,
               <motion.button
                 className="card"
                 style={{ padding: '6px 12px', color: 'var(--brand)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
-                onClick={() => { setDraft(siteContent[contentKey]); setEditing(true) }}
+                onClick={() => { setDraft(displayText); setEditing(true) }}
                 whileTap={{ scale: 0.95 }}
               >
                 <EditIcon /> {lang === 'ru' ? 'Изменить' : 'Edit'}
@@ -265,13 +265,20 @@ Always provide your **Order ID** when contacting support.`,
 
         {editing ? (
           <>
+            <EditorToolbar textareaRef={textareaRef} setDraft={setDraft} lang={lang} />
             <textarea
+              ref={textareaRef}
               className="input"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={lang === 'ru' ? 'Введите текст...' : 'Enter text...'}
-              style={{ width: '100%', minHeight: 200, borderRadius: 12, padding: '12px 14px', resize: 'vertical', lineHeight: 1.6 }}
+              style={{ width: '100%', minHeight: 260, borderRadius: 12, padding: '12px 14px', resize: 'vertical', lineHeight: 1.6, fontFamily: mono, fontSize: 13 }}
             />
+            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.45)', marginTop: 6, lineHeight: 1.5 }}>
+              {lang === 'ru'
+                ? 'Markdown: ## Заголовок · ### Подзаголовок · **жирный** · *курсив* · __подчёрк__ · ~~зачёрк~~ · {c:#00FF88}цвет{/c} · [текст](https://...) · • список'
+                : 'Markdown: ## Heading · ### Subheading · **bold** · *italic* · __underline__ · ~~strike~~ · {c:#00FF88}color{/c} · [text](https://...) · • list'}
+            </div>
             <div className="row gap-2 mt-3">
               <motion.button className="btn btn-primary" onClick={handleSave} whileTap={{ scale: 0.97 }} style={{ flex: 1 }}>
                 {lang === 'ru' ? 'Сохранить' : 'Save'}
