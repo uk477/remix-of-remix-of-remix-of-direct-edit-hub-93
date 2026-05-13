@@ -17,7 +17,7 @@ const MIN_PW = 30
 const MAX_PW = 110
 const PERFECT_R = 8          // perfect-tap radius
 
-type Phase = 'waiting' | 'growing' | 'falling' | 'walking' | 'falling_off' | 'gameover'
+type Phase = 'waiting' | 'growing' | 'falling' | 'walking' | 'camera' | 'falling_off' | 'gameover'
 
 interface Plat { x: number; w: number }
 
@@ -283,7 +283,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       st.phase = 'growing'
       st.stickLen = 0
       st.stickAngle = 0
-      haptic('selection')
+      haptic('light')
       e.preventDefault()
     }
     const onUp = (e: PointerEvent) => {
@@ -653,4 +653,4 @@ function cameraTween(st: any, dt: number) {
     st.cameraDone?.()
   }
 }
-void {} as CameraSt
+export type { CameraSt }
