@@ -103,10 +103,14 @@ export default function Home() {
             src={fanvueGlyph}
             alt=""
             draggable={false}
+            decoding="async"
+            // @ts-expect-error - valid HTML attr
+            fetchpriority="high"
+            width={36}
+            height={36}
             className="shop-hero-brand-logo"
-            initial={{ scale: 0.82, y: 4, opacity: 0, filter: 'blur(8px)' }}
-            animate={{ scale: 1, y: 0, opacity: 1, filter: 'blur(0px)' }}
-            transition={{ type: 'spring', stiffness: 260, damping: 22, mass: 0.75, delay: 0.04 }}
+            initial={false}
+            animate={{ opacity: 1 }}
           />
 
           <motion.span
