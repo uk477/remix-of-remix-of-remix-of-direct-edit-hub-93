@@ -146,23 +146,24 @@ export default function Home() {
             </span>
           </button>
           <motion.button
-            className="shop-hero-topup"
+            className="home-topup"
             onPointerDown={spawnRipple}
             onClick={goDeposit}
             aria-label={lang === 'ru' ? 'Пополнить баланс' : 'Top up balance'}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 520, damping: 22 }}
           >
-            <span className="shop-hero-topup-shine" aria-hidden />
-            <motion.svg
-              viewBox="0 0 24 24"
-              fill="none"
-              animate={{ y: [0, -1.4, 0] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </motion.svg>
-            <span>{lang === 'ru' ? 'Пополнить' : 'Top up'}</span>
+            <span className="home-topup-bg" aria-hidden />
+            <span className="home-topup-edge" aria-hidden />
+            <span className="home-topup-l">
+              <span className="home-topup-label">{lang === 'ru' ? 'ПОПОЛНИТЬ' : 'TOP UP'}</span>
+              <span className="home-topup-sub">USDT · BTC · SOL</span>
+            </span>
+            <span className="home-topup-arrow" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter"/>
+              </svg>
+            </span>
             <AnimatePresence>
               {ripples.map((r) => (
                 <motion.span
