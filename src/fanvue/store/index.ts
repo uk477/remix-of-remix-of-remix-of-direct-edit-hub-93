@@ -523,6 +523,7 @@ export const useStore = create<AppStore>()(
         pinnedProductIds: s.pinnedProductIds,
         supportUnread: s.supportUnread,
         stickHeroScores: s.stickHeroScores,
+        stickHeroName: s.stickHeroName,
       }),
     }
   )
