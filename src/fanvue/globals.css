@@ -3569,9 +3569,9 @@ body::after { display: none; }
 }
 .shop-live-cell {
   display: inline-flex; align-items: center; justify-content: center;
-  gap: 6px; min-width: 0;
-  padding: 9px 6px;
-  font-size: 11px; color: var(--fv-soft);
+  gap: 5px; min-width: 0;
+  padding: 9px 4px;
+  font-size: 10.5px; color: var(--fv-soft);
   white-space: nowrap;
   border-right: 1px solid var(--fv-line);
   position: relative;
