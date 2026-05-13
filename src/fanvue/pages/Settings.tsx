@@ -449,7 +449,7 @@ Always provide your **Order ID** when contacting support.`,
               <motion.button className="btn btn-primary" onClick={handleSave} whileTap={{ scale: 0.97 }} style={{ flex: 1 }}>
                 {lang === 'ru' ? 'Сохранить' : 'Save'}
               </motion.button>
-              <motion.button className="btn btn-secondary" onClick={() => setEditing(false)} whileTap={{ scale: 0.97 }}>
+              <motion.button className="btn btn-secondary" onClick={() => { setDraft(displayText); setEditing(false) }} whileTap={{ scale: 0.97 }}>
                 {lang === 'ru' ? 'Отмена' : 'Cancel'}
               </motion.button>
             </div>
