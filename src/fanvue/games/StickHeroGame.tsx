@@ -745,20 +745,51 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
 }
 
 /**
- * Fanvue ninja: light pill body, white pearl eye, neon-green cap with F·anvue,
- * subtle cap wobble, animated legs while walking.
+ * Draws the Fanvue mascot using the sprite. Animates:
+ *  - subtle bob + tilt while walking
+ *  - cap wobble (gentle whole-character sway when idle)
  */
 function drawHero(
   ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
 ) {
-  const y = baseY - HERO_H
-  const cx = x + HERO_W / 2, cy = y + HERO_H / 2
+  const W = HERO_W, H = HERO_H
+  const y = baseY - H
+
+  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.1 : 1
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'
+  ctx.beginPath()
+  ctx.ellipse(x + W / 2, baseY + 1, (W * 0.34) * shadowSquish, 2.8, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  const bob  = walking ? -Math.abs(Math.sin(walkPhase)) * 1.8 : Math.sin(capWobble * 1.6) * 0.4
+  const tilt = walking ? Math.sin(walkPhase) * 2.6 : Math.sin(capWobble * 1.2) * 1.0
+  const totalRot = rot + tilt
+
+  const cx = x + W / 2
+  const cy = y + H * 0.7
+
   ctx.save()
-  ctx.translate(cx, cy)
-  if (rot) ctx.rotate(rot * Math.PI / 180)
+  ctx.translate(cx, cy + bob)
+  if (totalRot) ctx.rotate((totalRot * Math.PI) / 180)
   ctx.translate(-cx, -cy)
+
+  if (img && img.complete && img.naturalWidth) {
+    const aspect = img.naturalWidth / img.naturalHeight
+    const drawH = H * 1.25
+    const drawW = drawH * aspect
+    ctx.drawImage(img, x + (W - drawW) / 2, y - (drawH - H) * 0.5, drawW, drawH)
+  } else {
+    ctx.fillStyle = '#e8edf3'
+    roundRect(ctx, x + 4, y + 18, W - 8, H - 26, 14); ctx.fill()
+    ctx.fillStyle = '#7bff8e'
+    roundRect(ctx, x + 2, y + 6, W - 4, 20, 10); ctx.fill()
+  }
+
+  ctx.restore()
+}
 
   // ── legs (animated when walking) ────────────────────────────
   const legW = 6, legH = 9
