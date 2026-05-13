@@ -6634,3 +6634,367 @@ body::after { display: none; }
   .dpz .dpz-cta-ic svg,
   .dpb-grid { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PAY PANEL — brutalist editorial override (step 3)
+   ═══════════════════════════════════════════════════════════ */
+.dpz .dpz-card--pay {
+  border-radius: 0;
+  border: 1px solid rgba(57,255,99,0.22);
+  background:
+    linear-gradient(180deg, rgba(57,255,99,0.04), transparent 40%),
+    rgba(255,255,255,0.018);
+  padding: 0;
+  overflow: hidden;
+}
+.dpz .dpz-pay {
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  gap: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dpz .dpz-pay::before { display: none; }
+
+/* Live progress bar across top */
+.dpz .dpz-pay-pulse {
+  height: 3px;
+  border-radius: 0;
+  background: rgba(255,255,255,0.06);
+  margin: 0;
+}
+.dpz .dpz-pay-pulse-bar {
+  background: var(--fv-green);
+  box-shadow: 0 0 12px rgba(57,255,99,0.6);
+  border-radius: 0;
+}
+
+/* Header strip — coin + status + clock */
+.dpz .dpz-pay-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2);
+}
+.dpz .dpz-pay-hd-meta strong {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dpz .dpz-pay-status,
+.dpz .dpz-pay-clock {
+  border-radius: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.02);
+}
+.dpz .dpz-pay-status {
+  color: rgba(255,255,255,0.75);
+}
+.dpz .dpz-pay-status.is-paid {
+  color: var(--fv-green);
+  border-color: rgba(57,255,99,0.6);
+  background: rgba(57,255,99,0.08);
+}
+.dpz .dpz-pay-clock.is-low {
+  color: #ffb066;
+  border-color: rgba(255,176,102,0.5);
+  background: rgba(255,176,102,0.08);
+}
+
+/* HERO — exact amount + ≈ USD, kicker label "К ОПЛАТЕ" */
+.dpz .dpz-pay-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0;
+  background: transparent;
+}
+.dpz .dpz-pay-stage::before { display: none; }
+.dpz .dpz-pay-stage-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 80% at 0% 50%, rgba(57,255,99,0.14), transparent 70%);
+  opacity: 0.8;
+}
+.dpz .dpz-pay-hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.dpz .dpz-pay-hero-eye {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fv-green);
+  opacity: 0.8;
+}
+.dpz .dpz-pay-hero-eye::before {
+  content: '≈ ';
+  opacity: 0.5;
+}
+.dpz .dpz-pay-hero-num {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dpz .dpz-pay-hero-val {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 8vw, 36px);
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 0%, #c9f5d6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.dpz .dpz-pay-hero-num em {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fv-green);
+  opacity: 0.85;
+}
+
+/* Kicker line above number */
+.dpz .dpz-pay-hero::after {
+  content: 'К ОПЛАТЕ В СЕТИ';
+  order: -1;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+.dpz[data-lang="en"] .dpz-pay-hero::after { content: 'TO PAY ON-CHAIN'; }
+
+/* QR — sharp brutalist frame, no rounded corners */
+.dpz .dpz-pay-qr {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  background: #fff;
+  border-radius: 0;
+  box-shadow: 0 0 0 1px rgba(57,255,99,0.4), 0 16px 36px -12px rgba(57,255,99,0.3);
+}
+.dpz .dpz-pay-qr-img,
+.dpz .dpz-pay-qr svg {
+  border-radius: 0;
+  width: 124px;
+  height: 124px;
+}
+.dpz .dpz-pay-qr-corner {
+  border-color: var(--fv-green) !important;
+  border-radius: 0 !important;
+  width: 12px;
+  height: 12px;
+}
+
+/* Address card — brutalist mono row */
+.dpz .dpz-pay-addr {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0;
+  background: rgba(0,0,0,0.18);
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+.dpz .dpz-pay-addr::after { display: none; }
+.dpz .dpz-pay-addr:hover { background: rgba(57,255,99,0.06); }
+.dpz .dpz-pay-addr.is-copied { background: rgba(57,255,99,0.1); }
+.dpz .dpz-pay-addr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dpz .dpz-pay-addr-eye {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+.dpz .dpz-pay-addr-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(57,255,99,0.45);
+  background: rgba(57,255,99,0.06);
+  color: var(--fv-green);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 0;
+}
+.dpz .dpz-pay-addr-action svg { width: 12px; height: 12px; }
+.dpz .dpz-pay-addr-text {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fv-text);
+  word-break: break-all;
+}
+.dpz .dpz-pay-addr-full { display: none; }
+
+/* Flow — numbered brutalist steps */
+.dpz .dpz-pay-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  padding: 14px 0;
+  margin: 0;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  border-radius: 0;
+}
+.dpz .dpz-pay-flow-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+.dpz .dpz-pay-flow-dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.02);
+  border-radius: 0;
+  color: rgba(255,255,255,0.5);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  font-style: normal;
+}
+.dpz .dpz-pay-flow-dot i {
+  font-style: normal;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.dpz .dpz-pay-flow-step.is-active .dpz-pay-flow-dot {
+  border-color: var(--fv-green);
+  color: var(--fv-green);
+  background: rgba(57,255,99,0.08);
+  box-shadow: 0 0 0 3px rgba(57,255,99,0.12);
+}
+.dpz .dpz-pay-flow-step.is-active .dpz-pay-flow-dot::before {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--fv-green);
+  border-radius: 50%;
+  animation: fv-ping 1.4s ease-out infinite;
+}
+.dpz .dpz-pay-flow-step.is-done .dpz-pay-flow-dot {
+  background: var(--fv-green);
+  border-color: var(--fv-green);
+  color: #061006;
+}
+.dpz .dpz-pay-flow-pulse { display: none; }
+.dpz .dpz-pay-flow-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  line-height: 1.2;
+}
+.dpz .dpz-pay-flow-step.is-active .dpz-pay-flow-label { color: var(--fv-green); }
+.dpz .dpz-pay-flow-step.is-done .dpz-pay-flow-label { color: rgba(255,255,255,0.85); }
+.dpz .dpz-pay-flow-line {
+  position: absolute;
+  top: 14px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 1px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 4px, transparent 4px 8px);
+}
+.dpz .dpz-pay-flow-step.is-done .dpz-pay-flow-line,
+.dpz .dpz-pay-flow-step.is-active .dpz-pay-flow-line {
+  background: repeating-linear-gradient(90deg, var(--fv-green) 0 4px, transparent 4px 8px);
+}
+
+/* Note + cancel */
+.dpz .dpz-pay-note {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.65);
+}
+.dpz .dpz-pay-note b {
+  color: var(--fv-green);
+  font-weight: 800;
+}
+.dpz .dpz-cancel {
+  margin: 0;
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.3);
+  color: rgba(255,255,255,0.5);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 0;
+  transition: background 160ms ease, color 160ms ease;
+}
+.dpz .dpz-cancel:hover:not(:disabled) {
+  background: rgba(255,80,80,0.08);
+  color: #ff6f6f;
+}
