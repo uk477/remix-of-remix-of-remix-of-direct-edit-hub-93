@@ -579,7 +579,7 @@ export default function Settings() {
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Right column: stacked actions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
