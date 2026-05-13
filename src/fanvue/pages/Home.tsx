@@ -199,12 +199,12 @@ export default function Home() {
       {/* ── LIVE STATUS BAR ── */}
       <motion.div
         className="shop-live"
-        style={{ gridTemplateColumns: '1fr 1.35fr 1.1fr' }}
+        style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
       >
-        <span className="shop-live-cell">
+        <span className="shop-live-cell" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <span className="shop-live-dot"><i /></span>
           <span className="shop-live-t">
             <AnimatePresence mode="popLayout" initial={false}>
@@ -219,7 +219,7 @@ export default function Home() {
             {' '}{lang === 'ru' ? 'онлайн' : 'online'}
           </span>
         </span>
-        <span className="shop-live-cell">
+        <span className="shop-live-cell" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M3 4v4h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <span className="shop-live-t">
             <AnimatePresence mode="popLayout" initial={false}>
@@ -234,7 +234,7 @@ export default function Home() {
             {' '}{lang === 'ru' ? 'продаж всего' : 'total sales'}
           </span>
         </span>
-        <span className="shop-live-cell shop-live-cell--green">
+        <span className="shop-live-cell shop-live-cell--green" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <span className="shop-live-bolt" aria-hidden="true">
             <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
           </span>
