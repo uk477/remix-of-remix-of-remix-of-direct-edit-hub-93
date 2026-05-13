@@ -211,8 +211,25 @@ export default function Home() {
           </span>
         </span>
         <span className="shop-live-cell">
-          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-          <span className="shop-live-t"><b>{todaySales}</b> {lang === 'ru' ? 'сделок' : 'sales'}</span>
+          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7.5V12l3 1.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="shop-live-t">
+            {lastSaleAgo ? (
+              <>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.b
+                    key={lastSaleAgo}
+                    initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
+                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                    exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
+                    transition={{ duration: 0.32, ease: EASE }}
+                  >{lastSaleAgo}</motion.b>
+                </AnimatePresence>
+                {' '}{lang === 'ru' ? 'сделка' : 'last sale'}
+              </>
+            ) : (
+              <span style={{ opacity: 0.6 }}>{lang === 'ru' ? 'без сделок' : 'no sales yet'}</span>
+            )}
+          </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">
           <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
