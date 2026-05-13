@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -194,33 +194,12 @@ function ContentSheet({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const sheetRef = useRef<HTMLDivElement | null>(null)
   const closingRef = useRef(false)
-  const [isClosing, setIsClosing] = useState(false)
   const admin = isAdmin()
-  const y = useMotionValue(0)
-  const controls = useAnimationControls()
-  const overlayOpacity = useTransform(y, (v) => {
-    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    return Math.max(0, 1 - v / h)
-  })
-  useEffect(() => {
-    closingRef.current = false
-    setIsClosing(false)
-    y.set(0)
-    controls.start({ y: 0 }, { type: 'spring', stiffness: 320, damping: 34, mass: 0.8 })
-  }, [controls, y])
+
   const closeSheet = async () => {
     if (closingRef.current) return
     closingRef.current = true
-    setIsClosing(true)
-    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    try {
-      await Promise.race([
-        controls.start({ y: h }, { type: 'spring', stiffness: 420, damping: 42, mass: 0.7 }),
-        new Promise((resolve) => window.setTimeout(resolve, 320)),
-      ])
-    } finally {
-      onClose()
-    }
+    onClose()
   }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
