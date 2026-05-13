@@ -204,7 +204,7 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
       >
-        <span className="shop-live-cell">
+        <span className="shop-live-cell" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <span className="shop-live-dot"><i /></span>
           <span className="shop-live-t">
             <AnimatePresence mode="popLayout" initial={false}>
