@@ -7,7 +7,6 @@ type Lang = 'ru' | 'en'
 
 const items = [
   { path: '/',        label: { ru: 'Маркет',  en: 'Market' },  icon: MarketIcon },
-  { path: '/orders',  label: { ru: 'Заказы',  en: 'Orders' },  icon: OrdersIcon },
   { path: '/profile', label: { ru: 'Профиль', en: 'Profile' }, icon: ProfileIcon },
 ] as const
 
