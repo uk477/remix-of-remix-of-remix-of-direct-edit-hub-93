@@ -416,10 +416,11 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     st.next = { x: st.cur.x + st.cur.w + 80 + Math.random() * 60, w: 70 }
     st.cameraX = 0; st.phase = 'waiting'
     st.stickLen = 0; st.stickAngle = 0
-    st.score = 0; st.glyphIdx = 0
+    st.score = 0
+    st.eggDone = false; st.eggT = 0; st.walkPhase = 0
     st.perfectFlash = 0; st.particles = []; st.shake = 0
     submittedRef.current = false
-    setScore(0); setOver(false)
+    setScore(0); setOver(false); setFlipped(false)
   }
 
   const submitName = () => {
