@@ -643,15 +643,12 @@ export default function Settings() {
                   />
                 )}
                 <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
-                    Telegram
-                  </div>
                   <div style={{
                     fontSize: 15, fontWeight: 900, fontStyle: 'italic',
-                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
+                    color: '#fff', letterSpacing: '-0.01em',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
-                    {lang === 'ru' ? 'НАШ КАНАЛ' : 'CHANNEL'}
+                    {lang === 'ru' ? 'TELEGRAM КАНАЛ' : 'TELEGRAM CHANNEL'}
                   </div>
                 </div>
                 <div style={{
@@ -709,15 +706,12 @@ export default function Settings() {
                   />
                 )}
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
-                    {lang === 'ru' ? 'Сообщество' : 'Community'}
-                  </div>
                   <div style={{
                     fontSize: 15, fontWeight: 900, fontStyle: 'italic',
-                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
+                    color: '#fff', letterSpacing: '-0.01em',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
-                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                    {lang === 'ru' ? 'НАШИ ОТЗЫВЫ' : 'OUR REVIEWS'}
                   </div>
                 </div>
                 <div style={{
