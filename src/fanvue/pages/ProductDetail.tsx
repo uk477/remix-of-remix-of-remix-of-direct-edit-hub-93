@@ -166,8 +166,7 @@ export default function ProductDetail() {
             type="button"
             onClick={() => {
               haptic('light')
-              if (window.history.length > 1) navigate(-1)
-              else navigate('/')
+              navigate('/')
             }}
             aria-label="Back"
             initial={{ opacity: 0, x: -12 }}
