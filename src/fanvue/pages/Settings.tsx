@@ -621,8 +621,9 @@ export default function Settings() {
 
 
   return (
-    <PageTransition>
-      <motion.div
+    <>
+      <PageTransition>
+        <motion.div
         className="page"
         variants={stagger}
         initial="hidden"
@@ -996,6 +997,8 @@ export default function Settings() {
         </div>
       </motion.div>
 
+      </PageTransition>
+
       <AnimatePresence>
         {openSheet && (
           <ContentSheet
@@ -1006,7 +1009,7 @@ export default function Settings() {
           />
         )}
       </AnimatePresence>
-    </PageTransition>
+    </>
   )
 }
 
