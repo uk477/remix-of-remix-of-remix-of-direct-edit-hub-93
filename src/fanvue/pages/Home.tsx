@@ -53,6 +53,32 @@ export default function Home() {
 
   const productTitle = (i: 0 | 1) => lotLabel(i, lang)
 
+  // Animated balance count-up (0 → current on mount, smooth on change)
+  const [shownBal, setShownBal] = useState(0)
+  useEffect(() => {
+    const c = animate(shownBal, balance, {
+      duration: 0.95, delay: 0.12, ease: EASE,
+      onUpdate: (v) => setShownBal(v),
+    })
+    return () => c.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balance])
+  const balDecimals = balance % 1 === 0 ? 0 : 2
+
+  // Top-up ripple
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([])
+  const spawnRipple = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const id = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+    setRipples((rs) => [...rs, { id, x: e.clientX - r.left, y: e.clientY - r.top }])
+    window.setTimeout(() => {
+      setRipples((rs) => rs.filter((x) => x.id !== id))
+    }, 700)
+  }
+
+  // Last sale relative label (for live bar middle cell)
+  const lastSaleAgo = recentSales[0] ? formatAgo(recentSales[0].ts, lang, now) : null
+
   return (
     <main className="shop">
       {/* ── HERO ── */}
