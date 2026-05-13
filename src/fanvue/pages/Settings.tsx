@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
+import { AnimatePresence, motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -194,6 +194,7 @@ function ContentSheet({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const sheetRef = useRef<HTMLDivElement | null>(null)
   const closingRef = useRef(false)
+  const [isClosing, setIsClosing] = useState(false)
   const admin = isAdmin()
   const y = useMotionValue(0)
   const controls = useAnimationControls()
@@ -202,14 +203,24 @@ function ContentSheet({
     return Math.max(0, 1 - v / h)
   })
   useEffect(() => {
+    closingRef.current = false
+    setIsClosing(false)
+    y.set(0)
     controls.start({ y: 0 }, { type: 'spring', stiffness: 320, damping: 34, mass: 0.8 })
-  }, [controls])
+  }, [controls, y])
   const closeSheet = async () => {
     if (closingRef.current) return
     closingRef.current = true
+    setIsClosing(true)
     const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    await controls.start({ y: h }, { type: 'spring', stiffness: 380, damping: 40, mass: 0.7 })
-    onClose()
+    try {
+      await Promise.race([
+        controls.start({ y: h }, { type: 'spring', stiffness: 420, damping: 42, mass: 0.7 }),
+        new Promise((resolve) => window.setTimeout(resolve, 320)),
+      ])
+    } finally {
+      onClose()
+    }
   }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
@@ -365,6 +376,7 @@ Always provide your **Order ID** when contacting support.`,
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{ opacity: overlayOpacity }}
+      data-closing={isClosing ? 'true' : 'false'}
       onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
     >
       <motion.div
@@ -384,7 +396,7 @@ Always provide your **Order ID** when contacting support.`,
           if (info.offset.y > h * 0.7) closeSheet()
         }}
         onDragEnd={(_, info) => {
-          if (editing) return
+          if (editing || closingRef.current) return
           const h = sheetRef.current?.offsetHeight ?? window.innerHeight
           const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
           if (shouldClose) closeSheet()
@@ -984,14 +996,16 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      {openSheet && (
-        <ContentSheet
-          key={openSheet}
-          title={links.find((l) => l.key === openSheet)!.label}
-          contentKey={openSheet}
-          onClose={() => setOpenSheet(null)}
-        />
-      )}
+      <AnimatePresence>
+        {openSheet && (
+          <ContentSheet
+            key={openSheet}
+            title={links.find((l) => l.key === openSheet)!.label}
+            contentKey={openSheet}
+            onClose={() => setOpenSheet(null)}
+          />
+        )}
+      </AnimatePresence>
     </PageTransition>
   )
 }
