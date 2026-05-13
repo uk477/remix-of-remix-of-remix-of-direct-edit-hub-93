@@ -489,7 +489,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
               <input
                 autoFocus
                 value={nameInput}
-                onChange={(e) => setNameInput(e.target.value.slice(0, 16))}
+                onChange={(e) => setNameInput(e.target.value.replace(/[^\p{L}\p{N}_\- .]/gu, '').slice(0, 16))}
                 onKeyDown={(e) => { if (e.key === 'Enter') submitName() }}
                 placeholder={T('твой ник', 'your nickname')}
                 maxLength={16}
