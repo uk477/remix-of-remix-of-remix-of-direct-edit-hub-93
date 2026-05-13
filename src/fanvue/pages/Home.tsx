@@ -86,8 +86,6 @@ export default function Home() {
     }, 700)
   }
 
-  // Last sale relative label (for live bar middle cell)
-  const lastSaleAgo = recentSales[0] ? formatAgo(recentSales[0].ts, lang, now) : null
 
   return (
     <main className="shop">
