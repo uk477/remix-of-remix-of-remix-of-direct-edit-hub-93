@@ -9,19 +9,19 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 38
-const HERO_H = 46
+const HERO_W = 42
+const HERO_H = 54
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
 const MAX_PW = 110
 const PERFECT_R = 8
+const EGG_SCORE = 20
 
-// Sequence: F-A-N-V-U-E- -M-A-R-K-E-T then meme emojis
-const GLYPHS = ['F','A','N','V','U','E','·','M','A','R','K','E','T']
-const MEMES  = ['🌈','🐱','🐶','🐸','🐵','🦄','🐙','🐼','🐲','🍕','👾','🤖','💎','🔥','⚡','🌟']
-
-type Phase = 'name' | 'waiting' | 'growing' | 'falling' | 'walking' | 'camera' | 'falling_off' | 'gameover'
+type Phase =
+  | 'name' | 'waiting' | 'growing' | 'falling' | 'walking'
+  | 'camera' | 'falling_off' | 'gameover'
+  | 'egg_fall' | 'egg_flip' | 'egg_unflip'
 interface Plat { x: number; w: number }
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number }
 
