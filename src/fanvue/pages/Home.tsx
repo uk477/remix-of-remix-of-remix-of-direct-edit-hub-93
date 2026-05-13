@@ -8,6 +8,7 @@ import { getOnline, getRecentSales, getTotalSales, formatAgo, buyerLabel, lotLab
 import lotAccountImg from '../../assets/shop-lot-account.jpg'
 import lotVerifyImg from '../../assets/shop-lot-verify.jpg'
 import fanvueGlyph from '../../assets/fanvue-glyph.png'
+import solanaLogo from '../assets/solana.svg'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -163,7 +164,7 @@ export default function Home() {
                   { id: 'usdt', src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg' },
                   { id: 'eth',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/eth.svg' },
                   { id: 'btc',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/btc.svg' },
-                  { id: 'sol',  src: 'https://assets.coingecko.com/coins/images/4128/standard/solana.png' },
+                  { id: 'sol',  src: solanaLogo },
                   { id: 'ton',  src: 'https://assets.coingecko.com/coins/images/17980/standard/ton_symbol.png' },
                 ].map((c) => (
                   <span key={c.id} className="home-topup-coin">
