@@ -420,17 +420,23 @@ Always provide your **Order ID** when contacting support.`,
             {(() => {
               const lines = displayText.split('\n')
               const renderInline = (text: string) => {
-                // Tokenize: **bold**, *italic*, `code`, [text](url)
                 const tokens: Array<JSX.Element | string> = []
-                const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g
+                const regex = /(\{c:#[0-9a-fA-F]{3,8}\}[\s\S]+?\{\/c\}|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g
                 let lastIdx = 0
                 let m: RegExpExecArray | null
                 let key = 0
                 while ((m = regex.exec(text)) !== null) {
                   if (m.index > lastIdx) tokens.push(text.slice(lastIdx, m.index))
                   const tok = m[0]
-                  if (tok.startsWith('**')) {
+                  if (tok.startsWith('{c:')) {
+                    const cm = /^\{c:(#[0-9a-fA-F]{3,8})\}([\s\S]+?)\{\/c\}$/.exec(tok)!
+                    tokens.push(<span key={key++} style={{ color: cm[1] }}>{cm[2]}</span>)
+                  } else if (tok.startsWith('**')) {
                     tokens.push(<strong key={key++} style={{ color: '#fff', fontWeight: 800 }}>{tok.slice(2, -2)}</strong>)
+                  } else if (tok.startsWith('__')) {
+                    tokens.push(<span key={key++} style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>{tok.slice(2, -2)}</span>)
+                  } else if (tok.startsWith('~~')) {
+                    tokens.push(<span key={key++} style={{ textDecoration: 'line-through', opacity: 0.7 }}>{tok.slice(2, -2)}</span>)
                   } else if (tok.startsWith('`')) {
                     tokens.push(
                       <code key={key++} style={{
