@@ -234,7 +234,7 @@ export default function Home() {
             {' '}{lang === 'ru' ? 'продаж всего' : 'total sales'}
           </span>
         </span>
-        <span className="shop-live-cell shop-live-cell--green">
+        <span className="shop-live-cell shop-live-cell--green" style={{ justifyContent: 'center', padding: '10px 8px', gap: '6px' }}>
           <span className="shop-live-bolt" aria-hidden="true">
             <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
           </span>
