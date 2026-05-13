@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, useMotionValue, useSpring, animate, An
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import SalesHistorySheet from '../components/SalesHistorySheet'
-import { getOnline, getSalesToday, getRecentSales, formatAgo, buyerLabel, lotLabel, mskNow } from '../utils/salesGen'
+import { getOnline, getRecentSales, getTotalSales, formatAgo, buyerLabel, lotLabel, mskNow } from '../utils/salesGen'
 import lotAccountImg from '../../assets/shop-lot-account.jpg'
 import lotVerifyImg from '../../assets/shop-lot-verify.jpg'
 import fanvueGlyph from '../../assets/fanvue-glyph.png'
@@ -45,9 +45,19 @@ export default function Home() {
   }, [])
 
   const online = useMemo(() => getOnline(new Date(now)), [now])
-  const todaySalesList = useMemo(() => getSalesToday(new Date(now)), [now])
-  const todaySales = todaySalesList.length
   const recentSales = useMemo(() => getRecentSales(3, new Date(now)), [now])
+  const totalSales = useMemo(() => getTotalSales(new Date(now)) + orders.length, [now, orders.length])
+
+  // Animated count-up for total sales
+  const [shownTotal, setShownTotal] = useState(0)
+  useEffect(() => {
+    const c = animate(shownTotal, totalSales, {
+      duration: 1.1, delay: 0.15, ease: EASE,
+      onUpdate: (v) => setShownTotal(v),
+    })
+    return () => c.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalSales])
 
   const [historyOpen, setHistoryOpen] = useState(false)
 
@@ -76,8 +86,6 @@ export default function Home() {
     }, 700)
   }
 
-  // Last sale relative label (for live bar middle cell)
-  const lastSaleAgo = recentSales[0] ? formatAgo(recentSales[0].ts, lang, now) : null
 
   return (
     <main className="shop">
@@ -211,18 +219,18 @@ export default function Home() {
           </span>
         </span>
         <span className="shop-live-cell">
-          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 7h13l-1.2 8.5a2 2 0 0 1-2 1.7H8.2a2 2 0 0 1-2-1.7L4.7 5H2.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="20" r="1.2" fill="currentColor"/><circle cx="15" cy="20" r="1.2" fill="currentColor"/></svg>
+          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M3 4v4h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <span className="shop-live-t">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.b
-                key={todaySales}
-                initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
-                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
-                transition={{ duration: 0.32, ease: EASE }}
-              >{todaySales}</motion.b>
+                key={Math.round(shownTotal)}
+                initial={{ y: -6, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 6, opacity: 0 }}
+                transition={{ duration: 0.18, ease: EASE }}
+              >{Math.round(shownTotal)}</motion.b>
             </AnimatePresence>
-            {' '}{lang === 'ru' ? 'выдано сегодня' : 'sold today'}
+            {' '}{lang === 'ru' ? 'продаж' : 'sales'}
           </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">

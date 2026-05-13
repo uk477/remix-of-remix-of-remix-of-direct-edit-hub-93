@@ -123,6 +123,22 @@ export function getRecentSales(limit = 3, now: Date = mskNow()): FakeSale[] {
   return out
 }
 
+/* Total sales count since STATS_START up to `now`. */
+export function getTotalSales(now: Date = mskNow()): number {
+  let total = 0
+  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const start = new Date(STATS_START.getFullYear(), STATS_START.getMonth(), STATS_START.getDate())
+  for (let day = new Date(start); day.getTime() <= cursor.getTime(); day.setDate(day.getDate() + 1)) {
+    const sales = generateSalesForDay(day)
+    if (sameDay(day, now)) {
+      total += sales.filter((s) => s.ts <= now.getTime()).length
+    } else {
+      total += sales.length
+    }
+  }
+  return total
+}
+
 /* Moscow time helpers — все часы по МСК (UTC+3, без перехода) */
 export function mskNow(): Date {
   const d = new Date()
