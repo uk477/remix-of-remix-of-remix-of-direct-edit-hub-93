@@ -374,16 +374,19 @@ Always provide your **Order ID** when contacting support.`,
       className="modal-overlay"
       data-closing={closingRef.current ? 'true' : undefined}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ opacity: visible ? 1 : 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      onAnimationComplete={() => {
+        if (!visible) onClose()
+      }}
       onClick={handleBackdropClick}
     >
       <motion.div
         ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={{ y: 0 }}
+        animate={{ y: visible ? 0 : '100%' }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 340, damping: 34, mass: 0.75 }}
         style={{ maxHeight: '85dvh', willChange: 'transform', touchAction: editing ? 'auto' : 'pan-y' }}
