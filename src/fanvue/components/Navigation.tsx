@@ -36,16 +36,17 @@ export default function Navigation() {
     const root = innerRef.current
     if (!root) return null
     const btns = root.querySelectorAll<HTMLElement>('[data-nav-btn]')
-    let best: { i: number; d: number } | null = null
+    let bestI = -1
+    let bestD = Infinity
     btns.forEach((el, i) => {
       const r = el.getBoundingClientRect()
       const cx = (r.left + r.right) / 2
       const inside = clientX >= r.left - 8 && clientX <= r.right + 8
       const d = Math.abs(clientX - cx)
-      if (inside) { best = { i, d: -1 }; return }
-      if (!best || d < best.d) best = { i, d }
+      if (inside) { bestI = i; bestD = -1; return }
+      if (bestD !== -1 && d < bestD) { bestI = i; bestD = d }
     })
-    return best ? best.i : null
+    return bestI === -1 ? null : bestI
   }
 
   const updateHover = (clientX: number) => {
