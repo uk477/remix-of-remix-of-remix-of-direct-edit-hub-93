@@ -181,7 +181,6 @@ export default function ProductDetail() {
             <span>{lang === 'ru' ? 'НАЗАД' : 'BACK'}</span>
           </motion.button>
           <div className="pdb-bar-meta">
-            <span className="pdb-bar-idx">№ {String(product.id).padStart(3, '0')}</span>
             <span className={`pdb-bar-dot${lowStock ? ' is-low' : ''}`}>
               <i /> {product.stock} {lang === 'ru' ? 'ШТ' : 'PCS'}
             </span>
