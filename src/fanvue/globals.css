@@ -3568,37 +3568,53 @@ body::after { display: none; }
   background: radial-gradient(120% 80% at 100% 50%, rgba(57,255,99,0.06), transparent 60%);
 }
 .shop-live-cell {
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 5px; min-width: 0;
-  padding: 9px 4px;
-  font-size: 10.5px; color: var(--fv-soft);
+  display: inline-flex; align-items: center; justify-content: flex-start;
+  gap: 7px; min-width: 0;
+  padding: 10px 6px 10px 10px;
+  font-size: 11.5px; color: var(--fv-soft);
   white-space: nowrap;
   border-right: 1px solid var(--fv-line);
   position: relative;
 }
-.shop-live-cell:last-child { border-right: none; }
+.shop-live-cell:last-child { border-right: none; justify-content: center; padding: 10px 8px; }
 .shop-live-cell--green {
   background: linear-gradient(180deg, rgba(57,255,99,0.10), rgba(57,255,99,0.02));
 }
-.shop-live-ic { width: 12px; height: 12px; color: var(--fv-soft); flex: 0 0 auto; }
-.shop-live-cell--green .shop-live-ic { color: var(--fv-green); }
+.shop-live-ic { width: 13px; height: 13px; color: var(--fv-soft); flex: 0 0 auto; }
+.shop-live-cell--green .shop-live-ic {
+  color: var(--fv-green);
+  animation: shopBoltFlick 2.8s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+.shop-live-cell:nth-child(2) .shop-live-ic {
+  animation: shopSpinSoft 7s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes shopBoltFlick {
+  0%, 44%, 60%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(57,255,99,0)); }
+  50% { transform: scale(1.22); filter: drop-shadow(0 0 6px rgba(57,255,99,0.55)); }
+}
+@keyframes shopSpinSoft {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 .shop-live-dot {
   position: relative; width: 7px; height: 7px; flex: 0 0 auto;
 }
 .shop-live-dot i {
   position: absolute; inset: 0; border-radius: 999px;
   background: var(--fv-green);
-  box-shadow: 0 0 10px rgba(57,255,99,0.7);
-  animation: shopPing 1.6s ease-out infinite;
+  box-shadow: 0 0 8px rgba(57,255,99,0.55);
+  animation: shopPing 1.8s ease-out infinite;
 }
 @keyframes shopPing {
-  0% { box-shadow: 0 0 0 0 rgba(57,255,99,0.6); }
-  70% { box-shadow: 0 0 0 8px rgba(57,255,99,0); }
+  0% { box-shadow: 0 0 0 0 rgba(57,255,99,0.55); }
+  70% { box-shadow: 0 0 0 5px rgba(57,255,99,0); }
   100% { box-shadow: 0 0 0 0 rgba(57,255,99,0); }
 }
 .shop-live-t {
   display: inline-flex; align-items: baseline; gap: 4px;
-  overflow: hidden; text-overflow: ellipsis;
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
 }
 .shop-live-t b { color: var(--fv-text); font-weight: 900; font-variant-numeric: tabular-nums; }
 .shop-live-t--green { color: var(--fv-green); font-weight: 800; letter-spacing: 0.01em; }
