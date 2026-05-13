@@ -129,6 +129,7 @@ interface AppStore {
   supportForwardedOrders: string[]
   pinnedProductIds: number[]
   supportUnread: number
+  stickHeroScores: { name: string; score: number; ts: number }[]
 
   // User actions
   setLang: (lang: Lang) => void
@@ -169,6 +170,7 @@ interface AppStore {
   pinProduct: (id: number) => void
   unpinProduct: (id: number) => void
   isAdmin: () => boolean
+  addStickHeroScore: (score: number) => void
 }
 
 export const useStore = create<AppStore>()(
@@ -475,6 +477,16 @@ export const useStore = create<AppStore>()(
         const u = get().user
         return !!u && CONFIG.adminIds.includes(u.uid)
       },
+
+      stickHeroScores: [],
+      addStickHeroScore: (score) => set((s) => {
+        const u = get().user
+        const name = u?.username || u?.full_name || 'player'
+        const next = [...s.stickHeroScores, { name, score, ts: Date.now() }]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 50)
+        return { stickHeroScores: next }
+      }),
     }),
     {
       name: 'fanvue-app-v6',
@@ -507,6 +519,7 @@ export const useStore = create<AppStore>()(
         supportForwardedOrders: s.supportForwardedOrders,
         pinnedProductIds: s.pinnedProductIds,
         supportUnread: s.supportUnread,
+        stickHeroScores: s.stickHeroScores,
       }),
     }
   )
