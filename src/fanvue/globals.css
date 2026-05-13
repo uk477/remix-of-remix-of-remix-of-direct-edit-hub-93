@@ -6780,18 +6780,7 @@ body::after { display: none; }
   opacity: 0.85;
 }
 
-/* Kicker line above number */
-.dpz .dpz-pay-hero::after {
-  content: 'К ОПЛАТЕ В СЕТИ';
-  order: -1;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
-}
-.dpz[data-lang="en"] .dpz-pay-hero::after { content: 'TO PAY ON-CHAIN'; }
+.dpz .dpz-pay-hero-eye { display: none; }
 
 /* QR — sharp brutalist frame, no rounded corners */
 .dpz .dpz-pay-qr {
