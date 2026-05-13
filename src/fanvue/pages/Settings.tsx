@@ -439,8 +439,6 @@ export default function Settings() {
     { key: (lang === 'ru' ? 'contacts_ru'       : 'contacts_en')       as keyof SiteContent, label: t('settings_contact')  },
   ]
 
-  const inter = "'Inter', system-ui, sans-serif"
-  const mono  = "'Space Mono', ui-monospace, monospace"
 
   return (
     <PageTransition>
