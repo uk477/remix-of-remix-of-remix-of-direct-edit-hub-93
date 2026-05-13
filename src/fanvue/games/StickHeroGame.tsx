@@ -798,6 +798,10 @@ function drawHero(
       const eyeRX = drawW * 0.025
       const eyeRY = drawW * 0.018 * Math.max(0.15, 1 - k)
       // Closed-lid color matches the body shading
+      ctx.save()
+      ctx.translate(cx, baseY - drawH * 0.45)
+      ctx.rotate(stepTilt)
+      ctx.translate(-cx, -(baseY - drawH * 0.45))
       ctx.fillStyle = '#cfd3d6'
       ctx.beginPath()
       ctx.ellipse(eyeX, eyeY, eyeRX, eyeRY + 0.6, 0, 0, Math.PI * 2)
@@ -809,6 +813,7 @@ function drawHero(
       ctx.moveTo(eyeX - eyeRX, eyeY)
       ctx.lineTo(eyeX + eyeRX, eyeY)
       ctx.stroke()
+      ctx.restore()
     }
   } else {
     // fallback capsule
