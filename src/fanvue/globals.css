@@ -3583,8 +3583,41 @@ body::after { display: none; }
 .shop-live-ic { width: 13px; height: 13px; color: var(--fv-soft); flex: 0 0 auto; }
 .shop-live-cell--green .shop-live-ic {
   color: var(--fv-green);
-  animation: shopBoltFlick 2.8s ease-in-out infinite;
+  animation: shopBoltFlick 2.8s ease-in-out infinite, shopBoltZap 60s linear infinite;
   transform-origin: 50% 50%;
+  position: relative;
+  z-index: 1;
+}
+.shop-live-cell--green {
+  position: relative;
+  overflow: hidden;
+}
+/* Easter-egg electric arc — fires once per minute */
+.shop-live-cell--green::before,
+.shop-live-cell--green::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+}
+.shop-live-cell--green::before {
+  /* expanding ring */
+  left: 14px; top: 50%;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 999px;
+  border: 1.5px solid var(--fv-green);
+  animation: shopBoltRing 60s linear infinite;
+}
+.shop-live-cell--green::after {
+  /* horizontal spark streak */
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  margin-top: -0.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(57,255,99,0) 18%, rgba(57,255,99,0.95) 30%, #fff 40%, rgba(57,255,99,0.95) 50%, rgba(57,255,99,0) 70%, transparent 100%);
+  filter: blur(0.4px);
+  animation: shopBoltSpark 60s linear infinite;
 }
 .shop-live-cell:nth-child(2) .shop-live-ic {
   animation: shopSpinSoft 7s linear infinite;
@@ -3593,6 +3626,29 @@ body::after { display: none; }
 @keyframes shopBoltFlick {
   0%, 44%, 60%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(57,255,99,0)); }
   50% { transform: scale(1.22); filter: drop-shadow(0 0 6px rgba(57,255,99,0.55)); }
+}
+/* Once-a-minute zap on the bolt itself */
+@keyframes shopBoltZap {
+  0%, 96%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 rgba(57,255,99,0)); }
+  96.5% { transform: scale(1.45) rotate(-6deg); filter: drop-shadow(0 0 10px #c8ffd6) drop-shadow(0 0 18px rgba(57,255,99,0.9)); }
+  97.2% { transform: scale(0.9) rotate(4deg); filter: drop-shadow(0 0 6px #fff); }
+  98%   { transform: scale(1.3) rotate(-3deg); filter: drop-shadow(0 0 14px rgba(57,255,99,0.8)); }
+  99%   { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(57,255,99,0.4)); }
+}
+@keyframes shopBoltRing {
+  0%, 96%, 100% { opacity: 0; transform: scale(0.4); }
+  96.3% { opacity: 0.9; transform: scale(0.6); }
+  98.5% { opacity: 0; transform: scale(3.4); }
+}
+@keyframes shopBoltSpark {
+  0%, 96%, 100% { opacity: 0; transform: translateX(-30%); }
+  96.4% { opacity: 1; transform: translateX(-10%); }
+  97.4% { opacity: 0.9; transform: translateX(40%); }
+  98.4% { opacity: 0; transform: translateX(80%); }
+}
+@keyframes shopSpinSoft {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 @keyframes shopSpinSoft {
   0% { transform: rotate(0deg); }
