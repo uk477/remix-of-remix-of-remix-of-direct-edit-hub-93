@@ -6296,44 +6296,48 @@ body::after { display: none; }
   position: relative;
   flex: 0 0 auto;
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   height: auto;
-  min-width: 132px;
+  min-width: 168px;
   padding: 0;
   border: none;
-  border-radius: 0;
+  border-radius: 18px;
   background: var(--fv-green);
   color: #061006;
   overflow: hidden;
   isolation: isolate;
   cursor: pointer;
   box-shadow:
-    0 14px 32px -14px rgba(57,255,99,0.6),
-    0 0 0 1px rgba(57,255,99,0.45);
-  transition: box-shadow 200ms ease;
+    0 18px 36px -16px rgba(45,252,82,0.55),
+    0 0 0 1px rgba(255,255,255,0.18) inset;
+  transition: box-shadow 220ms ease, transform 220ms ease;
 }
 .home-topup:hover {
   box-shadow:
-    0 18px 38px -14px rgba(57,255,99,0.85),
-    0 0 0 1px rgba(57,255,99,0.7);
+    0 22px 44px -16px rgba(45,252,82,0.75),
+    0 0 0 1px rgba(255,255,255,0.28) inset;
 }
 .home-topup-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(110deg, #39ff63 0%, #1FE07A 60%, #39ff63 100%);
-  background-size: 240% 100%;
+  background: linear-gradient(135deg, #2dfc52 0%, #1FE07A 60%, #2dfc52 100%);
+  background-size: 220% 100%;
   animation: pdbCtaShift 4.5s ease-in-out infinite;
 }
-.home-topup-edge {
+.home-topup-gloss {
   position: absolute;
-  top: 0; left: -30%;
-  width: 28%; height: 100%;
+  inset: 0;
   z-index: 1;
-  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
-  transform: skewX(-18deg);
-  animation: pdbCtaSweep 3.4s ease-in-out 1s infinite;
-  mix-blend-mode: overlay;
+  background: linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0) 60%);
+  pointer-events: none;
+}
+.home-topup-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
   pointer-events: none;
 }
 .home-topup-l {
@@ -6342,68 +6346,77 @@ body::after { display: none; }
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 10px 14px 10px 16px;
+  border-right: 1px solid rgba(0,0,0,0.16);
   text-align: left;
 }
 .home-topup-label {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   line-height: 1;
-  color: #06170a;
-  -webkit-text-stroke: 0.6px #06170a;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.18);
-}
-.home-topup-sub {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.55;
-  line-height: 1;
+  color: #050505;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.22);
 }
 .home-topup-coins {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  opacity: 1;
-  margin-top: 4px;
 }
-.home-topup-coins img {
+.home-topup-coin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28), 0 0 0 1.5px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.home-topup-coin:first-child { margin-left: 0; }
+.home-topup-coin img {
   width: 18px;
   height: 18px;
   border-radius: 50%;
   display: block;
-  background: #fff;
-  padding: 1px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15);
 }
 .home-topup-arrow {
   position: relative;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 38px;
+  padding: 0 12px;
   align-self: stretch;
-  background: #061006;
-  color: var(--fv-green);
-  overflow: hidden;
+  background: rgba(0,0,0,0.06);
+  transition: background 200ms ease;
 }
-.home-topup-arrow svg {
-  width: 14px; height: 14px;
-  animation: pdbArrowRun 2.4s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+.home-topup:hover .home-topup-arrow { background: rgba(0,0,0,0.12); }
+.home-topup-arrow-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #050505;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  box-shadow: 0 6px 14px -4px rgba(0,0,0,0.5);
+  transition: transform 240ms ease, background 200ms ease;
+}
+.home-topup:hover .home-topup-arrow-box { transform: translateX(2px); }
+.home-topup-arrow-box svg {
+  width: 16px; height: 16px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-topup-bg, .home-topup-edge, .home-topup-arrow svg { animation: none; }
+  .home-topup-bg { animation: none; }
 }
 
 /* Soften balance card to square corners so it pairs visually */
 .shop-hero-bal-main { border-radius: 4px; }
-.home-topup, .shop-hero-bal { min-height: 60px; }
+.home-topup, .shop-hero-bal { min-height: 64px; }
 
 /* ═══════════════════════════════════════════════════════════
    DEPOSIT — brutalist editorial shell (dpb-*)
