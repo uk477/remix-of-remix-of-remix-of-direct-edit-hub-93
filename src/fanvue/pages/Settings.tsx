@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -345,22 +345,16 @@ Always provide your **Order ID** when contacting support.`,
       className="modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       onClick={(e) => { if (e.target === e.currentTarget && !editing) onClose() }}
     >
       <motion.div
         className="sheet"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
-        exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 32 }}
         style={{ maxHeight: '85dvh' }}
-        drag={!editing ? 'y' : false}
-        dragConstraints={{ top: 0 }}
-        dragElastic={{ top: 0, bottom: 0.3 }}
-        onDragEnd={(_, info) => { if (!editing && info.offset.y > 80) onClose() }}
       >
-        <div className="sheet-handle" style={{ cursor: 'grab' }} />
+        <div className="sheet-handle" />
         <div className="row-between mb-4">
           <div className="t-md fw-black">{title}</div>
           <div className="row gap-2">
@@ -953,16 +947,14 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      <AnimatePresence mode="wait">
-        {openSheet && (
-          <ContentSheet
-            key={openSheet}
-            title={links.find((l) => l.key === openSheet)!.label}
-            contentKey={openSheet}
-            onClose={() => setOpenSheet(null)}
-          />
-        )}
-      </AnimatePresence>
+      {openSheet && (
+        <ContentSheet
+          key={openSheet}
+          title={links.find((l) => l.key === openSheet)!.label}
+          contentKey={openSheet}
+          onClose={() => setOpenSheet(null)}
+        />
+      )}
     </PageTransition>
   )
 }
