@@ -627,18 +627,23 @@ export default function Settings() {
                   position: 'relative', overflow: 'hidden',
                 }}
               >
-                {/* sweep shine */}
-                <motion.div
-                  aria-hidden
-                  initial={{ x: '-120%' }}
-                  animate={{ x: '220%' }}
-                  transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 2.4, ease: 'easeInOut' }}
-                  style={{
-                    position: 'absolute', top: 0, bottom: 0, width: 60,
-                    background: `linear-gradient(90deg, transparent, ${NEON}22, transparent)`,
-                    transform: 'skewX(-20deg)', pointerEvents: 'none',
-                  }}
-                />
+                {/* sweep shine — channel (left → right), then hands off to reviews */}
+                {sweep === 'channel' && (
+                  <motion.div
+                    key="sweep-channel"
+                    aria-hidden
+                    initial={{ x: '-120%' }}
+                    animate={{ x: '220%' }}
+                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    onAnimationComplete={() => setSweep('reviews')}
+                    style={{
+                      position: 'absolute', top: 0, bottom: 0, width: 70,
+                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
+                      transform: 'skewX(-20deg)', pointerEvents: 'none',
+                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
+                    }}
+                  />
+                )}
                 <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
                     Telegram
