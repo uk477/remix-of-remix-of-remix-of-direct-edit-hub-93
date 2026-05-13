@@ -51,7 +51,20 @@ export default function AdminLayout() {
           <div className="admin-badge">ADMIN</div>
           <div className="t-md fw-black">{t('admin_panel')}</div>
         </div>
-        <div style={{ width: 32 }} />
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            height: 32, padding: '0 12px', borderRadius: 10,
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: '#fff', fontSize: 12, fontWeight: 800,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+            display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          {t('admin_panel') ? 'Выйти' : 'Exit'}
+        </button>
       </div>
 
       <div className="scroll-area" style={{ height: 'calc(100dvh - 70px - 48px)' }}>
