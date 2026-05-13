@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
+import heroSpriteUrl from '@/assets/fanvue-ninja.png'
+
+// preload hero sprite once
+const heroImg: HTMLImageElement | null = typeof Image !== 'undefined' ? new Image() : null
+if (heroImg) heroImg.src = heroSpriteUrl
 
 
 /* ───────── constants ───────── */
