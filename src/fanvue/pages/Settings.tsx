@@ -318,147 +318,281 @@ export default function Settings() {
   const navigate = useNavigate()
   const t        = useT()
   const lang     = useStore((s) => s.lang)
+  const setLang  = useStore((s) => s.setLang)
+  const { haptic } = useTelegram()
+  const toast    = useToast()
   const [openSheet, setOpenSheet] = useState<keyof SiteContent | null>(null)
 
-  type Link = { key: keyof SiteContent; Icon: () => JSX.Element; label: string }
+  // Inject Inter + Space Mono once (scoped via CSS classes below)
+  useEffect(() => {
+    if (document.getElementById(FONT_LINK_ID)) return
+    const link = document.createElement('link')
+    link.id = FONT_LINK_ID
+    link.rel = 'stylesheet'
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,500;0,900;1,900&family=Space+Mono:wght@400;700&display=swap'
+    document.head.appendChild(link)
+  }, [])
+
+  const switchLang = (l: Lang) => {
+    if (l === lang) return
+    haptic('light')
+    setLang(l)
+    toast.show(l === 'ru' ? 'Русский язык включён' : 'English enabled', 'success')
+  }
+
+  type Link = { key: keyof SiteContent; label: string }
   const links: Link[] = [
-    { key: (lang === 'ru' ? 'offer_ru'          : 'offer_en')          as keyof SiteContent, Icon: DocIcon,      label: t('settings_offer')    },
-    { key: (lang === 'ru' ? 'rules_ru'          : 'rules_en')          as keyof SiteContent, Icon: RulesIcon,    label: t('settings_rules')    },
-    { key: (lang === 'ru' ? 'referral_rules_ru' : 'referral_rules_en') as keyof SiteContent, Icon: ReferralIcon, label: t('settings_referral') },
-    { key: (lang === 'ru' ? 'contacts_ru'       : 'contacts_en')       as keyof SiteContent, Icon: ContactIcon,  label: t('settings_contact')  },
+    { key: (lang === 'ru' ? 'offer_ru'          : 'offer_en')          as keyof SiteContent, label: t('settings_offer')    },
+    { key: (lang === 'ru' ? 'rules_ru'          : 'rules_en')          as keyof SiteContent, label: t('settings_rules')    },
+    { key: (lang === 'ru' ? 'referral_rules_ru' : 'referral_rules_en') as keyof SiteContent, label: t('settings_referral') },
+    { key: (lang === 'ru' ? 'contacts_ru'       : 'contacts_en')       as keyof SiteContent, label: t('settings_contact')  },
   ]
+
+  const inter = "'Inter', system-ui, sans-serif"
+  const mono  = "'Space Mono', ui-monospace, monospace"
 
   return (
     <PageTransition>
-      <motion.div className="page" variants={stagger} initial="hidden" animate="show">
-        <motion.div variants={fadeUp} className="pg-header">
-          <motion.button className="pg-back" onClick={() => navigate(-1)} whileTap={{ scale: 0.9 }}>
-            <BackIcon />
-          </motion.button>
-          <div className="pg-title">{t('settings_title')}</div>
-        </motion.div>
+      <motion.div
+        className="page"
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        style={{ position: 'relative', overflow: 'hidden', fontFamily: inter }}
+      >
+        {/* Background mesh blurs */}
+        <div style={{ position: 'absolute', top: '-10%', right: '-25%', width: 320, height: 320, background: `${NEON}1A`, filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: '8%', left: '-25%', width: 260, height: 260, background: `${NEON}0D`, filter: 'blur(80px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
 
-        <motion.div variants={fadeUp} className="mb-5">
-          <div className="section-title mb-3">{t('settings_language')}</div>
-          <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div className="t-sm fw-bold">Русский / English</div>
-              <div className="t-xs t-muted mt-1">
-                {lang === 'ru' ? 'Язык интерфейса' : 'Interface language'}
+        {/* Decorative hairlines */}
+        <div style={{ position: 'absolute', top: 0, left: 48, width: 1, height: '100%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 0, right: 48, width: 1, height: '100%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* Header */}
+          <motion.div variants={fadeUp} className="pg-header" style={{ marginBottom: 24 }}>
+            <motion.button className="pg-back" onClick={() => navigate(-1)} whileTap={{ scale: 0.9 }}>
+              <BackIcon />
+            </motion.button>
+            <div className="pg-title">{t('settings_title')}</div>
+          </motion.div>
+
+          {/* HERO TYPOGRAPHY */}
+          <motion.div variants={fadeUp} style={{ position: 'relative', marginBottom: 28 }}>
+            <div style={{
+              position: 'absolute', top: -14, left: -6,
+              fontSize: 76, fontWeight: 900, fontStyle: 'italic',
+              color: 'rgba(255,255,255,0.04)', lineHeight: 1, letterSpacing: '-0.04em',
+              userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
+            }}>
+              FANVUE
+            </div>
+            <h1 style={{
+              fontSize: 46, fontWeight: 900, fontStyle: 'italic',
+              letterSpacing: '-0.045em', lineHeight: 0.92, margin: 0,
+              fontFamily: inter, color: '#fff',
+            }}>
+              FANVUE<br/>
+              <span style={{ color: NEON }}>MARKET</span>
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+              <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+                Internal Build · v2.0.0
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+            </div>
+          </motion.div>
+
+          {/* ASYMMETRIC BENTO */}
+          <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 12, marginBottom: 28 }}>
+            {/* Language tile — high impact */}
+            <div style={{
+              height: 220, background: NEON, borderRadius: 26, padding: 16,
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute', right: -12, bottom: -18,
+                fontSize: 96, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(0,0,0,0.10)', lineHeight: 1, fontFamily: inter,
+              }}>
+                {lang === 'ru' ? 'EN' : 'RU'}
+              </div>
+              <div style={{ color: '#000', position: 'relative', zIndex: 1 }}>
+                <div style={{ fontFamily: mono, fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.02em', opacity: 0.6 }}>
+                  System
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 900, fontStyle: 'italic', lineHeight: 1.1, marginTop: 4 }}>
+                  LANG.
+                </div>
+              </div>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <button
+                  onClick={() => switchLang('ru')}
+                  style={{
+                    background: 'transparent', border: 0, padding: 0, cursor: 'pointer', display: 'block',
+                    color: lang === 'ru' ? '#000' : 'rgba(0,0,0,0.4)',
+                    fontWeight: lang === 'ru' ? 900 : 700,
+                    fontSize: lang === 'ru' ? 22 : 18,
+                    fontFamily: inter, lineHeight: 1, transition: 'all 200ms',
+                  }}
+                >RU</button>
+                <div style={{ width: 16, height: 2, background: 'rgba(0,0,0,0.3)', margin: '6px 0' }} />
+                <button
+                  onClick={() => switchLang('en')}
+                  style={{
+                    background: 'transparent', border: 0, padding: 0, cursor: 'pointer', display: 'block',
+                    color: lang === 'en' ? '#000' : 'rgba(0,0,0,0.4)',
+                    fontWeight: lang === 'en' ? 900 : 700,
+                    fontSize: lang === 'en' ? 22 : 18,
+                    fontFamily: inter, lineHeight: 1, transition: 'all 200ms',
+                  }}
+                >EN</button>
               </div>
             </div>
-            <LangToggle />
-          </div>
-        </motion.div>
 
-        <motion.div variants={fadeUp} className="mb-5">
-          <div className="section-title mb-3">{t('settings_about')}</div>
-          <div
-            className="card card-gradient"
-            style={{
-              padding: '20px',
-              position: 'relative',
-              overflow: 'hidden',
-              border: '1.5px solid transparent',
-              backgroundClip: 'padding-box',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute', inset: -2, borderRadius: 'inherit', zIndex: 0, pointerEvents: 'none',
-                background: 'conic-gradient(from var(--gradient-angle, 0deg), var(--brand), #a855f7, #ec4899, var(--brand))',
-                opacity: 0.35,
-                animation: 'spin-gradient 4s linear infinite',
-                mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                maskComposite: 'exclude',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                padding: 2,
-              }}
-            />
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div className="row gap-3 mb-4 items-center">
-                <FanvueLogo size={44} />
-                <div>
-                  <div className="t-md fw-black" style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                    Fanvue Market
-                    <span style={{ fontSize: 11, fontWeight: 900, background: 'var(--g-brand)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>2.0</span>
+            {/* Right column: stacked */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Version / About */}
+              <div style={{
+                flex: 1, background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)', borderRadius: 26, padding: 14,
+                backdropFilter: 'blur(12px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: 30, height: 30, background: `${NEON}33`, borderRadius: 9,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${NEON}4D`,
+                  }}>
+                    <motion.div
+                      style={{ width: 6, height: 6, background: NEON, borderRadius: '50%' }}
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 1.6, repeat: Infinity }}
+                    />
                   </div>
-                  <div className="t-xs t-muted mt-1">
-                    {lang === 'ru' ? 'Официальный маркет · Mini App' : 'Official Market · Mini App'}
+                  <span style={{ fontFamily: mono, fontSize: 9.5, color: NEON, letterSpacing: '0.05em' }}>STABLE</span>
+                </div>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 9.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 2 }}>
+                    {t('settings_version')}
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.04em', color: '#fff' }}>
+                    2.0.0
                   </div>
                 </div>
               </div>
-              <div className="row-between">
-                <div className="t-xs t-muted">{t('settings_version')}</div>
-                <div className="t-xs fw-bold t-brand">2.0.0</div>
-              </div>
-              <div className="divider" />
-              <div className="t-xs t-secondary" style={{ lineHeight: 1.65 }}>
-                {lang === 'ru'
-                  ? 'Аккаунты Fanvue и услуги верификации. Безопасно, быстро, гарантированно.'
-                  : 'Fanvue accounts & verification services. Secure, fast, guaranteed.'}
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
-        <motion.div variants={fadeUp} className="mb-5">
-          <div className="section-title mb-3">
-            {lang === 'ru' ? 'Сообщество' : 'Community'}
-          </div>
-          <motion.button
-            className="card"
-            style={{
-              padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14,
-              width: '100%', textAlign: 'left',
-              border: '1px solid rgba(232,201,140,0.28)',
-              background: 'linear-gradient(135deg, rgba(232,201,140,0.10), rgba(232,201,140,0.02))',
-            }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => { window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
-          >
-            <span style={{ color: 'var(--brand)' }}><StarIcon /></span>
-            <div style={{ flex: 1 }}>
-              <div className="t-sm fw-bold">{lang === 'ru' ? 'Наши отзывы' : 'Our reviews'}</div>
-              <div className="t-xs t-muted mt-1">
-                {lang === 'ru' ? 'Канал с отзывами реальных клиентов' : 'Real customer reviews channel'}
-              </div>
-            </div>
-            <span className="t-muted"><ChevronIcon /></span>
-          </motion.button>
-        </motion.div>
-
-        <motion.div variants={fadeUp}>
-          <div className="section-title mb-3">
-            {lang === 'ru' ? 'Документы' : 'Legal'}
-          </div>
-          <motion.div
-            className="card col"
-            style={{ padding: 0, overflow: 'hidden' }}
-            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05, delayChildren: 0.02 } } }}
-            initial="hidden"
-            animate="show"
-          >
-            {links.map((item, i) => (
+              {/* Reviews */}
               <motion.button
-                key={item.key}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
                 style={{
-                  padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14,
-                  borderBottom: i < links.length - 1 ? '1px solid var(--b-default)' : 'none',
-                  textAlign: 'left', width: '100%',
+                  height: 96, background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 26, padding: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  cursor: 'pointer', textAlign: 'left',
                 }}
-                whileTap={{ background: 'var(--surface-hover)' }}
-                variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } }}
-                onClick={() => setOpenSheet(item.key)}
               >
-                <span style={{ color: 'var(--brand)' }}><item.Icon /></span>
-                <span className="t-sm fw-bold" style={{ flex: 1 }}>{item.label}</span>
-                <span className="t-muted"><ChevronIcon /></span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontFamily: mono, fontSize: 9.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                    {lang === 'ru' ? 'Отзывы' : 'Feedback'}
+                  </span>
+                  <span style={{ fontWeight: 900, fontStyle: 'italic', fontSize: 17, color: '#fff', marginTop: 2 }}>
+                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                  </span>
+                </div>
+                <div style={{
+                  width: 44, height: 44, borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative',
+                }}>
+                  <div style={{ position: 'absolute', inset: 0, background: `${NEON}1A`, filter: 'blur(6px)', borderRadius: '50%' }} />
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={NEON} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'relative' }}>
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
               </motion.button>
-            ))}
+            </div>
           </motion.div>
-        </motion.div>
+
+          {/* DOCS — blueprint list */}
+          <motion.div variants={fadeUp}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+              <h2 style={{
+                fontFamily: mono, fontSize: 11, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.3em',
+                color: 'rgba(255,255,255,0.4)', margin: 0,
+              }}>
+                {lang === 'ru' ? 'Документация' : 'Legal Docs'}
+              </h2>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+            </div>
+
+            <motion.div
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+              initial="hidden"
+              animate="show"
+              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
+              {links.map((item, i) => (
+                <motion.button
+                  key={item.key}
+                  variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } }}
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ borderColor: `${NEON}80` }}
+                  onClick={() => { haptic('light'); setOpenSheet(item.key) }}
+                  style={{
+                    display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+                    padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    background: 'transparent', textAlign: 'left', cursor: 'pointer',
+                    transition: 'border-color 400ms',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
+                    <span style={{ fontFamily: mono, fontSize: 10, color: NEON, opacity: 0.6 }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span style={{
+                      fontSize: 19, fontWeight: 300, letterSpacing: '-0.01em',
+                      color: '#fff', fontFamily: inter,
+                    }}>
+                      {item.label}
+                    </span>
+                  </div>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    border: '1px solid rgba(255,255,255,0.2)', marginBottom: 8,
+                    transition: 'all 300ms',
+                  }} />
+                </motion.button>
+              ))}
+            </motion.div>
+
+            {/* Footer metadata */}
+            <div style={{
+              marginTop: 32, marginBottom: 12,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: mono, fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'rgba(255,255,255,0.2)' }}>
+                  {lang === 'ru' ? 'Защита маркета' : 'Market Security'}
+                </span>
+                <span style={{ fontFamily: mono, fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.18em', color: `${NEON}99` }}>
+                  {lang === 'ru' ? 'Шифрование активно' : 'Encryption active'}
+                </span>
+              </div>
+              <div style={{
+                fontSize: 30, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(255,255,255,0.05)', letterSpacing: '-0.04em',
+                userSelect: 'none', fontFamily: inter,
+              }}>
+                2.0.0
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </motion.div>
 
       <AnimatePresence>
@@ -473,3 +607,4 @@ export default function Settings() {
     </PageTransition>
   )
 }
+
