@@ -818,9 +818,10 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {openSheet && (
           <ContentSheet
+            key={openSheet}
             title={links.find((l) => l.key === openSheet)!.label}
             contentKey={openSheet}
             onClose={() => setOpenSheet(null)}
