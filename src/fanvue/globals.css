@@ -1927,7 +1927,7 @@ body::after { display: none; }
   background: var(--fv-danger);
 }
 
-/* Peek menu (Telegram-style long-press) */
+/* Peek mode (Telegram-style hold + slide between tabs) */
 .fv-peek-backdrop {
   position: fixed;
   inset: 0;
@@ -1937,64 +1937,39 @@ body::after { display: none; }
   -webkit-backdrop-filter: blur(6px) saturate(120%);
   pointer-events: none;
 }
-.fv-peek {
+.fv-nav-inner.is-peeking {
+  position: relative;
+  z-index: 102;
+  box-shadow: 0 28px 60px -18px rgba(0,0,0,0.95), 0 0 0 1px rgba(57,255,99,0.18) inset;
+}
+.fv-nav-peek-pill {
   position: absolute;
-  z-index: 101;
-  bottom: calc(100% - 6px);
-  left: calc(14px + 6px + (100% - 28px - 12px) / 3 * (var(--peek-col, 0) + 0.5));
+  inset: 0;
+  border-radius: 999px;
+  background: var(--fv-green, #39ff63);
+  box-shadow: 0 12px 36px -10px rgba(57,255,99,0.95), 0 0 0 2px rgba(57,255,99,0.35);
+}
+.fv-nav button.is-peek-hover { color: var(--fv-black, #050505); transform: scale(1.04); }
+.fv-nav button { transition: transform 0.16s ease, color 0.16s ease; }
+.fv-peek-tip {
+  position: absolute;
+  z-index: 103;
+  bottom: calc(100% + 6px);
+  left: 50%;
   transform: translateX(-50%);
-  min-width: 220px;
-  max-width: 78vw;
-  padding: 6px;
-  border-radius: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
   background: rgba(22,22,22,0.98);
   border: 1px solid rgba(255,255,255,0.10);
-  box-shadow:
-    0 28px 60px -18px rgba(0,0,0,0.85),
-    0 0 0 1px rgba(255,255,255,0.04) inset;
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transform-origin: bottom center;
-  pointer-events: none; /* finger drives selection on the originating button */
-}
-.fv-peek-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 13px;
-  color: rgba(255,255,255,0.92);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: background 0.12s ease, transform 0.12s ease, color 0.12s ease;
-}
-.fv-peek-row + .fv-peek-row {
-  border-top: 1px solid rgba(255,255,255,0.04);
-}
-.fv-peek-row.is-hover {
-  background: linear-gradient(180deg, rgba(57,255,99,0.18), rgba(57,255,99,0.10));
   color: var(--fv-green, #39ff63);
-  transform: scale(1.01);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 18px 40px -16px rgba(0,0,0,0.85);
+  pointer-events: none;
 }
-.fv-peek-ico {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.85);
-}
-.fv-peek-row.is-hover .fv-peek-ico {
-  background: rgba(57,255,99,0.18);
-  color: var(--fv-green, #39ff63);
-}
-.fv-peek-lbl { flex: 1; min-width: 0; }
 
 .fv-detail-shell {
   position: relative;
