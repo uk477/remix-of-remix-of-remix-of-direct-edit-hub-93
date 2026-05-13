@@ -4184,10 +4184,12 @@ body::after { display: none; }
 }
 
 @media (max-width: 410px) {
-  .shop-live { font-size: 10.5px; }
-  .shop-live-cell { padding: 9px 5px 9px 8px; gap: 6px; font-size: 10.5px; }
-  .shop-live-cell:last-child { padding: 9px 6px; }
-  .shop-live-ic { width: 12px; height: 12px; }
+  .shop-live { grid-template-columns: 67px minmax(138px, 1fr) minmax(136px, 0.98fr); font-size: 10.2px; }
+  .shop-live-cell { padding: 9px 3px 9px 7px; gap: 4px; font-size: 10.2px; }
+  .shop-live-cell:first-child { padding-left: 7px; padding-right: 2px; }
+  .shop-live-cell:last-child { padding: 9px 5px; }
+  .shop-live-ic { width: 11px; height: 11px; }
+  .shop-live-bolt { flex-basis: 12px; width: 12px; height: 12px; }
 }
 
 /* ── SHOP feed extras ───────────────────────────────── */
