@@ -7208,6 +7208,9 @@ body::after { display: none; }
   -webkit-backdrop-filter: blur(8px);
   padding: 0;
 }
+.modal-overlay[data-closing="true"] {
+  pointer-events: none;
+}
 .sheet {
   width: 100%;
   max-width: 560px;
