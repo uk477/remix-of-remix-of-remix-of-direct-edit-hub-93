@@ -773,35 +773,18 @@ function drawHero(
     const sW = heroImg.naturalWidth
     const sH = heroImg.naturalHeight
     const ar = sW / sH
-    const drawH = H * 1.7
+    const drawH = H * 1.75
     const drawW = drawH * ar
     const drawX = cx - drawW / 2
-    const drawY = baseY - drawH + 8 // feet sit slightly below baseline
+    const drawY = baseY - drawH + 8
+    const stepTilt = walking ? Math.sin(walkPhase) * 0.035 : 0
 
-    // Split sprite: top = body+cap, bottom = legs (split L/R for walking).
-    const legCutRel = 0.83
-    const sLegTop = Math.floor(sH * legCutRel)
-    const sBodyH = sLegTop
-    const sLegH = sH - sLegTop
-    const dBodyH = drawH * legCutRel
-    const dLegH = drawH - dBodyH
-    const dLegYBase = drawY + dBodyH
-
-    // Animated legs (vertical lift only — no seams)
-    const liftAmt = dLegH * 0.55
-    const liftL = walking ? Math.max(0, Math.sin(walkPhase)) * liftAmt : 0
-    const liftR = walking ? Math.max(0, -Math.sin(walkPhase)) * liftAmt : 0
-    const halfSW = sW / 2
-    const halfDW = drawW / 2
-    // left leg
-    ctx.drawImage(heroImg, 0, sLegTop, halfSW, sLegH,
-                  drawX, dLegYBase - liftL, halfDW, dLegH)
-    // right leg
-    ctx.drawImage(heroImg, halfSW, sLegTop, halfSW, sLegH,
-                  drawX + halfDW, dLegYBase - liftR, halfDW, dLegH)
-
-    // Body + cap on top of legs
-    ctx.drawImage(heroImg, 0, 0, sW, sBodyH, drawX, drawY, drawW, dBodyH)
+    ctx.save()
+    ctx.translate(cx, baseY - drawH * 0.45)
+    ctx.rotate(stepTilt)
+    ctx.translate(-cx, -(baseY - drawH * 0.45))
+    ctx.drawImage(heroImg, drawX, drawY, drawW, drawH)
+    ctx.restore()
 
     // Blink — briefly cover the highlight "eye" with body color
     // Eye highlight sits roughly at (0.69, 0.50) of the sprite
@@ -815,6 +798,10 @@ function drawHero(
       const eyeRX = drawW * 0.025
       const eyeRY = drawW * 0.018 * Math.max(0.15, 1 - k)
       // Closed-lid color matches the body shading
+      ctx.save()
+      ctx.translate(cx, baseY - drawH * 0.45)
+      ctx.rotate(stepTilt)
+      ctx.translate(-cx, -(baseY - drawH * 0.45))
       ctx.fillStyle = '#cfd3d6'
       ctx.beginPath()
       ctx.ellipse(eyeX, eyeY, eyeRX, eyeRY + 0.6, 0, 0, Math.PI * 2)
@@ -826,6 +813,7 @@ function drawHero(
       ctx.moveTo(eyeX - eyeRX, eyeY)
       ctx.lineTo(eyeX + eyeRX, eyeY)
       ctx.stroke()
+      ctx.restore()
     }
   } else {
     // fallback capsule
