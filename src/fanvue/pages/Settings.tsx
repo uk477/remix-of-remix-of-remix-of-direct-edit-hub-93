@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useAnimationControls, useTransform } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
