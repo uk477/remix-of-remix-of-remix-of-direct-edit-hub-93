@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useDragControls } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { useT } from '../i18n'
 import { useStore } from '../store'
@@ -192,6 +192,7 @@ function ContentSheet({
     : `${contentKey}_${lang}`) as keyof SiteContent
   const [draft, setDraft]     = useState(siteContent[langKey] ?? '')
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const dragControls = useDragControls()
   const admin = isAdmin()
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
@@ -353,8 +354,20 @@ Always provide your **Order ID** when contacting support.`,
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 32 }}
         style={{ maxHeight: '85dvh' }}
+        drag={!editing ? 'y' : false}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0 }}
+        dragElastic={{ top: 0, bottom: 0.35 }}
+        onDragEnd={(_, info) => {
+          if (!editing && (info.offset.y > 70 || info.velocity.y > 650)) onClose()
+        }}
       >
-        <div className="sheet-handle" />
+        <div
+          className="sheet-handle"
+          onPointerDown={(e) => { if (!editing) dragControls.start(e) }}
+          style={{ cursor: editing ? 'default' : 'grab', touchAction: 'none' }}
+        />
         <div className="row-between mb-4">
           <div className="t-md fw-black">{title}</div>
           <div className="row gap-2">
