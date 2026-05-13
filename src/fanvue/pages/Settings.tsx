@@ -279,35 +279,124 @@ Always provide your **Order ID** when contacting support.`,
             </div>
           </>
         ) : (
-          <div style={{ overflowY: 'auto', maxHeight: '60dvh' }}>
-            {displayText.split('\n').map((line, i) => {
-              if (line.startsWith('### ')) {
-                return (
-                  <div key={i} className="t-sm fw-bold" style={{ color: 'var(--t-primary)', marginTop: 16, marginBottom: 6 }}>
-                    {line.slice(4)}
-                  </div>
-                )
+          <motion.div
+            style={{ overflowY: 'auto', maxHeight: '60dvh', paddingRight: 4 }}
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } } }}
+          >
+            {(() => {
+              const lines = displayText.split('\n')
+              const renderInline = (text: string) => {
+                // Tokenize: **bold**, *italic*, `code`, [text](url)
+                const tokens: Array<JSX.Element | string> = []
+                const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g
+                let lastIdx = 0
+                let m: RegExpExecArray | null
+                let key = 0
+                while ((m = regex.exec(text)) !== null) {
+                  if (m.index > lastIdx) tokens.push(text.slice(lastIdx, m.index))
+                  const tok = m[0]
+                  if (tok.startsWith('**')) {
+                    tokens.push(<strong key={key++} style={{ color: '#fff', fontWeight: 800 }}>{tok.slice(2, -2)}</strong>)
+                  } else if (tok.startsWith('`')) {
+                    tokens.push(
+                      <code key={key++} style={{
+                        fontFamily: mono, fontSize: 12, padding: '2px 6px',
+                        background: `${NEON}1A`, color: NEON, borderRadius: 6,
+                        border: `1px solid ${NEON}33`,
+                      }}>{tok.slice(1, -1)}</code>
+                    )
+                  } else if (tok.startsWith('[')) {
+                    const mm = /\[([^\]]+)\]\(([^)]+)\)/.exec(tok)!
+                    tokens.push(
+                      <a key={key++} href={mm[2]} target="_blank" rel="noreferrer" style={{ color: NEON, borderBottom: `1px dashed ${NEON}66`, textDecoration: 'none' }}>
+                        {mm[1]}
+                      </a>
+                    )
+                  } else if (tok.startsWith('*')) {
+                    tokens.push(<em key={key++} style={{ color: 'rgba(255,255,255,0.85)' }}>{tok.slice(1, -1)}</em>)
+                  }
+                  lastIdx = m.index + tok.length
+                }
+                if (lastIdx < text.length) tokens.push(text.slice(lastIdx))
+                return tokens
               }
-              if (line.startsWith('## ')) {
-                return (
-                  <div key={i} className="t-sm fw-black" style={{ color: 'var(--t-primary)', marginTop: i === 0 ? 0 : 20, marginBottom: 8 }}>
-                    {line.slice(3)}
-                  </div>
-                )
+
+              const itemVariant = {
+                hidden: { opacity: 0, y: 10, filter: 'blur(4px)' },
+                show:   { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
               }
-              if (line.trim() === '') return <div key={i} style={{ height: 6 }} />
-              const parts = line.split(/(\*\*[^*]+\*\*)/)
-              return (
-                <div key={i} className="t-sm t-secondary" style={{ lineHeight: 1.7, marginBottom: 2 }}>
-                  {parts.map((p, j) =>
-                    p.startsWith('**') && p.endsWith('**')
-                      ? <strong key={j} className="fw-bold" style={{ color: 'var(--t-primary)' }}>{p.slice(2, -2)}</strong>
-                      : p
-                  )}
-                </div>
-              )
-            })}
-          </div>
+
+              return lines.map((line, i) => {
+                if (line.startsWith('### ')) {
+                  return (
+                    <motion.div key={i} variants={itemVariant} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      marginTop: 18, marginBottom: 8,
+                    }}>
+                      <div style={{ width: 3, height: 14, background: NEON, borderRadius: 2 }} />
+                      <span style={{
+                        fontSize: 13, fontWeight: 800, color: '#fff',
+                        letterSpacing: '-0.01em',
+                      }}>{line.slice(4)}</span>
+                    </motion.div>
+                  )
+                }
+                if (line.startsWith('## ')) {
+                  return (
+                    <motion.div key={i} variants={itemVariant} style={{ marginTop: i === 0 ? 4 : 24, marginBottom: 10 }}>
+                      <div style={{ fontFamily: mono, fontSize: 9, color: NEON, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4 }}>
+                        § {String(i + 1).padStart(2, '0')}
+                      </div>
+                      <div style={{ fontSize: 18, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                        {line.slice(3)}
+                      </div>
+                      <div style={{ marginTop: 8, height: 1, background: `linear-gradient(90deg, ${NEON}55, transparent)` }} />
+                    </motion.div>
+                  )
+                }
+                if (/^\s*[•\-]\s+/.test(line)) {
+                  return (
+                    <motion.div key={i} variants={itemVariant} style={{
+                      display: 'flex', gap: 10, marginBottom: 6, paddingLeft: 4,
+                    }}>
+                      <div style={{
+                        width: 5, height: 5, borderRadius: '50%',
+                        background: NEON, marginTop: 9, flexShrink: 0,
+                        boxShadow: `0 0 8px ${NEON}66`,
+                      }} />
+                      <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(255,255,255,0.78)' }}>
+                        {renderInline(line.replace(/^\s*[•\-]\s+/, ''))}
+                      </div>
+                    </motion.div>
+                  )
+                }
+                if (line.trim() === '') return <div key={i} style={{ height: 8 }} />
+                return (
+                  <motion.div key={i} variants={itemVariant} style={{
+                    fontSize: 13.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.72)',
+                    marginBottom: 4,
+                  }}>
+                    {renderInline(line)}
+                  </motion.div>
+                )
+              })
+            })()}
+
+            {/* End ornament */}
+            <motion.div
+              variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { delay: 0.3 } } }}
+              style={{
+                marginTop: 24, marginBottom: 8,
+                display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center',
+              }}
+            >
+              <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+              <span style={{ fontFamily: mono, fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.3em' }}>END · v2.0.0</span>
+              <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+            </motion.div>
+          </motion.div>
         )}
       </motion.div>
     </motion.div>
