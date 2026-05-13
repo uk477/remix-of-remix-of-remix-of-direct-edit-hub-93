@@ -158,15 +158,14 @@ export default function Home() {
             <span className="home-topup-l">
               <span className="home-topup-label">{lang === 'ru' ? 'ПОПОЛНИТЬ' : 'TOP UP'}</span>
               <span className="home-topup-sub home-topup-coins" aria-hidden>
-                {['usdt','eth','btc','sol','ton'].map((c) => (
-                  <img
-                    key={c}
-                    src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/${c}.svg`}
-                    alt=""
-                    width={18}
-                    height={18}
-                    loading="lazy"
-                  />
+                {[
+                  { id: 'usdt', src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg' },
+                  { id: 'eth',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/eth.svg' },
+                  { id: 'btc',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/btc.svg' },
+                  { id: 'sol',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/sol.svg' },
+                  { id: 'ton',  src: 'https://assets.coingecko.com/coins/images/17980/standard/ton_symbol.png' },
+                ].map((c) => (
+                  <img key={c.id} src={c.src} alt="" width={18} height={18} loading="lazy" />
                 ))}
               </span>
             </span>
