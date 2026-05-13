@@ -6797,6 +6797,8 @@ body::after { display: none; }
 .dpz .dpz-pay-qr {
   position: relative;
   z-index: 1;
+  width: auto;
+  height: auto;
   padding: 8px;
   background: #fff;
   border-radius: 0;
@@ -6805,8 +6807,8 @@ body::after { display: none; }
 .dpz .dpz-pay-qr-img,
 .dpz .dpz-pay-qr svg {
   border-radius: 0;
-  width: 124px;
-  height: 124px;
+  width: 148px;
+  height: 148px;
 }
 .dpz .dpz-pay-qr-corner {
   border-color: var(--fv-green) !important;
