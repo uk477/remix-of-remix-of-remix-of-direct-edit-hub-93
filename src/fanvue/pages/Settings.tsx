@@ -9,7 +9,7 @@ import { useToast } from '../components/Toast'
 import { CONFIG } from '../config'
 import type { Lang } from '../store/types'
 import type { SiteContent } from '../store'
-import fanvueLogoSrc from '../assets/fanvue-logo.png'
+import fanvueMarkSrc from '../assets/fanvue-mark.png'
 
 const NEON = '#00FF88'
 const FONT_LINK_ID = 'fv-settings-fonts'
