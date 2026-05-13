@@ -145,169 +145,238 @@ export default function ProductDetail() {
     setPayStep('crypto_pay')
   }
 
+  const titleWords = title.split(/\s+/).filter(Boolean)
+  const tickerItems = [
+    deliveryLabel,
+    lang === 'ru' ? 'ГОТОВ К ВЫДАЧЕ' : 'READY TO SHIP',
+    lang === 'ru' ? 'ОПЛАТА КРИПТО / БАЛАНС' : 'CRYPTO / BALANCE',
+    lang === 'ru' ? 'TELEGRAM ЧЕК' : 'TELEGRAM RECEIPT',
+    lang === 'ru' ? 'ANTI-FRAUD' : 'ANTI-FRAUD',
+  ]
+
   return (
     <PageTransition>
-      <main className="pd-shell">
-        <header className="pd-topbar">
+      <main className="pdb-shell">
+        <div className="pdb-grid" aria-hidden />
+        <div className="pdb-grain" aria-hidden />
+
+        <header className="pdb-bar">
           <motion.button
-            className="pd-back"
+            className="pdb-back"
             onClick={() => navigate(-1)}
             aria-label="Back"
-            initial={{ opacity: 0, x: -8 }}
+            initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, ease: EASE }}
-            whileTap={{ scale: 0.92 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            whileTap={{ scale: 0.94 }}
           >
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-              <path d="M11.5 4.5 7 9l4.5 4.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" strokeLinejoin="miter" />
             </svg>
-            <span>{lang === 'ru' ? 'Назад' : 'Back'}</span>
+            <span>{lang === 'ru' ? 'НАЗАД' : 'BACK'}</span>
           </motion.button>
-          <div className="pd-crumb">
-            <i />
-            <span>{categoryName}</span>
+          <div className="pdb-bar-meta">
+            <span className="pdb-bar-idx">№ {String(product.id).padStart(3, '0')}</span>
+            <span className={`pdb-bar-dot${lowStock ? ' is-low' : ''}`}>
+              <i /> {product.stock} {lang === 'ru' ? 'ШТ' : 'PCS'}
+            </span>
           </div>
         </header>
 
-        <section className="pd-hero">
-          <div className="pd-hero-glow" aria-hidden />
-          <motion.div
-            className="pd-tags"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: EASE, delay: 0.08 }}
-          >
-            <span className="pd-tag pd-tag--hot">
-              <i /> {lang === 'ru' ? 'В наличии' : 'In stock'}
-            </span>
-            <span className="pd-tag">{deliveryLabel}</span>
-            {lowStock && (
-              <span className="pd-tag pd-tag--warn">
-                {lang === 'ru' ? `Осталось ${product.stock}` : `Only ${product.stock} left`}
+        <div className="pdb-ticker" aria-hidden>
+          <div className="pdb-ticker-track">
+            {[...tickerItems, ...tickerItems, ...tickerItems].map((t, i) => (
+              <span key={i}>
+                {t}
+                <em>◆</em>
               </span>
-            )}
+            ))}
+          </div>
+        </div>
+
+        <section className="pdb-hero">
+          <motion.div
+            className="pdb-cat"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
+          >
+            <span className="pdb-cat-line" />
+            <span className="pdb-cat-name">{categoryName}</span>
+            <span className="pdb-cat-meta">/ {deliveryLabel}</span>
           </motion.div>
 
-          <motion.h1
-            className="pd-title"
-            initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.16 }}
-          >
-            {title}
-          </motion.h1>
+          <h1 className="pdb-title">
+            {titleWords.map((word, i) => (
+              <motion.span
+                key={`${word}-${i}`}
+                className={`pdb-title-w${i === 0 ? ' is-fill' : ' is-stroke'}`}
+                initial={{ opacity: 0, y: 36, skewY: 4 }}
+                animate={{ opacity: 1, y: 0, skewY: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 + i * 0.09 }}
+              >
+                {word}
+              </motion.span>
+            ))}
+            <motion.span
+              className="pdb-title-cursor"
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 1, 0] }}
+              transition={{ duration: 1.1, repeat: Infinity, delay: 0.6 }}
+            />
+          </h1>
 
           <motion.p
-            className="pd-desc"
+            className="pdb-desc"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.28 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.45 }}
           >
+            <span className="pdb-desc-rule" aria-hidden />
             {desc}
           </motion.p>
 
           <motion.div
-            className="pd-price-row"
-            initial={{ opacity: 0, y: 12 }}
+            className="pdb-price"
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.36 }}
+            transition={{ duration: 0.55, ease: EASE, delay: 0.55 }}
           >
-            <div className="pd-price">
-              <span className="pd-price-cur">$</span>
-              <motion.strong
-                key={total.toFixed(2)}
-                initial={{ y: 6, opacity: 0, filter: 'blur(6px)' }}
-                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                transition={{ duration: 0.32, ease: EASE }}
-              >
-                {total.toFixed(2)}
-              </motion.strong>
+            <div className="pdb-price-label">
+              <span>{lang === 'ru' ? 'К ОПЛАТЕ' : 'TOTAL'}</span>
+              <em>USD</em>
             </div>
-            <div className="pd-price-meta">
-              <AnimatePresence mode="wait">
-                {discountPct > 0 ? (
+            <div className="pdb-price-figure">
+              <motion.span
+                key={total.toFixed(2)}
+                initial={{ y: 14, opacity: 0, filter: 'blur(8px)' }}
+                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                transition={{ duration: 0.42, ease: EASE }}
+              >
+                ${total.toFixed(2)}
+              </motion.span>
+              <AnimatePresence>
+                {discountPct > 0 && (
                   <motion.div
-                    key="disc"
-                    className="pd-price-disc"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
+                    key={discountPct}
+                    className="pdb-price-save"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
                   >
                     <s>${originalTotal.toFixed(2)}</s>
                     <em>−{discountPct}%</em>
                   </motion.div>
-                ) : (
-                  <motion.span
-                    key="hint"
-                    className="pd-price-hint"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                  >
-                    {lang === 'ru' ? 'от 3 шт — скидка' : 'discount from 3'}
-                  </motion.span>
                 )}
               </AnimatePresence>
             </div>
           </motion.div>
         </section>
 
-        <section className="pd-card">
-          <div className="pd-card-head">
-            <div>
-              <span className="pd-kicker">{lang === 'ru' ? 'Количество' : 'Quantity'}</span>
-              <strong className="pd-card-title">
-                {qty} × ${product.price.toFixed(0)}
-              </strong>
-            </div>
-            <div className="pd-stepper">
-              <button onClick={() => { haptic('light'); setQty((q) => Math.max(1, q - 1)) }} disabled={qty <= 1} aria-label="−">−</button>
-              <b>{qty}</b>
-              <button onClick={() => { haptic('light'); setQty((q) => Math.min(product.stock, q + 1)) }} disabled={qty >= product.stock} aria-label="+">+</button>
-            </div>
+        <section className="pdb-section">
+          <div className="pdb-section-head">
+            <span className="pdb-section-num">02</span>
+            <span className="pdb-section-bar" />
+            <span className="pdb-section-name">{lang === 'ru' ? 'КОЛИЧЕСТВО' : 'QUANTITY'}</span>
+            <span className="pdb-section-tail">{qty} × ${product.price.toFixed(0)}</span>
           </div>
 
-          <div className="pd-tiers">
-            {TIERS.map((tier) => {
+          <div className="pdb-stepper">
+            <button
+              onClick={() => { haptic('light'); setQty((q) => Math.max(1, q - 1)) }}
+              disabled={qty <= 1}
+              aria-label="Decrease"
+              className="pdb-step pdb-step--minus"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" /></svg>
+            </button>
+            <div className="pdb-step-value">
+              <AnimatePresence mode="popLayout">
+                <motion.b
+                  key={qty}
+                  initial={{ y: 18, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -18, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: EASE }}
+                >
+                  {qty}
+                </motion.b>
+              </AnimatePresence>
+              <span>{lang === 'ru' ? 'ШТ.' : 'PCS'}</span>
+            </div>
+            <button
+              onClick={() => { haptic('light'); setQty((q) => Math.min(product.stock, q + 1)) }}
+              disabled={qty >= product.stock}
+              aria-label="Increase"
+              className="pdb-step pdb-step--plus"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="pdb-tiers">
+            {TIERS.map((tier, idx) => {
               const active = qty >= tier.min
               return (
-                <button
+                <motion.button
                   key={tier.min}
-                  className={`pd-tier${active ? ' is-on' : ''}`}
+                  className={`pdb-tier${active ? ' is-on' : ''}`}
                   onClick={() => { haptic('light'); setQty(Math.min(product.stock, tier.min)) }}
+                  whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: EASE, delay: 0.1 + idx * 0.06 }}
                 >
-                  <span>{tier.min}+</span>
-                  <strong>−{tier.pct}%</strong>
-                </button>
+                  <span className="pdb-tier-min">{tier.min}+ {lang === 'ru' ? 'ШТ' : 'PCS'}</span>
+                  <strong className="pdb-tier-pct">−{tier.pct}<i>%</i></strong>
+                  <span className="pdb-tier-mark" aria-hidden>{active ? '●' : '○'}</span>
+                </motion.button>
               )
             })}
           </div>
         </section>
 
         {similar.length > 0 && (
-          <section className="pd-similar">
-            <span className="pd-kicker">{lang === 'ru' ? 'Похожие' : 'Similar'}</span>
-            <div className="pd-similar-list">
-              {similar.map((item) => (
-                <button key={item.id} className="pd-similar-item" onClick={() => navigate(`/product/${item.id}`)}>
-                  <span>{lang === 'ru' ? item.title : item.title_en}</span>
-                  <strong>${item.price.toFixed(0)}</strong>
-                </button>
+          <section className="pdb-section pdb-section--similar">
+            <div className="pdb-section-head">
+              <span className="pdb-section-num">03</span>
+              <span className="pdb-section-bar" />
+              <span className="pdb-section-name">{lang === 'ru' ? 'РЯДОМ' : 'NEARBY'}</span>
+            </div>
+            <div className="pdb-sim">
+              {similar.map((item, i) => (
+                <motion.button
+                  key={item.id}
+                  className="pdb-sim-row"
+                  onClick={() => navigate(`/product/${item.id}`)}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, ease: EASE, delay: 0.05 + i * 0.05 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <span className="pdb-sim-idx">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="pdb-sim-name">{lang === 'ru' ? item.title : item.title_en}</span>
+                  <strong className="pdb-sim-price">${item.price.toFixed(0)}</strong>
+                  <svg className="pdb-sim-arr" width="14" height="14" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+                </motion.button>
               ))}
             </div>
           </section>
         )}
 
-        <div className="pd-cta-spacer" aria-hidden />
+        <div className="pdb-cta-spacer" aria-hidden />
 
         <motion.div
-          className="pd-cta-dock"
-          initial={{ y: 60, opacity: 0 }}
+          className="pdb-dock"
+          initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: EASE, delay: 0.2 }}
+          transition={{ duration: 0.55, ease: EASE, delay: 0.25 }}
         >
           <motion.button
-            className="pd-cta"
+            className="pdb-cta"
             disabled={isOut}
             whileTap={{ scale: 0.985 }}
             onClick={() => {
@@ -316,15 +385,21 @@ export default function ProductDetail() {
               setShowPayment(true)
             }}
           >
-            <span className="pd-cta-shimmer" aria-hidden />
-            <span className="pd-cta-label">
-              {isOut ? (lang === 'ru' ? 'Нет в наличии' : 'Sold out') : (lang === 'ru' ? 'Купить' : 'Buy')}
+            <span className="pdb-cta-bg" aria-hidden />
+            <span className="pdb-cta-edge" aria-hidden />
+            <span className="pdb-cta-l">
+              <span className="pdb-cta-label">
+                {isOut ? (lang === 'ru' ? 'НЕТ В НАЛИЧИИ' : 'SOLD OUT') : (lang === 'ru' ? 'ОФОРМИТЬ' : 'CHECKOUT')}
+              </span>
+              {!isOut && <span className="pdb-cta-sub">{lang === 'ru' ? 'мгновенная выдача' : 'instant delivery'}</span>}
             </span>
-            {!isOut && <span className="pd-cta-amount">${total.toFixed(2)}</span>}
             {!isOut && (
-              <svg className="pd-cta-arrow" viewBox="0 0 24 24" fill="none" width="18" height="18">
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <span className="pdb-cta-r">
+                <span className="pdb-cta-amount">${total.toFixed(2)}</span>
+                <span className="pdb-cta-arrow" aria-hidden>
+                  <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.8" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+                </span>
+              </span>
             )}
           </motion.button>
         </motion.div>
