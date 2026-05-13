@@ -96,8 +96,9 @@ export default function Navigation() {
   const close = () => {
     peekingRef.current = false
     setPeeking(false)
-    // Pill returns to active idx via CSS transition
-    if (pillRef.current) pillRef.current.style.transform = ''
+    // Snap pill to active tab so it stays under the lit button
+    const i = activeIdx === -1 ? 0 : activeIdx
+    requestAnimationFrame(() => snapPillToIdx(i))
   }
 
   const beginPeek = (e: React.PointerEvent<HTMLButtonElement>) => {
