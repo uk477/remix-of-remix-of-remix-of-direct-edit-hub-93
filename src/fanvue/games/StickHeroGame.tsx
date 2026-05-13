@@ -70,6 +70,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
   const [over, setOver] = useState(false)
   const [needName, setNeedName] = useState(!savedName)
   const [nameInput, setNameInput] = useState('')
+  const [flipped, setFlipped] = useState(false)
 
   const stRef = useRef<GameState>({
     phase: needName ? 'name' : 'waiting',
