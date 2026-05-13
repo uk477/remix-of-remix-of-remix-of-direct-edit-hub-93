@@ -634,7 +634,7 @@ export default function Settings() {
                     aria-hidden
                     initial={{ x: '-120%' }}
                     animate={{ x: '220%' }}
-                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    transition={{ duration: 3.2, ease: "easeInOut" }}
                     onAnimationComplete={() => setSweep('reviews')}
                     style={{
                       position: 'absolute', top: 0, bottom: 0, width: 70,
@@ -700,7 +700,7 @@ export default function Settings() {
                     aria-hidden
                     initial={{ x: '220%' }}
                     animate={{ x: '-120%' }}
-                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    transition={{ duration: 3.2, ease: "easeInOut" }}
                     onAnimationComplete={() => setSweep('channel')}
                     style={{
                       position: 'absolute', top: 0, bottom: 0, width: 70,
