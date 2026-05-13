@@ -130,8 +130,8 @@ export default function Deposit() {
   return (
     <PageTransition>
       <main className="dpz">
-        <div className="dpz-glow" aria-hidden />
-        <div className="dpz-glow dpz-glow--b" aria-hidden />
+        <div className="dpb-grid" aria-hidden />
+        <div className="dpb-grain" aria-hidden />
 
         <header className="dpz-top">
           <button className="dpz-back" onClick={goBack} aria-label="Back">
