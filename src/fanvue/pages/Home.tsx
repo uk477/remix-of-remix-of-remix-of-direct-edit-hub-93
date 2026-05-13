@@ -5,8 +5,8 @@ import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import SalesHistorySheet from '../components/SalesHistorySheet'
 import { getOnline, getRecentSales, getTotalSales, formatAgo, buyerLabel, lotLabel, mskNow } from '../utils/salesGen'
-import lotAccountImg from '../../assets/shop-lot-account.jpg'
-import lotVerifyImg from '../../assets/shop-lot-verify.jpg'
+import lotAccountImg from '../../assets/shop-lot-account.webp'
+import lotVerifyImg from '../../assets/shop-lot-verify.webp'
 import fanvueGlyph from '../../assets/fanvue-glyph.png'
 import solanaLogo from '../assets/solana.svg'
 
@@ -103,10 +103,14 @@ export default function Home() {
             src={fanvueGlyph}
             alt=""
             draggable={false}
+            decoding="async"
+            // @ts-expect-error - valid HTML attr
+            fetchpriority="high"
+            width={36}
+            height={36}
             className="shop-hero-brand-logo"
-            initial={{ scale: 0.82, y: 4, opacity: 0, filter: 'blur(8px)' }}
-            animate={{ scale: 1, y: 0, opacity: 1, filter: 'blur(0px)' }}
-            transition={{ type: 'spring', stiffness: 260, damping: 22, mass: 0.75, delay: 0.04 }}
+            initial={false}
+            animate={{ opacity: 1 }}
           />
 
           <motion.span
@@ -441,7 +445,10 @@ function LotCard({
         <motion.img
           src={image}
           alt=""
-          loading={index === 0 ? 'eager' : 'lazy'}
+          loading="eager"
+          decoding="async"
+          // @ts-expect-error - valid HTML attr
+          fetchpriority="high"
           style={{ y: mediaY, scale: mediaScale }}
         />
         <div className="shop-lot-shade" />
