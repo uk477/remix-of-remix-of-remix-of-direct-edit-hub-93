@@ -53,6 +53,32 @@ export default function Home() {
 
   const productTitle = (i: 0 | 1) => lotLabel(i, lang)
 
+  // Animated balance count-up (0 → current on mount, smooth on change)
+  const [shownBal, setShownBal] = useState(0)
+  useEffect(() => {
+    const c = animate(shownBal, balance, {
+      duration: 0.95, delay: 0.12, ease: EASE,
+      onUpdate: (v) => setShownBal(v),
+    })
+    return () => c.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balance])
+  const balDecimals = balance % 1 === 0 ? 0 : 2
+
+  // Top-up ripple
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([])
+  const spawnRipple = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const id = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+    setRipples((rs) => [...rs, { id, x: e.clientX - r.left, y: e.clientY - r.top }])
+    window.setTimeout(() => {
+      setRipples((rs) => rs.filter((x) => x.id !== id))
+    }, 700)
+  }
+
+  // Last sale relative label (for live bar middle cell)
+  const lastSaleAgo = recentSales[0] ? formatAgo(recentSales[0].ts, lang, now) : null
+
   return (
     <main className="shop">
       {/* ── HERO ── */}
@@ -108,13 +134,41 @@ export default function Home() {
           <button className="shop-hero-bal-main" onClick={goDeposit}>
             <span className="shop-hero-bal-eye">{lang === 'ru' ? 'Ваш баланс' : 'Your balance'}</span>
             <span className="shop-hero-bal-num">
-              <i>$</i>{balance.toFixed(balance % 1 === 0 ? 0 : 2)}
+              <i>$</i>{shownBal.toFixed(balDecimals)}
             </span>
           </button>
-          <button className="shop-hero-topup" onClick={goDeposit} aria-label={lang === 'ru' ? 'Пополнить баланс' : 'Top up balance'}>
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <motion.button
+            className="shop-hero-topup"
+            onPointerDown={spawnRipple}
+            onClick={goDeposit}
+            aria-label={lang === 'ru' ? 'Пополнить баланс' : 'Top up balance'}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+          >
+            <span className="shop-hero-topup-shine" aria-hidden />
+            <motion.svg
+              viewBox="0 0 24 24"
+              fill="none"
+              animate={{ y: [0, -1.4, 0] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </motion.svg>
             <span>{lang === 'ru' ? 'Пополнить' : 'Top up'}</span>
-          </button>
+            <AnimatePresence>
+              {ripples.map((r) => (
+                <motion.span
+                  key={r.id}
+                  className="shop-hero-topup-ripple"
+                  style={{ left: r.x, top: r.y }}
+                  initial={{ opacity: 0.55, scale: 0 }}
+                  animate={{ opacity: 0, scale: 5 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.button>
         </motion.div>
 
         <div className="shop-quick">
@@ -157,8 +211,25 @@ export default function Home() {
           </span>
         </span>
         <span className="shop-live-cell">
-          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-          <span className="shop-live-t"><b>{todaySales}</b> {lang === 'ru' ? 'сделок' : 'sales'}</span>
+          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7.5V12l3 1.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="shop-live-t">
+            {lastSaleAgo ? (
+              <>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.b
+                    key={lastSaleAgo}
+                    initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
+                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                    exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
+                    transition={{ duration: 0.32, ease: EASE }}
+                  >{lastSaleAgo}</motion.b>
+                </AnimatePresence>
+                {' '}{lang === 'ru' ? 'назад' : 'ago'}
+              </>
+            ) : (
+              <span style={{ opacity: 0.6 }}>{lang === 'ru' ? 'без сделок' : 'no sales yet'}</span>
+            )}
+          </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">
           <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
