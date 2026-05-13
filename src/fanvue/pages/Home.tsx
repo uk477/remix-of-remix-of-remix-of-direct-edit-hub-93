@@ -394,6 +394,56 @@ export default function Home() {
         lang={lang}
         productTitle={productTitle}
       />
+
+      <AnimatePresence>
+        {eggPhase === 'loading' && (
+          <motion.div
+            key="egg-loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 10000,
+              background: 'radial-gradient(120% 80% at 50% 40%, #0e1820 0%, #050708 70%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 22,
+              color: '#fff',
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.6, rotate: -180, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+              style={{
+                width: 76, height: 76, borderRadius: 22,
+                background: 'linear-gradient(180deg,#39ff63,#1fe07a)',
+                display: 'grid', placeItems: 'center',
+                boxShadow: '0 20px 50px rgba(57,255,99,0.4), inset 0 -6px 14px rgba(0,0,0,0.18)',
+                color: '#062612', fontWeight: 900, fontSize: 38, letterSpacing: '-0.04em',
+              }}
+            >F</motion.div>
+            <div style={{ fontSize: 11, letterSpacing: '0.32em', color: '#7a8693', fontWeight: 700 }}>
+              STICK HERO
+            </div>
+            <div style={{ width: 140, height: 3, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ duration: 1.1, ease: 'easeInOut' }}
+                style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg,transparent,#39ff63,transparent)' }}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: '#a8b2bf' }}>
+              {lang === 'ru' ? 'Загрузка…' : 'Loading…'}
+            </div>
+          </motion.div>
+        )}
+        {eggPhase === 'playing' && (
+          <Suspense key="egg-game" fallback={null}>
+            <StickHeroGame onExit={() => setEggPhase('idle')} />
+          </Suspense>
+        )}
+      </AnimatePresence>
     </main>
   )
 }
