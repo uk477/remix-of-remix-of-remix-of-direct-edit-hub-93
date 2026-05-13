@@ -127,6 +127,9 @@ export default function Home() {
             className="shop-hero-brand-logo"
             initial={false}
             animate={{ opacity: 1 }}
+            onClick={onLogoTap}
+            style={{ cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}
+            whileTap={{ scale: 0.85 }}
           />
 
           <motion.span
