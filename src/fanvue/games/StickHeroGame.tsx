@@ -81,19 +81,22 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     heroY: 0,
     heroVy: 0,
     heroRot: 0,
+    walkPhase: 0,
+    capWobble: 0,
     cameraX: 0,
     cameraStartX: 0,
     cameraTargetX: 0,
     cameraT: 0,
     cameraDur: 0.35,
     score: 0,
-    glyphIdx: 0,
     last: 0,
     perfect: false,
     perfectFlash: 0,
     particles: [],
     bgT: 0,
     shake: 0,
+    eggDone: false,
+    eggT: 0,
   })
 
   // Resize
