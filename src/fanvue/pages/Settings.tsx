@@ -54,6 +54,127 @@ function LangToggle() {
   )
 }
 
+const NEON_COLORS = ['#00FF88', '#FF3366', '#FFB800', '#3DA9FC', '#B967FF', '#FFFFFF']
+
+function EditorToolbar({
+  textareaRef, setDraft, lang,
+}: {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>
+  setDraft: React.Dispatch<React.SetStateAction<string>>
+  lang: Lang
+}) {
+  const [showColors, setShowColors] = useState(false)
+
+  const wrap = (before: string, after: string = before, placeholder = '') => {
+    const ta = textareaRef.current
+    if (!ta) return
+    const start = ta.selectionStart
+    const end   = ta.selectionEnd
+    const sel   = ta.value.slice(start, end) || placeholder
+    const next  = ta.value.slice(0, start) + before + sel + after + ta.value.slice(end)
+    setDraft(next)
+    requestAnimationFrame(() => {
+      ta.focus()
+      const pos = start + before.length + sel.length
+      ta.setSelectionRange(start + before.length, pos)
+    })
+  }
+
+  const insertAtLineStart = (prefix: string) => {
+    const ta = textareaRef.current
+    if (!ta) return
+    const v = ta.value
+    const start = ta.selectionStart
+    const lineStart = v.lastIndexOf('\n', start - 1) + 1
+    const next = v.slice(0, lineStart) + prefix + v.slice(lineStart)
+    setDraft(next)
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(start + prefix.length, start + prefix.length)
+    })
+  }
+
+  const insertLink = () => {
+    const ta = textareaRef.current
+    if (!ta) return
+    const url = window.prompt(lang === 'ru' ? 'Вставьте URL:' : 'Paste URL:', 'https://')
+    if (!url) return
+    const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd) || (lang === 'ru' ? 'ссылка' : 'link')
+    wrap(`[${sel}](${url})`, '', '')
+    // wrap inserts placeholder when sel empty; here we pre-built the whole token, so override:
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const token = `[${ta.value.slice(start, end) || (lang === 'ru' ? 'ссылка' : 'link')}](${url})`
+    const next = ta.value.slice(0, start) + token + ta.value.slice(end)
+    setDraft(next)
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(start + token.length, start + token.length)
+    })
+  }
+
+  const applyColor = (hex: string) => {
+    wrap(`{c:${hex}}`, '{/c}', lang === 'ru' ? 'текст' : 'text')
+    setShowColors(false)
+  }
+
+  const Btn = ({ children, onClick, title }: { children: React.ReactNode; onClick: () => void; title: string }) => (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      style={{
+        minWidth: 32, height: 30, padding: '0 8px', borderRadius: 8,
+        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+        color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: inter,
+      }}
+    >
+      {children}
+    </button>
+  )
+
+  return (
+    <div style={{ position: 'relative', marginBottom: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 6, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <Btn title="Bold"          onClick={() => wrap('**', '**', lang==='ru'?'жирный':'bold')}><b>B</b></Btn>
+        <Btn title="Italic"        onClick={() => wrap('*', '*', lang==='ru'?'курсив':'italic')}><i>I</i></Btn>
+        <Btn title="Underline"     onClick={() => wrap('__', '__', lang==='ru'?'подчёрк':'underline')}><span style={{ textDecoration:'underline' }}>U</span></Btn>
+        <Btn title="Strike"        onClick={() => wrap('~~', '~~', lang==='ru'?'зачёрк':'strike')}><span style={{ textDecoration:'line-through' }}>S</span></Btn>
+        <Btn title="Inline code"   onClick={() => wrap('`', '`', 'code')}><span style={{ fontFamily: mono }}>{'</>'}</span></Btn>
+        <Btn title="Link"          onClick={insertLink}>🔗</Btn>
+        <Btn title="Color"         onClick={() => setShowColors(s => !s)}><span style={{ color: NEON }}>A</span></Btn>
+        <div style={{ width: 1, background: 'rgba(255,255,255,0.08)', margin: '4px 4px' }} />
+        <Btn title="Heading"       onClick={() => insertAtLineStart('## ')}>H1</Btn>
+        <Btn title="Subheading"    onClick={() => insertAtLineStart('### ')}>H2</Btn>
+        <Btn title="List"          onClick={() => insertAtLineStart('• ')}>•</Btn>
+      </div>
+      {showColors && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 10,
+          display: 'flex', gap: 6, padding: 8, borderRadius: 10,
+          background: '#0e0e0e', border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        }}>
+          {NEON_COLORS.map(c => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => applyColor(c)}
+              title={c}
+              style={{
+                width: 24, height: 24, borderRadius: 6, background: c,
+                border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ContentSheet({
   title, contentKey, onClose,
 }: {
