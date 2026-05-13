@@ -996,14 +996,16 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      {openSheet && (
-        <ContentSheet
-          key={openSheet}
-          title={links.find((l) => l.key === openSheet)!.label}
-          contentKey={openSheet}
-          onClose={() => setOpenSheet(null)}
-        />
-      )}
+      <AnimatePresence>
+        {openSheet && (
+          <ContentSheet
+            key={openSheet}
+            title={links.find((l) => l.key === openSheet)!.label}
+            contentKey={openSheet}
+            onClose={() => setOpenSheet(null)}
+          />
+        )}
+      </AnimatePresence>
     </PageTransition>
   )
 }
