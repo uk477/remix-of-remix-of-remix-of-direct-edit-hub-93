@@ -211,24 +211,18 @@ export default function Home() {
           </span>
         </span>
         <span className="shop-live-cell">
-          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M12 7.5V12l3 1.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M3 7h13l-1.2 8.5a2 2 0 0 1-2 1.7H8.2a2 2 0 0 1-2-1.7L4.7 5H2.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="20" r="1.2" fill="currentColor"/><circle cx="15" cy="20" r="1.2" fill="currentColor"/></svg>
           <span className="shop-live-t">
-            {lastSaleAgo ? (
-              <>
-                {lang === 'ru' ? 'продажа' : 'sale'}{' '}
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.b
-                    key={lastSaleAgo}
-                    initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
-                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
-                    transition={{ duration: 0.32, ease: EASE }}
-                  >{lastSaleAgo}</motion.b>
-                </AnimatePresence>
-              </>
-            ) : (
-              <span style={{ opacity: 0.6 }}>{lang === 'ru' ? 'без сделок' : 'no sales yet'}</span>
-            )}
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.b
+                key={todaySales}
+                initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
+                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
+                transition={{ duration: 0.32, ease: EASE }}
+              >{todaySales}</motion.b>
+            </AnimatePresence>
+            {' '}{lang === 'ru' ? 'выдано сегодня' : 'sold today'}
           </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">
