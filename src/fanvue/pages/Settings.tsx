@@ -354,16 +354,16 @@ Always provide your **Order ID** when contacting support.`,
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ opacity: overlayOpacity }}
-      data-closing={isClosing ? 'true' : 'false'}
       onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
     >
       <motion.div
         ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={controls}
-        style={{ y, maxHeight: '85dvh', willChange: 'transform' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 340, damping: 34, mass: 0.75 }}
+        style={{ maxHeight: '85dvh', willChange: 'transform' }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
@@ -379,7 +379,6 @@ Always provide your **Order ID** when contacting support.`,
           const h = sheetRef.current?.offsetHeight ?? window.innerHeight
           const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
           if (shouldClose) closeSheet()
-          else controls.start({ y: 0 }, { type: 'spring', stiffness: 420, damping: 36, mass: 0.7 })
         }}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
