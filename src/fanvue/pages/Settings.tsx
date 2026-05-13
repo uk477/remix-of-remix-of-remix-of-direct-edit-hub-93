@@ -193,6 +193,7 @@ function ContentSheet({
   const [draft, setDraft]     = useState(siteContent[langKey] ?? '')
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const sheetRef = useRef<HTMLDivElement | null>(null)
+  const closingRef = useRef(false)
   const admin = isAdmin()
   const y = useMotionValue(0)
   const controls = useAnimationControls()
@@ -200,9 +201,14 @@ function ContentSheet({
     const h = sheetRef.current?.offsetHeight ?? window.innerHeight
     return Math.max(0, 1 - v / h)
   })
+  useEffect(() => {
+    controls.start({ y: 0 }, { type: 'spring', stiffness: 320, damping: 34, mass: 0.8 })
+  }, [controls])
   const closeSheet = async () => {
+    if (closingRef.current) return
+    closingRef.current = true
     const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-    await controls.start({ y: h }, { type: 'spring', stiffness: 380, damping: 38, mass: 0.8 })
+    await controls.start({ y: h }, { type: 'spring', stiffness: 380, damping: 40, mass: 0.7 })
     onClose()
   }
 
