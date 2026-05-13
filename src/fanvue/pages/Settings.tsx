@@ -369,12 +369,23 @@ export default function Settings() {
         <div style={{ position: 'absolute', top: 0, right: 48, width: 1, height: '100%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Header */}
-          <motion.div variants={fadeUp} className="pg-header" style={{ marginBottom: 24 }}>
-            <motion.button className="pg-back" onClick={() => navigate(-1)} whileTap={{ scale: 0.9 }}>
+          {/* Header — back only */}
+          <motion.div variants={fadeUp} style={{ marginBottom: 18 }}>
+            <motion.button
+              onClick={() => navigate(-1)}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ x: -2 }}
+              style={{
+                width: 42, height: 42, borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(12px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', cursor: 'pointer',
+              }}
+            >
               <BackIcon />
             </motion.button>
-            <div className="pg-title">{t('settings_title')}</div>
           </motion.div>
 
           {/* HERO TYPOGRAPHY */}
