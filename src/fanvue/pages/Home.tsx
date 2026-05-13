@@ -157,7 +157,18 @@ export default function Home() {
             <span className="home-topup-edge" aria-hidden />
             <span className="home-topup-l">
               <span className="home-topup-label">{lang === 'ru' ? 'ПОПОЛНИТЬ' : 'TOP UP'}</span>
-              <span className="home-topup-sub">USDT · BTC · SOL</span>
+              <span className="home-topup-sub home-topup-coins" aria-hidden>
+                {['usdt','eth','btc','sol','ton'].map((c) => (
+                  <img
+                    key={c}
+                    src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/${c}.svg`}
+                    alt=""
+                    width={18}
+                    height={18}
+                    loading="lazy"
+                  />
+                ))}
+              </span>
             </span>
             <span className="home-topup-arrow" aria-hidden>
               <svg viewBox="0 0 24 24" fill="none">
