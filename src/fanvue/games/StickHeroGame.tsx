@@ -753,37 +753,15 @@ function drawHero(
   const W = HERO_W, H = HERO_H
   const cx = x + W / 2
 
-  // ground shadow (squishes with steps)
+  // ground shadow
   const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.14 : 1
   ctx.fillStyle = 'rgba(0,0,0,0.45)'
   ctx.beginPath()
   ctx.ellipse(cx, baseY + 1, (W * 0.40) * shadowSquish, 3.2, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  // ---------- LEGS (animated, behind body) ----------
-  const footY = baseY - 1
-  const legW = 8, legH = 13
-  const stride = walking ? Math.sin(walkPhase) * 8 : 0
-  const liftL  = walking ? Math.max(0, Math.sin(walkPhase)) * 8 : 0
-  const liftR  = walking ? Math.max(0, -Math.sin(walkPhase)) * 8 : 0
-
-  const drawLeg = (lx: number, lift: number) => {
-    // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.18)'
-    roundRect(ctx, lx + 0.5, footY - legH - lift + 1, legW, legH, 3); ctx.fill()
-    // gradient body
-    const lg = ctx.createLinearGradient(lx, footY - legH - lift, lx, footY - lift)
-    lg.addColorStop(0, '#ffffff'); lg.addColorStop(1, '#c9d0d8')
-    ctx.fillStyle = lg
-    roundRect(ctx, lx, footY - legH - lift, legW, legH, 3); ctx.fill()
-    ctx.strokeStyle = 'rgba(20,40,30,0.35)'; ctx.lineWidth = 0.8
-    roundRect(ctx, lx, footY - legH - lift, legW, legH, 3); ctx.stroke()
-  }
-  drawLeg(cx - 9 + stride - legW / 2, liftL)
-  drawLeg(cx + 9 - stride - legW / 2, liftR)
-
-  // body bob (up when both legs are mid-step)
-  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 3 : Math.sin(capWobble * 1.4) * 0.8
+  // body bob
+  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 2.5 : Math.sin(capWobble * 1.4) * 0.6
 
   ctx.save()
   ctx.translate(cx, baseY)
@@ -791,67 +769,24 @@ function drawHero(
   ctx.translate(-cx, -baseY)
   ctx.translate(0, bodyBob)
 
-  // ---------- WHITE CAPSULE BODY ----------
-  const bodyW = 38
-  const bodyH = 52
-  const bodyX = cx - bodyW / 2
-  const bodyY = baseY - bodyH - 5
-  const bodyGrad = ctx.createLinearGradient(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH)
-  bodyGrad.addColorStop(0, '#cfd2d2')
-  bodyGrad.addColorStop(0.28, '#ffffff')
-  bodyGrad.addColorStop(1, '#d8dfe4')
-  ctx.fillStyle = bodyGrad
-  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.fill()
-  ctx.fillStyle = 'rgba(255,255,255,0.38)'
-  roundRect(ctx, bodyX + bodyW * 0.52, bodyY + 7, bodyW * 0.42, bodyH * 0.72, 13); ctx.fill()
-  ctx.strokeStyle = 'rgba(21,37,30,0.24)'; ctx.lineWidth = 1
-  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.stroke()
-
-  // side pom / eye detail from the reference
-  const pomX = bodyX + bodyW - 2
-  const pomY = bodyY + 17
-  const pomGrad = ctx.createRadialGradient(pomX - 4, pomY - 5, 1, pomX, pomY, 15)
-  pomGrad.addColorStop(0, '#ffffff')
-  pomGrad.addColorStop(1, '#bfc4c7')
-  ctx.fillStyle = pomGrad
-  ctx.beginPath(); ctx.arc(pomX, pomY, 10.5, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = '#ffffff'
-  ctx.beginPath(); ctx.arc(pomX + 4, pomY - 5, 3.4, 0, Math.PI * 2); ctx.fill()
-
-  // ---------- SEPARATE FANVUE CAP ----------
-  const capWob = walking ? Math.sin(walkPhase + 0.6) * 6 : Math.sin(capWobble * 1.2) * 2.2
-  const capBobY = walking ? Math.sin(walkPhase + 0.35) * 1.8 : Math.sin(capWobble) * 0.7
-  const capX = cx - 24
-  const capY = bodyY - 18
-  ctx.save()
-  ctx.translate(cx, bodyY + 8 + capBobY)
-  ctx.rotate((capWob * Math.PI) / 180)
-  ctx.translate(-cx, -(bodyY + 8))
-  ctx.shadowColor = 'rgba(124,255,0,0.72)'; ctx.shadowBlur = 16
-  const capGrad = ctx.createLinearGradient(capX, capY, capX + 48, capY + 34)
-  capGrad.addColorStop(0, '#baff00')
-  capGrad.addColorStop(0.52, '#88ff00')
-  capGrad.addColorStop(1, '#54c800')
-  ctx.fillStyle = capGrad
-  roundRect(ctx, capX + 4, capY + 2, 45, 29, 16); ctx.fill()
-  ctx.shadowBlur = 0
-  ctx.fillStyle = '#8cff00'
-  ctx.beginPath()
-  ctx.ellipse(capX + 6, capY + 29, 30, 7.5, -0.23, Math.PI, Math.PI * 2)
-  ctx.lineTo(capX + 46, capY + 27)
-  ctx.quadraticCurveTo(capX + 20, capY + 36, capX - 10, capY + 35)
-  ctx.quadraticCurveTo(capX - 12, capY + 29, capX + 6, capY + 29)
-  ctx.fill()
-  ctx.strokeStyle = 'rgba(35,110,0,0.55)'; ctx.lineWidth = 1.4
-  ctx.beginPath(); ctx.moveTo(capX + 7, capY + 30); ctx.quadraticCurveTo(capX + 22, capY + 25, capX + 48, capY + 29); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(capX + 26, capY + 4); ctx.quadraticCurveTo(capX + 20, capY + 18, capX + 20, capY + 30); ctx.stroke()
-  ctx.strokeStyle = 'rgba(255,255,255,0.68)'; ctx.lineWidth = 2
-  ctx.beginPath(); ctx.moveTo(capX + 12, capY + 8); ctx.quadraticCurveTo(capX + 2, capY + 17, capX + 1, capY + 27); ctx.stroke()
-  ctx.fillStyle = '#103000'
-  ctx.font = '700 6.5px Arial, sans-serif'
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  ctx.fillText('FANVUE', cx + 3, capY + 18)
-  ctx.restore()
+  if (heroImg && heroImg.complete && heroImg.naturalWidth > 0) {
+    // The sprite is roughly square with character centered.
+    // Draw it scaled so the character body sits with feet at baseY.
+    const drawW = W * 1.6
+    const drawH = H * 1.6
+    const drawX = cx - drawW / 2
+    const drawY = baseY - drawH + 6 // tuck feet slightly below baseline
+    ctx.drawImage(heroImg, drawX, drawY, drawW, drawH)
+  } else {
+    // fallback capsule
+    const bodyW = 38, bodyH = 52
+    const bodyX = cx - bodyW / 2
+    const bodyY = baseY - bodyH - 5
+    ctx.fillStyle = '#e8edf3'
+    roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.fill()
+    ctx.fillStyle = '#7bff8e'
+    roundRect(ctx, bodyX - 6, bodyY - 14, bodyW + 12, 22, 10); ctx.fill()
+  }
 
   ctx.restore()
 }
