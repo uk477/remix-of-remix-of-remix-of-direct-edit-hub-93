@@ -45,8 +45,6 @@ export default function Home() {
   }, [])
 
   const online = useMemo(() => getOnline(new Date(now)), [now])
-  const todaySalesList = useMemo(() => getSalesToday(new Date(now)), [now])
-  const todaySales = todaySalesList.length
   const recentSales = useMemo(() => getRecentSales(3, new Date(now)), [now])
   const totalSales = useMemo(() => getTotalSales(new Date(now)) + orders.length, [now, orders.length])
 
