@@ -134,13 +134,41 @@ export default function Home() {
           <button className="shop-hero-bal-main" onClick={goDeposit}>
             <span className="shop-hero-bal-eye">{lang === 'ru' ? 'Ваш баланс' : 'Your balance'}</span>
             <span className="shop-hero-bal-num">
-              <i>$</i>{balance.toFixed(balance % 1 === 0 ? 0 : 2)}
+              <i>$</i>{shownBal.toFixed(balDecimals)}
             </span>
           </button>
-          <button className="shop-hero-topup" onClick={goDeposit} aria-label={lang === 'ru' ? 'Пополнить баланс' : 'Top up balance'}>
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <motion.button
+            className="shop-hero-topup"
+            onPointerDown={spawnRipple}
+            onClick={goDeposit}
+            aria-label={lang === 'ru' ? 'Пополнить баланс' : 'Top up balance'}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+          >
+            <span className="shop-hero-topup-shine" aria-hidden />
+            <motion.svg
+              viewBox="0 0 24 24"
+              fill="none"
+              animate={{ y: [0, -1.4, 0] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </motion.svg>
             <span>{lang === 'ru' ? 'Пополнить' : 'Top up'}</span>
-          </button>
+            <AnimatePresence>
+              {ripples.map((r) => (
+                <motion.span
+                  key={r.id}
+                  className="shop-hero-topup-ripple"
+                  style={{ left: r.x, top: r.y }}
+                  initial={{ opacity: 0.55, scale: 0 }}
+                  animate={{ opacity: 0, scale: 5 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.button>
         </motion.div>
 
         <div className="shop-quick">
