@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 
@@ -19,78 +18,88 @@ export default function Navigation() {
   const supportUnread = useStore((s) => s.supportUnread)
   const { haptic } = useTelegram()
 
+  const activeIdx = items.findIndex((it) =>
+    it.path === '/' ? location.pathname === '/' : location.pathname.startsWith(it.path),
+  )
+
   const [peeking, setPeeking] = useState(false)
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<number>(activeIdx === -1 ? 0 : activeIdx)
 
   const innerRef = useRef<HTMLDivElement | null>(null)
   const timerRef = useRef<number | null>(null)
-  const startRef = useRef<{ x: number; y: number } | null>(null)
+  const startRef = useRef<{ x: number; y: number; idx: number } | null>(null)
   const movedRef = useRef(false)
   const peekingRef = useRef(false)
-  const lastIdxRef = useRef<number | null>(null)
+  const lastIdxRef = useRef<number>(-1)
 
-  const isActive = (path: string) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
-
-  const idxFromPoint = (clientX: number): number | null => {
+  const idxFromX = (clientX: number): number => {
     const root = innerRef.current
-    if (!root) return null
+    if (!root) return 0
     const btns = root.querySelectorAll<HTMLElement>('[data-nav-btn]')
-    let bestI = -1
+    let bestI = 0
     let bestD = Infinity
     btns.forEach((el, i) => {
       const r = el.getBoundingClientRect()
-      const cx = (r.left + r.right) / 2
-      const inside = clientX >= r.left - 8 && clientX <= r.right + 8
-      const d = Math.abs(clientX - cx)
-      if (inside) { bestI = i; bestD = -1; return }
-      if (bestD !== -1 && d < bestD) { bestI = i; bestD = d }
+      if (clientX >= r.left && clientX <= r.right) { bestI = i; bestD = -1 }
+      else if (bestD !== -1) {
+        const cx = (r.left + r.right) / 2
+        const d = Math.abs(clientX - cx)
+        if (d < bestD) { bestI = i; bestD = d }
+      }
     })
-    return bestI === -1 ? null : bestI
+    return bestI
   }
 
-  const updateHover = (clientX: number) => {
-    const i = idxFromPoint(clientX)
+  const setHover = (i: number) => {
     if (i !== lastIdxRef.current) {
       lastIdxRef.current = i
       setHoverIdx(i)
-      if (i !== null) haptic('light')
+      haptic('light')
     }
   }
 
   const close = () => {
     setPeeking(false)
-    setHoverIdx(null)
     peekingRef.current = false
-    lastIdxRef.current = null
   }
 
-  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    startRef.current = { x: e.clientX, y: e.clientY }
+  const onPointerDown = (idx: number) => (e: React.PointerEvent<HTMLButtonElement>) => {
+    startRef.current = { x: e.clientX, y: e.clientY, idx }
     movedRef.current = false
     peekingRef.current = false
+    lastIdxRef.current = idx
     if (timerRef.current) window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
       if (movedRef.current) return
       peekingRef.current = true
       setPeeking(true)
+      setHoverIdx(idx)
       haptic('medium')
-      updateHover(e.clientX)
-      try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
-    }, 300)
+      try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
+    }, 220)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!startRef.current) return
     const dx = e.clientX - startRef.current.x
     const dy = e.clientY - startRef.current.y
-    if (!peekingRef.current && Math.hypot(dx, dy) > 10) {
-      movedRef.current = true
-      if (timerRef.current) window.clearTimeout(timerRef.current)
+    if (!peekingRef.current) {
+      // Horizontal movement before timer → start peek immediately
+      if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy)) {
+        if (timerRef.current) window.clearTimeout(timerRef.current)
+        peekingRef.current = true
+        setPeeking(true)
+        haptic('medium')
+        try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
+      } else if (Math.hypot(dx, dy) > 10) {
+        movedRef.current = true
+        if (timerRef.current) window.clearTimeout(timerRef.current)
+        return
+      }
     }
     if (peekingRef.current) {
       e.preventDefault()
-      updateHover(e.clientX)
+      setHover(idxFromX(e.clientX))
     }
   }
 
@@ -98,10 +107,13 @@ export default function Navigation() {
     if (timerRef.current) window.clearTimeout(timerRef.current)
     if (peekingRef.current) {
       e.preventDefault()
-      const i = lastIdxRef.current ?? idxFromPoint(e.clientX)
-      if (i !== null) {
+      const i = idxFromX(e.clientX)
+      const target = items[i]
+      if (target && i !== activeIdx) {
         haptic('success')
-        navigate(items[i].path)
+        navigate(target.path)
+      } else {
+        haptic('light')
       }
       close()
     }
@@ -114,6 +126,12 @@ export default function Navigation() {
     startRef.current = null
   }
 
+  // When route changes, sync hover to new active
+  useEffect(() => {
+    if (!peeking) setHoverIdx(activeIdx === -1 ? 0 : activeIdx)
+  }, [activeIdx, peeking])
+
+  // Close on scroll / route change
   useEffect(() => {
     if (!peeking) return
     const onScroll = () => close()
@@ -129,54 +147,37 @@ export default function Navigation() {
     navigate(path)
   }
 
-  const previewIdx = hoverIdx
+  const pillIdx = peeking ? hoverIdx : (activeIdx === -1 ? -1 : activeIdx)
 
   return (
     <nav className="fv-nav" aria-label="Primary navigation">
-      <AnimatePresence>
-        {peeking && (
-          <motion.div
-            className="fv-peek-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+      <div ref={innerRef} className={`fv-nav-inner ${peeking ? 'is-peeking' : ''}`}>
+        {pillIdx >= 0 && (
+          <span
+            className={`fv-nav-pill2 ${peeking ? 'is-peek' : ''}`}
+            style={{
+              width: `calc((100% - 12px) / ${items.length})`,
+              transform: `translateX(calc(${pillIdx} * (100% + 6px)))`,
+            }}
+            aria-hidden
           />
         )}
-      </AnimatePresence>
-
-      <div ref={innerRef} className={`fv-nav-inner ${peeking ? 'is-peeking' : ''}`}>
         {items.map((item, i) => {
-          const active = isActive(item.path)
           const Icon = item.icon
-          const hovered = peeking && previewIdx === i
+          const lit = pillIdx === i
           return (
             <button
               key={item.path}
               data-nav-btn
-              className={`${active ? 'is-active' : ''} ${hovered ? 'is-peek-hover' : ''}`}
+              className={lit ? 'is-active' : ''}
               onClick={handleClick(item.path)}
-              onPointerDown={onPointerDown}
+              onPointerDown={onPointerDown(i)}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerCancel}
               onContextMenu={(e) => e.preventDefault()}
-              style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
+              style={{ touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none' }}
             >
-              {hovered && (
-                <motion.span
-                  layoutId="fv-nav-peek-pill"
-                  className="fv-nav-peek-pill"
-                  transition={{ type: 'spring', stiffness: 520, damping: 36 }}
-                />
-              )}
-              {active && !hovered && (
-                <motion.span
-                  layoutId="fv-nav-pill"
-                  className="fv-nav-pill"
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                />
-              )}
               <Icon />
               <span>{item.label[lang]}</span>
               {item.path === '/profile' && supportUnread > 0 && <i />}
@@ -184,21 +185,6 @@ export default function Navigation() {
           )
         })}
       </div>
-
-      <AnimatePresence>
-        {peeking && previewIdx !== null && (
-          <motion.div
-            className="fv-peek-tip"
-            key={previewIdx}
-            initial={{ opacity: 0, y: 8, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 480, damping: 32 }}
-          >
-            {items[previewIdx].label[lang]}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
   )
 }
