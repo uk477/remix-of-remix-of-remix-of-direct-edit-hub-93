@@ -314,7 +314,10 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
           if (st.heroY > 180) {
             st.phase = 'gameover'
             setOver(true)
-            addScore(st.score)
+            if (!submittedRef.current) {
+              submittedRef.current = true
+              addScore(st.score)
+            }
           }
         }
       }
