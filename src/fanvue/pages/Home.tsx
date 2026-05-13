@@ -89,6 +89,20 @@ export default function Home() {
     }, 700)
   }
 
+  // Easter egg: triple-tap the Fanvue logo to launch Stick Hero
+  const tapsRef = useRef<number[]>([])
+  const [eggPhase, setEggPhase] = useState<'idle' | 'loading' | 'playing'>('idle')
+  const onLogoTap = () => {
+    const now = performance.now()
+    tapsRef.current = [...tapsRef.current.filter((t) => now - t < 700), now]
+    if (tapsRef.current.length >= 3) {
+      tapsRef.current = []
+      haptic('success')
+      setEggPhase('loading')
+      window.setTimeout(() => setEggPhase('playing'), 1200)
+    }
+  }
+
 
   return (
     <main className="shop">
