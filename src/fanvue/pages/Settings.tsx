@@ -65,6 +65,20 @@ function EditorToolbar({
 }) {
   const [showColors, setShowColors] = useState(false)
 
+  const getLinkSelection = (ta: HTMLTextAreaElement) => {
+    let start = ta.selectionStart
+    let end = ta.selectionEnd
+    const value = ta.value
+
+    if (start === end) {
+      while (start > 0 && !/\s/.test(value[start - 1])) start -= 1
+      while (end < value.length && !/\s/.test(value[end])) end += 1
+    }
+
+    const text = value.slice(start, end) || (lang === 'ru' ? 'ссылка' : 'link')
+    return { start, end, text }
+  }
+
   const wrap = (before: string, after: string = before, placeholder = '') => {
     const ta = textareaRef.current
     if (!ta) return
@@ -97,14 +111,10 @@ function EditorToolbar({
   const insertLink = () => {
     const ta = textareaRef.current
     if (!ta) return
+    const { start, end, text } = getLinkSelection(ta)
     const url = window.prompt(lang === 'ru' ? 'Вставьте URL:' : 'Paste URL:', 'https://')
     if (!url) return
-    const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd) || (lang === 'ru' ? 'ссылка' : 'link')
-    wrap(`[${sel}](${url})`, '', '')
-    // wrap inserts placeholder when sel empty; here we pre-built the whole token, so override:
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const token = `[${ta.value.slice(start, end) || (lang === 'ru' ? 'ссылка' : 'link')}](${url})`
+    const token = `[${text}](${url.trim()})`
     const next = ta.value.slice(0, start) + token + ta.value.slice(end)
     setDraft(next)
     requestAnimationFrame(() => {
@@ -187,6 +197,7 @@ function ContentSheet({
   const { haptic }  = useTelegram()
   const toast       = useToast()
   const [editing, setEditing] = useState(false)
+  const [visible, setVisible] = useState(true)
   const langKey = (contentKey.endsWith('_ru') || contentKey.endsWith('_en')
     ? contentKey
     : `${contentKey}_${lang}`) as keyof SiteContent
@@ -196,10 +207,16 @@ function ContentSheet({
   const closingRef = useRef(false)
   const admin = isAdmin()
 
-  const closeSheet = async () => {
+  useEffect(() => {
+    return () => {
+      closingRef.current = false
+    }
+  }, [])
+
+  const closeSheet = () => {
     if (closingRef.current) return
     closingRef.current = true
-    onClose()
+    setVisible(false)
   }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
@@ -348,22 +365,31 @@ Always provide your **Order ID** when contacting support.`,
     toast.show(lang === 'ru' ? 'Сохранено' : 'Saved', 'success')
   }
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) closeSheet()
+  }
+
   return (
     <motion.div
       className="modal-overlay"
+      data-closing={closingRef.current ? 'true' : undefined}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ opacity: visible ? 1 : 0 }}
       exit={{ opacity: 0 }}
-      onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      onAnimationComplete={() => {
+        if (!visible) onClose()
+      }}
+      onClick={handleBackdropClick}
     >
       <motion.div
         ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={{ y: 0 }}
+        animate={{ y: visible ? 0 : '100%' }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 340, damping: 34, mass: 0.75 }}
-        style={{ maxHeight: '85dvh', willChange: 'transform' }}
+        style={{ maxHeight: '85dvh', willChange: 'transform', touchAction: editing ? 'auto' : 'pan-y' }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
@@ -380,6 +406,7 @@ Always provide your **Order ID** when contacting support.`,
           const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
           if (shouldClose) closeSheet()
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
         <div className="row-between mb-4">
@@ -426,7 +453,7 @@ Always provide your **Order ID** when contacting support.`,
               <motion.button className="btn btn-primary" onClick={handleSave} whileTap={{ scale: 0.97 }} style={{ flex: 1 }}>
                 {lang === 'ru' ? 'Сохранить' : 'Save'}
               </motion.button>
-              <motion.button className="btn btn-secondary" onClick={() => setEditing(false)} whileTap={{ scale: 0.97 }}>
+              <motion.button className="btn btn-secondary" onClick={() => { setDraft(displayText); setEditing(false) }} whileTap={{ scale: 0.97 }}>
                 {lang === 'ru' ? 'Отмена' : 'Cancel'}
               </motion.button>
             </div>
@@ -515,7 +542,7 @@ Always provide your **Order ID** when contacting support.`,
                     </motion.div>
                   )
                 }
-                if (/^\s*[•\-]\s+/.test(line)) {
+                if (/^\s*[•-]\s+/.test(line)) {
                   return (
                     <motion.div key={i} variants={itemVariant} style={{
                       display: 'flex', gap: 10, marginBottom: 6, paddingLeft: 4,
@@ -526,7 +553,7 @@ Always provide your **Order ID** when contacting support.`,
                         boxShadow: `0 0 8px ${NEON}66`,
                       }} />
                       <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(255,255,255,0.78)' }}>
-                        {renderInline(line.replace(/^\s*[•\-]\s+/, ''))}
+                        {renderInline(line.replace(/^\s*[•-]\s+/, ''))}
                       </div>
                     </motion.div>
                   )
