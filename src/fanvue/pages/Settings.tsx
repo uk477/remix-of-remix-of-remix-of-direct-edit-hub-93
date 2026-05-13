@@ -414,114 +414,124 @@ export default function Settings() {
             </div>
           </motion.div>
 
-          {/* ASYMMETRIC BENTO */}
-          <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 12, marginBottom: 28 }}>
-            {/* Language tile — high impact */}
+          {/* ASYMMETRIC BENTO — compact */}
+          <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
+            {/* LANGUAGE — compact tile with segmented toggle */}
             <div style={{
-              height: 220, background: NEON, borderRadius: 26, padding: 16,
+              height: 140, background: NEON, borderRadius: 22, padding: 14,
               display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
               position: 'relative', overflow: 'hidden',
             }}>
               <div style={{
-                position: 'absolute', right: -12, bottom: -18,
-                fontSize: 96, fontWeight: 900, fontStyle: 'italic',
-                color: 'rgba(0,0,0,0.10)', lineHeight: 1, fontFamily: inter,
+                position: 'absolute', right: -10, bottom: -22,
+                fontSize: 78, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(0,0,0,0.08)', lineHeight: 1, fontFamily: inter,
+                userSelect: 'none', pointerEvents: 'none',
               }}>
-                {lang === 'ru' ? 'EN' : 'RU'}
+                {lang === 'ru' ? 'RU' : 'EN'}
               </div>
-              <div style={{ color: '#000', position: 'relative', zIndex: 1 }}>
-                <div style={{ fontFamily: mono, fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.02em', opacity: 0.6 }}>
-                  System
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 900, fontStyle: 'italic', lineHeight: 1.1, marginTop: 4 }}>
-                  LANG.
+              <div style={{ color: '#000', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.55 }}>
+                    Language
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', lineHeight: 1.1, marginTop: 2 }}>
+                    {lang === 'ru' ? 'РУССКИЙ' : 'ENGLISH'}
+                  </div>
                 </div>
               </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <button
-                  onClick={() => switchLang('ru')}
+
+              {/* Segmented toggle */}
+              <div style={{
+                position: 'relative', zIndex: 1,
+                display: 'grid', gridTemplateColumns: '1fr 1fr',
+                background: 'rgba(0,0,0,0.12)', borderRadius: 12, padding: 3,
+                height: 36,
+              }}>
+                <motion.div
+                  layout
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                   style={{
-                    background: 'transparent', border: 0, padding: 0, cursor: 'pointer', display: 'block',
-                    color: lang === 'ru' ? '#000' : 'rgba(0,0,0,0.4)',
-                    fontWeight: lang === 'ru' ? 900 : 700,
-                    fontSize: lang === 'ru' ? 22 : 18,
-                    fontFamily: inter, lineHeight: 1, transition: 'all 200ms',
+                    position: 'absolute', top: 3, bottom: 3,
+                    width: 'calc(50% - 3px)',
+                    left: lang === 'ru' ? 3 : 'calc(50% + 0px)',
+                    background: '#000', borderRadius: 9,
                   }}
-                >RU</button>
-                <div style={{ width: 16, height: 2, background: 'rgba(0,0,0,0.3)', margin: '6px 0' }} />
-                <button
-                  onClick={() => switchLang('en')}
-                  style={{
-                    background: 'transparent', border: 0, padding: 0, cursor: 'pointer', display: 'block',
-                    color: lang === 'en' ? '#000' : 'rgba(0,0,0,0.4)',
-                    fontWeight: lang === 'en' ? 900 : 700,
-                    fontSize: lang === 'en' ? 22 : 18,
-                    fontFamily: inter, lineHeight: 1, transition: 'all 200ms',
-                  }}
-                >EN</button>
+                />
+                {(['ru', 'en'] as Lang[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => switchLang(l)}
+                    style={{
+                      position: 'relative', zIndex: 1,
+                      background: 'transparent', border: 0, cursor: 'pointer',
+                      color: lang === l ? NEON : 'rgba(0,0,0,0.55)',
+                      fontFamily: inter, fontWeight: 800, fontSize: 12,
+                      letterSpacing: '0.08em', transition: 'color 200ms',
+                    }}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Right column: stacked */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Version / About */}
+              {/* Version */}
               <div style={{
                 flex: 1, background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)', borderRadius: 26, padding: 14,
-                backdropFilter: 'blur(12px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: 12,
+                backdropFilter: 'blur(12px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{
-                    width: 30, height: 30, background: `${NEON}33`, borderRadius: 9,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `1px solid ${NEON}4D`,
-                  }}>
-                    <motion.div
-                      style={{ width: 6, height: 6, background: NEON, borderRadius: '50%' }}
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ duration: 1.6, repeat: Infinity }}
-                    />
-                  </div>
-                  <span style={{ fontFamily: mono, fontSize: 9.5, color: NEON, letterSpacing: '0.05em' }}>STABLE</span>
-                </div>
                 <div>
-                  <div style={{ fontFamily: mono, fontSize: 9.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 2 }}>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     {t('settings_version')}
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.04em', color: '#fff' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.03em', color: '#fff', marginTop: 2 }}>
                     2.0.0
                   </div>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <motion.div
+                    style={{ width: 6, height: 6, background: NEON, borderRadius: '50%', boxShadow: `0 0 10px ${NEON}` }}
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.6, repeat: Infinity }}
+                  />
+                  <span style={{ fontFamily: mono, fontSize: 8.5, color: NEON, letterSpacing: '0.1em' }}>STABLE</span>
+                </div>
               </div>
 
-              {/* Reviews */}
+              {/* OUR CHANNEL */}
               <motion.button
                 whileTap={{ scale: 0.97 }}
+                whileHover={{ borderColor: `${NEON}40` }}
                 onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
                 style={{
-                  height: 96, background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 26, padding: 14,
+                  flex: 1, background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: 12,
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  cursor: 'pointer', textAlign: 'left',
+                  cursor: 'pointer', textAlign: 'left', transition: 'border-color 300ms',
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontFamily: mono, fontSize: 9.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
-                    {lang === 'ru' ? 'Отзывы' : 'Feedback'}
-                  </span>
-                  <span style={{ fontWeight: 900, fontStyle: 'italic', fontSize: 17, color: '#fff', marginTop: 2 }}>
-                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
-                  </span>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    Telegram
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 900, fontStyle: 'italic', color: '#fff', marginTop: 2, letterSpacing: '-0.01em' }}>
+                    {lang === 'ru' ? 'НАШ КАНАЛ' : 'OUR CHANNEL'}
+                  </div>
                 </div>
                 <div style={{
-                  width: 44, height: 44, borderRadius: '50%',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  width: 36, height: 36, borderRadius: 11,
+                  border: `1px solid ${NEON}33`, background: `${NEON}10`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative',
+                  position: 'relative', flexShrink: 0,
                 }}>
-                  <div style={{ position: 'absolute', inset: 0, background: `${NEON}1A`, filter: 'blur(6px)', borderRadius: '50%' }} />
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={NEON} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'relative' }}>
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  <div style={{ position: 'absolute', inset: -2, background: `${NEON}22`, filter: 'blur(8px)', borderRadius: 14 }} />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={NEON} style={{ position: 'relative' }}>
+                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
                   </svg>
                 </div>
               </motion.button>
