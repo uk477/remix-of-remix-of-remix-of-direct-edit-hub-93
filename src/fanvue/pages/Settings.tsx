@@ -495,41 +495,29 @@ export default function Settings() {
               fontFamily: inter, color: '#fff',
               display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
             }}>
-              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 0 }}>
                 <motion.span
-                  initial={{ opacity: 0, x: -14, rotate: -12 }}
+                  aria-label="F"
+                  initial={{ opacity: 0, x: -10, rotate: -12 }}
                   animate={{ opacity: 1, x: 0, rotate: 0 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                   whileHover={{ rotate: [0, -4, 4, 0], transition: { duration: 0.6 } }}
                   style={{
-                    display: 'inline-block', position: 'relative',
-                    width: 56, height: 44,
-                    transform: 'translateY(4px)',
+                    display: 'inline-block',
+                    width: 38, height: 40,
+                    marginRight: -2,
+                    transform: 'translateY(3px)',
+                    backgroundColor: NEON,
+                    WebkitMaskImage: `url(${fanvueMarkSrc})`,
+                    maskImage: `url(${fanvueMarkSrc})`,
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
                   }}
-                >
-                  {/* Neon glow underneath the mark */}
-                  <motion.span
-                    aria-hidden
-                    animate={{ opacity: [0.45, 0.85, 0.45] }}
-                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{
-                      position: 'absolute', inset: -10,
-                      background: `radial-gradient(ellipse at center, ${NEON}88, transparent 60%)`,
-                      filter: 'blur(14px)', pointerEvents: 'none', zIndex: 0,
-                    }}
-                  />
-                  <img
-                    src={fanvueMarkSrc}
-                    alt="F"
-                    draggable={false}
-                    style={{
-                      position: 'relative', zIndex: 1,
-                      width: '100%', height: '100%',
-                      objectFit: 'contain', display: 'block',
-                      filter: `drop-shadow(0 2px 8px ${NEON}66)`,
-                    }}
-                  />
-                </motion.span>
+                />
                 <span>anvue</span>
               </span>
               <span style={{ color: NEON }}>MARKET</span>
