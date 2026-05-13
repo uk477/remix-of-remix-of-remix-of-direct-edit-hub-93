@@ -538,7 +538,7 @@ Always provide your **Order ID** when contacting support.`,
                     </motion.div>
                   )
                 }
-                if (/^\s*[•\-]\s+/.test(line)) {
+                if (/^\s*[•-]\s+/.test(line)) {
                   return (
                     <motion.div key={i} variants={itemVariant} style={{
                       display: 'flex', gap: 10, marginBottom: 6, paddingLeft: 4,
@@ -549,7 +549,7 @@ Always provide your **Order ID** when contacting support.`,
                         boxShadow: `0 0 8px ${NEON}66`,
                       }} />
                       <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(255,255,255,0.78)' }}>
-                        {renderInline(line.replace(/^\s*[•\-]\s+/, ''))}
+                        {renderInline(line.replace(/^\s*[•-]\s+/, ''))}
                       </div>
                     </motion.div>
                   )
