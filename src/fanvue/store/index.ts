@@ -211,6 +211,21 @@ export const useStore = create<AppStore>()(
       setLang: (lang) => set({ lang, langUserSet: true }),
 
       initUser: () => {
+        // one-time dedupe of any legacy duplicate stickHero scores
+        const cur = get().stickHeroScores
+        if (Array.isArray(cur) && cur.length > 0) {
+          const best = new Map<string, { name: string; score: number; ts: number }>()
+          for (const r of cur) {
+            if (!r || typeof r.name !== 'string') continue
+            const nm = r.name.trim(); if (!nm) continue
+            const sc = Math.max(0, Math.min(99999, Math.floor(Number(r.score) || 0)))
+            const k = nm.toLowerCase()
+            const prev = best.get(k)
+            if (!prev || prev.score < sc) best.set(k, { name: nm, score: sc, ts: Number(r.ts) || Date.now() })
+          }
+          const deduped = [...best.values()].sort((a, b) => b.score - a.score).slice(0, 100)
+          if (deduped.length !== cur.length) set({ stickHeroScores: deduped })
+        }
         try {
           type TGUser = { id?: number; username?: string; first_name?: string; language_code?: string; photo_url?: string }
           const tg = (window as Window & { Telegram?: { WebApp?: { initDataUnsafe?: { user?: TGUser } } } }).Telegram?.WebApp
