@@ -577,7 +577,7 @@ export function PayPanel({
           <motion.span
             className="dpz-pay-scanline"
             aria-hidden
-            animate={{ y: [0, 188, 0] }}
+            animate={{ top: ['0%', '100%', '0%'] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
           />
         </motion.div>
