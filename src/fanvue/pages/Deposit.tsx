@@ -504,7 +504,7 @@ export function PayPanel({
     const value = formatCryptoAmount(cryptoAmount, network)
     try { await navigator.clipboard.writeText(value) } catch { /* ignore */ }
     haptic('success')
-    toast(lang === 'ru' ? `Сумма ${value} ${cryptoSymbol} скопирована` : `Amount ${value} ${cryptoSymbol} copied`, 'success')
+    toast.show(lang === 'ru' ? `Сумма ${value} ${cryptoSymbol} скопирована` : `Amount ${value} ${cryptoSymbol} copied`, 'success')
   }
 
   const fmtTimer = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
