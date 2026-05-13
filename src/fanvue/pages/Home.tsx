@@ -230,7 +230,7 @@ export default function Home() {
                 transition={{ duration: 0.18, ease: EASE }}
               >{Math.round(shownTotal)}</motion.b>
             </AnimatePresence>
-            {' '}{lang === 'ru' ? 'продаж' : 'sales'}
+            {' '}{lang === 'ru' ? 'продаж за всё время' : 'sales all time'}
           </span>
         </span>
         <span className="shop-live-cell shop-live-cell--green">
