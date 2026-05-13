@@ -163,7 +163,12 @@ export default function ProductDetail() {
         <header className="pdb-bar">
           <motion.button
             className="pdb-back"
-            onClick={() => navigate(-1)}
+            type="button"
+            onClick={() => {
+              haptic('light')
+              if (window.history.length > 1) navigate(-1)
+              else navigate('/')
+            }}
             aria-label="Back"
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
