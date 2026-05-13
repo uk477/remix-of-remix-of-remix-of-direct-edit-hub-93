@@ -506,11 +506,27 @@ export default function Settings() {
           {/* ASYMMETRIC BENTO — compact */}
           <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
             {/* LANGUAGE — compact tile with segmented toggle */}
-            <div style={{
-              height: 140, background: NEON, borderRadius: 22, padding: 14,
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              position: 'relative', overflow: 'hidden',
-            }}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              style={{
+                height: 140, background: NEON, borderRadius: 22, padding: 14,
+                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: `0 12px 40px -12px ${NEON}55, inset 0 0 0 1px rgba(255,255,255,0.15)`,
+              }}>
+              {/* Scan-line shimmer */}
+              <motion.div
+                aria-hidden
+                initial={{ y: '-120%' }}
+                animate={{ y: '220%' }}
+                transition={{ duration: 3.6, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute', left: 0, right: 0, height: 60,
+                  background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.25), transparent)',
+                  pointerEvents: 'none',
+                }}
+              />
               <div style={{
                 position: 'absolute', right: -10, bottom: -22,
                 fontSize: 78, fontWeight: 900, fontStyle: 'italic',
@@ -563,65 +579,113 @@ export default function Settings() {
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
-            {/* Right column: stacked */}
+            {/* Right column: stacked actions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Version */}
-              <div style={{
-                flex: 1, background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: 12,
-                backdropFilter: 'blur(12px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    {t('settings_version')}
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.03em', color: '#fff', marginTop: 2 }}>
-                    2.0.0
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <motion.div
-                    style={{ width: 6, height: 6, background: NEON, borderRadius: '50%', boxShadow: `0 0 10px ${NEON}` }}
-                    animate={{ opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 1.6, repeat: Infinity }}
-                  />
-                  <span style={{ fontFamily: mono, fontSize: 8.5, color: NEON, letterSpacing: '0.1em' }}>STABLE</span>
-                </div>
-              </div>
-
-              {/* OUR CHANNEL */}
+              {/* OUR CHANNEL — compact */}
               <motion.button
-                whileTap={{ scale: 0.97 }}
-                whileHover={{ borderColor: `${NEON}40` }}
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ y: -2, borderColor: `${NEON}55` }}
                 onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
                 style={{
-                  flex: 1, background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: 12,
+                  height: 64, background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18,
+                  padding: '0 12px',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  cursor: 'pointer', textAlign: 'left', transition: 'border-color 300ms',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'border-color 300ms, transform 300ms',
+                  position: 'relative', overflow: 'hidden',
                 }}
               >
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {/* sweep shine */}
+                <motion.div
+                  aria-hidden
+                  initial={{ x: '-120%' }}
+                  animate={{ x: '220%' }}
+                  transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 2.4, ease: 'easeInOut' }}
+                  style={{
+                    position: 'absolute', top: 0, bottom: 0, width: 60,
+                    background: `linear-gradient(90deg, transparent, ${NEON}22, transparent)`,
+                    transform: 'skewX(-20deg)', pointerEvents: 'none',
+                  }}
+                />
+                <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
                     Telegram
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 900, fontStyle: 'italic', color: '#fff', marginTop: 2, letterSpacing: '-0.01em' }}>
-                    {lang === 'ru' ? 'НАШ КАНАЛ' : 'OUR CHANNEL'}
+                  <div style={{
+                    fontSize: 15, fontWeight: 900, fontStyle: 'italic',
+                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {lang === 'ru' ? 'НАШ КАНАЛ' : 'CHANNEL'}
                   </div>
                 </div>
                 <div style={{
-                  width: 36, height: 36, borderRadius: 11,
+                  width: 38, height: 38, borderRadius: 12,
                   border: `1px solid ${NEON}33`, background: `${NEON}10`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   position: 'relative', flexShrink: 0,
                 }}>
-                  <div style={{ position: 'absolute', inset: -2, background: `${NEON}22`, filter: 'blur(8px)', borderRadius: 14 }} />
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={NEON} style={{ position: 'relative' }}>
+                  <motion.div
+                    style={{ position: 'absolute', inset: -3, background: `${NEON}33`, filter: 'blur(8px)', borderRadius: 14 }}
+                    animate={{ opacity: [0.4, 0.9, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.svg
+                    width="18" height="18" viewBox="0 0 24 24" fill={NEON}
+                    style={{ position: 'relative' }}
+                    animate={{ x: [0, 2, 0], y: [0, -1, 0] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                  >
                     <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-                  </svg>
+                  </motion.svg>
+                </div>
+              </motion.button>
+
+              {/* REVIEWS */}
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ y: -2, borderColor: `${NEON}55` }}
+                onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
+                style={{
+                  height: 64, background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18,
+                  padding: '0 12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'border-color 300ms, transform 300ms',
+                  position: 'relative', overflow: 'hidden',
+                }}
+              >
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
+                    {lang === 'ru' ? 'Сообщество' : 'Community'}
+                  </div>
+                  <div style={{
+                    fontSize: 15, fontWeight: 900, fontStyle: 'italic',
+                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                  </div>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 12,
+                  border: `1px solid ${NEON}33`, background: `${NEON}10`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative', flexShrink: 0,
+                }}>
+                  <div style={{ position: 'absolute', inset: -3, background: `${NEON}22`, filter: 'blur(8px)', borderRadius: 14 }} />
+                  <motion.svg
+                    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={NEON} strokeWidth="1.8" strokeLinejoin="round"
+                    style={{ position: 'relative' }}
+                    animate={{ rotate: [0, -8, 8, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </motion.svg>
                 </div>
               </motion.button>
             </div>
