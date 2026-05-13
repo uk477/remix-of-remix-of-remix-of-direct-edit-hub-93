@@ -116,8 +116,12 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('resize', resize)
   }, [])
 
-
-
+  const heroImgRef = useRef<HTMLImageElement | null>(null)
+  useEffect(() => {
+    const img = new Image()
+    img.src = heroSpriteUrl
+    img.onload = () => { heroImgRef.current = img; canvasRef.current?.dispatchEvent(new Event('redraw')) }
+  }, [])
 
   // Game loop
   useEffect(() => {
