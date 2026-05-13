@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import type { CryptoNetwork } from '../store/types'
+import solanaLogo from '../assets/solana.svg'
+
+const LOCAL_LOGOS: Partial<Record<CryptoNetwork, string>> = {
+  sol: solanaLogo,
+}
 
 /**
  * Маппинг сеть → (символ монеты, цвет сети для бейджа, эмодзи fallback).
@@ -34,8 +39,8 @@ export default function CryptoLogo({ network, size = 42, showBadge = true }: Pro
   const [imgFailed, setImgFailed] = useState(false)
   const data = NETWORK_MAP[network]
 
-  // Custom override from admin > CDN > emoji fallback
-  const override = photos[`crypto_${network}`]
+  // Custom override from admin > local high-quality > CDN > emoji fallback
+  const override = photos[`crypto_${network}`] || LOCAL_LOGOS[network]
   const useCdn = !override && !imgFailed
 
   return (
