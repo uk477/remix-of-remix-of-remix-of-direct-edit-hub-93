@@ -96,8 +96,9 @@ export default function Navigation() {
   const close = () => {
     peekingRef.current = false
     setPeeking(false)
-    // Pill returns to active idx via CSS transition
-    if (pillRef.current) pillRef.current.style.transform = ''
+    // Snap pill to active tab so it stays under the lit button
+    const i = activeIdx === -1 ? 0 : activeIdx
+    requestAnimationFrame(() => snapPillToIdx(i))
   }
 
   const beginPeek = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -180,9 +181,16 @@ export default function Navigation() {
     startRef.current = null
   }
 
-  // Sync hover to active when route changes & not peeking
+  // Sync hover + pill position to active when route changes & not peeking
   useEffect(() => {
-    if (!peeking) setHoverIdx(activeIdx === -1 ? 0 : activeIdx)
+    if (peeking) return
+    const i = activeIdx === -1 ? 0 : activeIdx
+    setHoverIdx(i)
+    // Wait a frame for layout to be ready (esp. on first mount)
+    requestAnimationFrame(() => {
+      if (!layoutRef.current) measure()
+      snapPillToIdx(i)
+    })
   }, [activeIdx, peeking])
 
   // Re-measure on resize
