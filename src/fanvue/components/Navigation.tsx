@@ -24,6 +24,7 @@ export default function Navigation() {
 
   const [peeking, setPeeking] = useState(false)
   const [hoverIdx, setHoverIdx] = useState<number>(activeIdx === -1 ? 0 : activeIdx)
+  const [snapIdx, setSnapIdx] = useState<number | null>(null)
 
   const innerRef = useRef<HTMLDivElement | null>(null)
   const pillRef = useRef<HTMLSpanElement | null>(null)
@@ -34,6 +35,7 @@ export default function Navigation() {
   const peekingRef = useRef(false)
   const lastIdxRef = useRef<number>(-1)
   const pendingXRef = useRef<number | null>(null)
+  const snapIdxRef = useRef<number | null>(null)
   // Cached layout
   const layoutRef = useRef<{ left: number; pillW: number; gap: number; centers: number[] } | null>(null)
 
@@ -159,7 +161,10 @@ export default function Navigation() {
     if (peekingRef.current) {
       e.preventDefault()
       const i = idxFromClientX(e.clientX)
-      // Exit peek first so CSS transition applies, then animate snap to nearest tab
+      snapIdxRef.current = i
+      setSnapIdx(i)
+      setHoverIdx(i)
+      // Exit peek with the snap target locked, so React cannot first reset the pill to the old route.
       peekingRef.current = false
       setPeeking(false)
       requestAnimationFrame(() => snapPillToIdx(i))
@@ -185,14 +190,25 @@ export default function Navigation() {
   // Sync hover + pill position to active when route changes & not peeking
   useEffect(() => {
     if (peeking) return
-    const i = activeIdx === -1 ? 0 : activeIdx
+    const i = snapIdxRef.current ?? (activeIdx === -1 ? 0 : activeIdx)
     setHoverIdx(i)
     // Wait a frame for layout to be ready (esp. on first mount)
     requestAnimationFrame(() => {
       if (!layoutRef.current) measure()
       snapPillToIdx(i)
     })
-  }, [activeIdx, peeking])
+  }, [activeIdx, peeking, snapIdx])
+
+  useEffect(() => {
+    if (snapIdx == null) return
+    const routeIdx = activeIdx === -1 ? 0 : activeIdx
+    if (snapIdx !== routeIdx) return
+    const t = window.setTimeout(() => {
+      snapIdxRef.current = null
+      setSnapIdx(null)
+    }, 260)
+    return () => window.clearTimeout(t)
+  }, [activeIdx, snapIdx])
 
   // Re-measure on resize
   useEffect(() => {
@@ -217,7 +233,7 @@ export default function Navigation() {
     navigate(path)
   }
 
-  const pillIdx = peeking ? hoverIdx : (activeIdx === -1 ? -1 : activeIdx)
+  const pillIdx = peeking ? hoverIdx : (snapIdx ?? (activeIdx === -1 ? -1 : activeIdx))
 
   return (
     <nav className="fv-nav" aria-label="Primary navigation">
