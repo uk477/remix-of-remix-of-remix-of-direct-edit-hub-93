@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
+import heroSpriteUrl from '@/assets/fanvue-ninja.png'
 
 
 /* ───────── constants ───────── */
