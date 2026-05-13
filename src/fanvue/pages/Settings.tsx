@@ -357,21 +357,35 @@ Always provide your **Order ID** when contacting support.`,
       className="modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      onClick={(e) => { if (e.target === e.currentTarget && !editing) onClose() }}
+      exit={{ opacity: 0 }}
+      style={{ opacity: overlayOpacity }}
+      onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
     >
       <motion.div
+        ref={sheetRef}
         className="sheet"
         initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-        style={{ maxHeight: '85dvh' }}
+        animate={controls}
+        style={{ y, maxHeight: '85dvh', willChange: 'transform' }}
+        onAnimationStart={() => { /* mount */ }}
+        onUpdate={(latest) => {
+          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+          if (!editing && typeof latest.y === 'number' && latest.y > h * 0.7) {
+            // user dragged past 70% — auto-close
+            closeSheet()
+          }
+        }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
-        dragConstraints={{ top: 0 }}
-        dragElastic={{ top: 0, bottom: 0.35 }}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 1 }}
         onDragEnd={(_, info) => {
-          if (!editing && (info.offset.y > 70 || info.velocity.y > 650)) onClose()
+          if (editing) return
+          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+          const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
+          if (shouldClose) closeSheet()
+          else controls.start({ y: 0 }, { type: 'spring', stiffness: 420, damping: 36, mass: 0.7 })
         }}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
