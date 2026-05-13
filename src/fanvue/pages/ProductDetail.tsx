@@ -281,6 +281,7 @@ export default function ProductDetail() {
 
         <section className="pdb-section">
           <div className="pdb-section-head">
+            <span className="pdb-section-num">02</span>
             <span className="pdb-section-bar" />
             <span className="pdb-section-name">{lang === 'ru' ? 'КОЛИЧЕСТВО' : 'QUANTITY'}</span>
             <span className="pdb-section-tail">{qty} × ${product.price.toFixed(0)}</span>
