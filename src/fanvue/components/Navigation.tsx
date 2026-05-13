@@ -29,11 +29,14 @@ export default function Navigation() {
   const pillRef = useRef<HTMLSpanElement | null>(null)
   const timerRef = useRef<number | null>(null)
   const rafRef = useRef<number | null>(null)
+  const smoothRef = useRef<number | null>(null)
   const startRef = useRef<{ x: number; y: number; idx: number } | null>(null)
   const movedRef = useRef(false)
   const peekingRef = useRef(false)
   const lastIdxRef = useRef<number>(-1)
   const pendingXRef = useRef<number | null>(null)
+  const pillXRef = useRef(0)
+  const targetXRef = useRef(0)
   const snapIdxRef = useRef<number | null>(null)
   // Cached layout
   const layoutRef = useRef<{ left: number; pillW: number; gap: number; centers: number[] } | null>(null)
@@ -67,23 +70,59 @@ export default function Navigation() {
     return best
   }
 
-  const positionPill = (clientX: number) => {
+  const setPillX = (x: number) => {
+    pillXRef.current = x
+    if (pillRef.current) pillRef.current.style.transform = `translate3d(${x}px, 0, 0)`
+  }
+
+  const stopSmoothPill = () => {
+    if (smoothRef.current != null) {
+      cancelAnimationFrame(smoothRef.current)
+      smoothRef.current = null
+    }
+  }
+
+  const animatePill = () => {
+    smoothRef.current = null
+    const delta = targetXRef.current - pillXRef.current
+    const next = Math.abs(delta) < 0.45 ? targetXRef.current : pillXRef.current + delta * 0.36
+    setPillX(next)
+    if (peekingRef.current && Math.abs(targetXRef.current - next) > 0.45) {
+      smoothRef.current = requestAnimationFrame(animatePill)
+    }
+  }
+
+  const xFromClient = (clientX: number) => {
     const L = layoutRef.current ?? measure()
-    if (!L || !pillRef.current) return
+    if (!L) return null
     const localX = clientX - L.left
     const half = L.pillW / 2
     // Clamp pill center to first/last button center
     const min = L.centers[0]
     const max = L.centers[L.centers.length - 1]
     const cx = Math.max(min, Math.min(max, localX))
-    pillRef.current.style.transform = `translate3d(${cx - half}px, 0, 0)`
+    return cx - half
+  }
+
+  const positionPill = (clientX: number, immediate = false) => {
+    const x = xFromClient(clientX)
+    if (x == null) return
+    targetXRef.current = x
+    if (immediate) {
+      stopSmoothPill()
+      setPillX(x)
+      return
+    }
+    if (smoothRef.current == null) smoothRef.current = requestAnimationFrame(animatePill)
   }
 
   const snapPillToIdx = (i: number) => {
     const L = layoutRef.current ?? measure()
     if (!L || !pillRef.current) return
     const half = L.pillW / 2
-    pillRef.current.style.transform = `translate3d(${L.centers[i] - half}px, 0, 0)`
+    targetXRef.current = L.centers[i] - half
+    stopSmoothPill()
+    setPillX(targetXRef.current)
   }
 
   const setHover = (i: number) => {
