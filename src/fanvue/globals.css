@@ -1907,15 +1907,41 @@ body::after { display: none; }
   font-weight: 950;
 }
 .fv-nav button svg,
-.fv-nav button span:not(.fv-nav-pill) { position: relative; z-index: 1; }
+.fv-nav button span:not(.fv-nav-pill):not(.fv-nav-pill2) { position: relative; z-index: 1; transition: color 0.18s ease; }
 .fv-nav button.is-active { color: var(--fv-black); }
-.fv-nav-pill {
+.fv-nav button { transition: color 0.18s ease; }
+
+/* Sliding pill — single element, animates between tabs */
+.fv-nav-pill2 {
   position: absolute;
-  inset: 0;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
   border-radius: 999px;
   background: var(--fv-green);
   box-shadow: 0 10px 30px -12px rgba(57,255,99,0.85);
+  transition:
+    transform 280ms cubic-bezier(0.32, 0.72, 0.18, 1),
+    box-shadow 220ms ease,
+    width 220ms ease;
+  will-change: transform;
+  z-index: 0;
+  pointer-events: none;
 }
+.fv-nav-pill2.is-peek {
+  box-shadow:
+    0 14px 36px -10px rgba(57,255,99,0.95),
+    0 0 0 2px rgba(57,255,99,0.28);
+  transition:
+    transform 180ms cubic-bezier(0.22, 0.9, 0.28, 1),
+    box-shadow 220ms ease,
+    width 220ms ease;
+}
+.fv-nav-inner.is-peeking {
+  border-color: rgba(57,255,99,0.32);
+  box-shadow: 0 24px 64px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(57,255,99,0.18) inset;
+}
+
 .fv-nav button i {
   position: absolute;
   top: 10px;
@@ -1925,50 +1951,6 @@ body::after { display: none; }
   height: 7px;
   border-radius: 999px;
   background: var(--fv-danger);
-}
-
-/* Peek mode (Telegram-style hold + slide between tabs) */
-.fv-peek-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 99;
-  background: radial-gradient(ellipse at bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.78));
-  backdrop-filter: blur(6px) saturate(120%);
-  -webkit-backdrop-filter: blur(6px) saturate(120%);
-  pointer-events: none;
-}
-.fv-nav-inner.is-peeking {
-  position: relative;
-  z-index: 102;
-  box-shadow: 0 28px 60px -18px rgba(0,0,0,0.95), 0 0 0 1px rgba(57,255,99,0.18) inset;
-}
-.fv-nav-peek-pill {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: var(--fv-green, #39ff63);
-  box-shadow: 0 12px 36px -10px rgba(57,255,99,0.95), 0 0 0 2px rgba(57,255,99,0.35);
-}
-.fv-nav button.is-peek-hover { color: var(--fv-black, #050505); transform: scale(1.04); }
-.fv-nav button { transition: transform 0.16s ease, color 0.16s ease; }
-.fv-peek-tip {
-  position: absolute;
-  z-index: 103;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(22,22,22,0.98);
-  border: 1px solid rgba(255,255,255,0.10);
-  color: var(--fv-green, #39ff63);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  box-shadow: 0 18px 40px -16px rgba(0,0,0,0.85);
-  pointer-events: none;
 }
 
 .fv-detail-shell {
