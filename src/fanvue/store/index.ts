@@ -129,6 +129,7 @@ interface AppStore {
   supportForwardedOrders: string[]
   pinnedProductIds: number[]
   supportUnread: number
+  stickHeroScores: { name: string; score: number; ts: number }[]
 
   // User actions
   setLang: (lang: Lang) => void
@@ -169,6 +170,7 @@ interface AppStore {
   pinProduct: (id: number) => void
   unpinProduct: (id: number) => void
   isAdmin: () => boolean
+  addStickHeroScore: (score: number) => void
 }
 
 export const useStore = create<AppStore>()(
