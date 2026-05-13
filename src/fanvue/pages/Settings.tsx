@@ -491,8 +491,35 @@ export default function Settings() {
               fontSize: 46, fontWeight: 900, fontStyle: 'italic',
               letterSpacing: '-0.045em', lineHeight: 0.92, margin: 0,
               fontFamily: inter, color: '#fff',
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
             }}>
-              FANVUE<br/>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.6, rotate: -18 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                  whileHover={{ rotate: [0, -6, 6, 0], transition: { duration: 0.6 } }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 46, height: 46, marginRight: 2,
+                    position: 'relative',
+                  }}
+                >
+                  {/* Neon halo behind logo */}
+                  <motion.span
+                    aria-hidden
+                    animate={{ opacity: [0.5, 0.95, 0.5], scale: [0.95, 1.08, 0.95] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      position: 'absolute', inset: -6, borderRadius: '50%',
+                      background: `radial-gradient(circle, ${NEON}55, transparent 65%)`,
+                      filter: 'blur(8px)', pointerEvents: 'none',
+                    }}
+                  />
+                  <FanvueLogo size={42} />
+                </motion.span>
+                <span style={{ transform: 'translateY(1px)' }}>anvue</span>
+              </span>
               <span style={{ color: NEON }}>MARKET</span>
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
