@@ -236,7 +236,7 @@ export default function Home() {
         <span className="shop-live-cell shop-live-cell--green">
           <svg className="shop-live-ic" viewBox="0 0 24 24" fill="none"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
           <span className="shop-live-t shop-live-t--green">
-            {lang === 'ru' ? 'Мгновенно' : 'Instant'}
+            {lang === 'ru' ? 'Быстрая выдача' : 'Fast delivery'}
           </span>
         </span>
       </motion.div>
