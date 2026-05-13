@@ -199,7 +199,7 @@ export default function Home() {
       {/* ── LIVE STATUS BAR ── */}
       <motion.div
         className="shop-live"
-        style={{ gridTemplateColumns: 'auto 1fr 1fr' }}
+        style={{ gridTemplateColumns: '0.9fr 1.12fr 1fr' }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
