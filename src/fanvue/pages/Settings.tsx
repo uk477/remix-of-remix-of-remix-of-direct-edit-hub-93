@@ -70,6 +70,7 @@ function ContentSheet({
     ? contentKey
     : `${contentKey}_${lang}`) as keyof SiteContent
   const [draft, setDraft]     = useState(siteContent[langKey] ?? '')
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const admin = isAdmin()
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
