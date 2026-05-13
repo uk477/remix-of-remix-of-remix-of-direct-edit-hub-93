@@ -197,6 +197,7 @@ function ContentSheet({
   const { haptic }  = useTelegram()
   const toast       = useToast()
   const [editing, setEditing] = useState(false)
+  const [visible, setVisible] = useState(true)
   const langKey = (contentKey.endsWith('_ru') || contentKey.endsWith('_en')
     ? contentKey
     : `${contentKey}_${lang}`) as keyof SiteContent
@@ -215,7 +216,7 @@ function ContentSheet({
   const closeSheet = () => {
     if (closingRef.current) return
     closingRef.current = true
-    onClose()
+    setVisible(false)
   }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
