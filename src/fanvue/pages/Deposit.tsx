@@ -651,8 +651,8 @@ export function PayPanel({
         </span>
         <span>
           {lang === 'ru'
-            ? <>Переведите <b>ровно {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</b> на адрес выше — сумма уникальна и привязана к вашему счёту. Баланс пополнится автоматически после первого подтверждения сети.</>
-            : <>Send <b>exactly {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</b> to the address above — the amount is unique to your invoice. Your balance updates automatically after the first network confirmation.</>}
+            ? <>Переведите <button type="button" className="dpz-pay-note-amount" onClick={onCopyAmount}>ровно {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</button> на адрес выше — сумма уникальна и привязана к вашему счёту. Баланс пополнится автоматически после первого подтверждения сети.</>
+            : <>Send <button type="button" className="dpz-pay-note-amount" onClick={onCopyAmount}>exactly {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</button> to the address above — the amount is unique to your invoice. Your balance updates automatically after the first network confirmation.</>}
         </span>
       </div>
 
