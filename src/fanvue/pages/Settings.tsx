@@ -9,7 +9,7 @@ import { useToast } from '../components/Toast'
 import { CONFIG } from '../config'
 import type { Lang } from '../store/types'
 import type { SiteContent } from '../store'
-import FanvueLogo from '../components/FanvueLogo'
+import fanvueLogoSrc from '../assets/fanvue-logo.png'
 
 const NEON = '#00FF88'
 const FONT_LINK_ID = 'fv-settings-fonts'
@@ -518,7 +518,16 @@ export default function Settings() {
                       filter: 'blur(8px)', pointerEvents: 'none',
                     }}
                   />
-                  <FanvueLogo size={42} />
+                  <img
+                    src={fanvueLogoSrc}
+                    alt="Fanvue"
+                    draggable={false}
+                    style={{
+                      width: 46, height: 46, borderRadius: 11,
+                      objectFit: 'cover', display: 'block',
+                      boxShadow: `0 6px 20px -6px ${NEON}88, inset 0 0 0 1px rgba(255,255,255,0.08)`,
+                    }}
+                  />
                 </motion.span>
                 <span style={{ transform: 'translateY(1px)' }}>anvue</span>
               </span>
