@@ -170,6 +170,10 @@ export default function Navigation() {
       // Exit peek with the snap target locked, so React cannot first reset the pill to the old route.
       peekingRef.current = false
       setPeeking(false)
+      // Suppress the ghost click that would otherwise fire on the original button
+      // and navigate back to the starting tab.
+      movedRef.current = true
+      window.setTimeout(() => { movedRef.current = false }, 400)
       requestAnimationFrame(() => snapPillToIdx(i))
       const target = items[i]
       if (target && i !== activeIdx) {
