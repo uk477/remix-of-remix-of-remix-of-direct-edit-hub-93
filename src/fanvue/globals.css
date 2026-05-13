@@ -5849,17 +5849,17 @@ body::after { display: none; }
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
+  gap: 2px 8px;
   margin: 0;
   padding: 0;
   font-family: var(--font-display);
-  font-size: clamp(40px, 11.6vw, 56px);
-  line-height: 0.92;
+  font-size: clamp(28px, 7.6vw, 40px);
+  line-height: 0.96;
   font-weight: 950;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: keep-all;
+  overflow-wrap: normal;
   hyphens: none;
 }
 .pdb-title-w {
