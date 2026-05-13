@@ -353,8 +353,16 @@ Always provide your **Order ID** when contacting support.`,
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 32 }}
         style={{ maxHeight: '85dvh' }}
+        drag={!editing ? 'y' : false}
+        dragDirectionLock
+        dragMomentum={false}
+        dragConstraints={{ top: 0 }}
+        dragElastic={{ top: 0, bottom: 0.35 }}
+        onDragEnd={(_, info) => {
+          if (!editing && (info.offset.y > 70 || info.velocity.y > 650)) onClose()
+        }}
       >
-        <div className="sheet-handle" />
+        <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
         <div className="row-between mb-4">
           <div className="t-md fw-black">{title}</div>
           <div className="row gap-2">
