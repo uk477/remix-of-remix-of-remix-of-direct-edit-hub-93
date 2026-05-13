@@ -6994,3 +6994,32 @@ body::after { display: none; }
   background: rgba(255,80,80,0.08);
   color: #ff6f6f;
 }
+
+/* Clickable amount (hero + inline in note) */
+.dpz .dpz-pay-hero-num--btn {
+  background: transparent;
+  border: 0;
+  padding: 6px 10px;
+  margin: -6px -10px;
+  cursor: pointer;
+  border-radius: 0;
+  position: relative;
+  transition: background 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpz .dpz-pay-hero-num--btn:hover { background: rgba(57,255,99,0.06); }
+.dpz .dpz-pay-hero-num--btn:active { background: rgba(57,255,99,0.12); }
+
+.dpz .dpz-pay-note-amount {
+  background: transparent;
+  border: 0;
+  padding: 0 2px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--fv-green);
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(57,255,99,0.45);
+  transition: color 140ms ease, border-color 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpz .dpz-pay-note-amount:hover { color: #b6ffc6; border-bottom-color: var(--fv-green); }
