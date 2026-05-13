@@ -373,19 +373,16 @@ Always provide your **Order ID** when contacting support.`,
         initial={{ y: '100%' }}
         animate={controls}
         style={{ y, maxHeight: '85dvh', willChange: 'transform' }}
-        onAnimationStart={() => { /* mount */ }}
-        onUpdate={(latest) => {
-          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
-          if (!editing && typeof latest.y === 'number' && latest.y > h * 0.7) {
-            // user dragged past 70% — auto-close
-            closeSheet()
-          }
-        }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={{ top: 0, bottom: 1 }}
+        onDrag={(_, info) => {
+          if (editing || closingRef.current) return
+          const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+          if (info.offset.y > h * 0.7) closeSheet()
+        }}
         onDragEnd={(_, info) => {
           if (editing) return
           const h = sheetRef.current?.offsetHeight ?? window.innerHeight
