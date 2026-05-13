@@ -215,6 +215,7 @@ export default function Home() {
           <span className="shop-live-t">
             {lastSaleAgo ? (
               <>
+                {lang === 'ru' ? 'сделка' : 'sale'}{' '}
                 <AnimatePresence mode="popLayout" initial={false}>
                   <motion.b
                     key={lastSaleAgo}
@@ -224,7 +225,7 @@ export default function Home() {
                     transition={{ duration: 0.32, ease: EASE }}
                   >{lastSaleAgo}</motion.b>
                 </AnimatePresence>
-                {' '}{lang === 'ru' ? 'сделка' : 'last sale'}
+                {' '}{lang === 'ru' ? 'назад' : 'ago'}
               </>
             ) : (
               <span style={{ opacity: 0.6 }}>{lang === 'ru' ? 'без сделок' : 'no sales yet'}</span>
