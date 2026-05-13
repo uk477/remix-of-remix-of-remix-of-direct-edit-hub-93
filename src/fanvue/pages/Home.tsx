@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState } from 'react'
+import { useMemo, useRef, useEffect, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform, useMotionValue, useSpring, animate, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
@@ -9,6 +9,8 @@ import lotAccountImg from '../../assets/shop-lot-account.webp'
 import lotVerifyImg from '../../assets/shop-lot-verify.webp'
 import fanvueGlyph from '../../assets/fanvue-glyph.png'
 import solanaLogo from '../assets/solana.svg'
+
+const StickHeroGame = lazy(() => import('../games/StickHeroGame'))
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
