@@ -35,6 +35,8 @@ interface GameState {
   heroY: number
   heroVy: number
   heroRot: number
+  walkPhase: number       // for legs
+  capWobble: number       // base wobble timer
   cameraX: number
   cameraStartX: number
   cameraTargetX: number
@@ -42,13 +44,14 @@ interface GameState {
   cameraDur: number
   cameraDone?: () => void
   score: number
-  glyphIdx: number
   last: number
   perfect: boolean
   perfectFlash: number
   particles: Particle[]
   bgT: number
   shake: number
+  eggDone: boolean
+  eggT: number
 }
 
 export default function StickHeroGame({ onExit }: { onExit: () => void }) {
