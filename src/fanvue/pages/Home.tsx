@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, useMotionValue, useSpring, animate, An
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import SalesHistorySheet from '../components/SalesHistorySheet'
-import { getOnline, getSalesToday, getRecentSales, getTotalSales, formatAgo, buyerLabel, lotLabel, mskNow } from '../utils/salesGen'
+import { getOnline, getRecentSales, getTotalSales, formatAgo, buyerLabel, lotLabel, mskNow } from '../utils/salesGen'
 import lotAccountImg from '../../assets/shop-lot-account.jpg'
 import lotVerifyImg from '../../assets/shop-lot-verify.jpg'
 import fanvueGlyph from '../../assets/fanvue-glyph.png'
