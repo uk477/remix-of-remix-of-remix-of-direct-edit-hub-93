@@ -172,6 +172,7 @@ interface AppStore {
   unpinProduct: (id: number) => void
   isAdmin: () => boolean
   addStickHeroScore: (score: number) => void
+  setStickHeroName: (name: string) => void
 }
 
 export const useStore = create<AppStore>()(
