@@ -98,6 +98,8 @@ export default function Navigation() {
   const close = () => {
     peekingRef.current = false
     setPeeking(false)
+    snapIdxRef.current = null
+    setSnapIdx(null)
     // Snap pill to active tab so it stays under the lit button
     const i = activeIdx === -1 ? 0 : activeIdx
     requestAnimationFrame(() => snapPillToIdx(i))
@@ -105,6 +107,8 @@ export default function Navigation() {
 
   const beginPeek = (e: React.PointerEvent<HTMLButtonElement>) => {
     measure()
+    snapIdxRef.current = null
+    setSnapIdx(null)
     peekingRef.current = true
     setPeeking(true)
     haptic('medium')
