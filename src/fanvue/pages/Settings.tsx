@@ -506,11 +506,27 @@ export default function Settings() {
           {/* ASYMMETRIC BENTO — compact */}
           <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
             {/* LANGUAGE — compact tile with segmented toggle */}
-            <div style={{
-              height: 140, background: NEON, borderRadius: 22, padding: 14,
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              position: 'relative', overflow: 'hidden',
-            }}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              style={{
+                height: 140, background: NEON, borderRadius: 22, padding: 14,
+                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: `0 12px 40px -12px ${NEON}55, inset 0 0 0 1px rgba(255,255,255,0.15)`,
+              }}>
+              {/* Scan-line shimmer */}
+              <motion.div
+                aria-hidden
+                initial={{ y: '-120%' }}
+                animate={{ y: '220%' }}
+                transition={{ duration: 3.6, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute', left: 0, right: 0, height: 60,
+                  background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.25), transparent)',
+                  pointerEvents: 'none',
+                }}
+              />
               <div style={{
                 position: 'absolute', right: -10, bottom: -22,
                 fontSize: 78, fontWeight: 900, fontStyle: 'italic',
