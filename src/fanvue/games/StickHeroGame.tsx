@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
-import heroSpriteUrl from '@/assets/fanvue-ninja.png'
+
 
 /* ───────── constants ───────── */
 const STICK_GROW = 240
@@ -115,13 +115,8 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('resize', resize)
   }, [])
 
-  // Preload hero sprite
-  const heroImgRef = useRef<HTMLImageElement | null>(null)
-  useEffect(() => {
-    const img = new Image()
-    img.src = heroSpriteUrl
-    img.onload = () => { heroImgRef.current = img }
-  }, [])
+
+
 
   // Game loop
   useEffect(() => {
@@ -233,7 +228,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       ctx.globalAlpha = 1
 
       // hero
-      drawHero(ctx, heroImgRef.current, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
 
       ctx.restore()
 
@@ -751,45 +746,140 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
  */
 function drawHero(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement | null,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
 ) {
   const W = HERO_W, H = HERO_H
   const y = baseY - H
 
-  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.1 : 1
+  // ground shadow (squishes with steps)
+  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.12 : 1
   ctx.fillStyle = 'rgba(0,0,0,0.45)'
   ctx.beginPath()
-  ctx.ellipse(x + W / 2, baseY + 1, (W * 0.34) * shadowSquish, 2.8, 0, 0, Math.PI * 2)
+  ctx.ellipse(x + W / 2, baseY + 1, (W * 0.36) * shadowSquish, 3, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  const bob  = walking ? -Math.abs(Math.sin(walkPhase)) * 1.8 : Math.sin(capWobble * 1.6) * 0.4
-  const tilt = walking ? Math.sin(walkPhase) * 2.6 : Math.sin(capWobble * 1.2) * 1.0
-  const totalRot = rot + tilt
-
-  const cx = x + W / 2
-  const cy = y + H * 0.7
+  // overall body bob/tilt
+  const bodyBob  = walking ? -Math.abs(Math.sin(walkPhase)) * 2.2 : Math.sin(capWobble * 1.4) * 0.5
+  const bodyTilt = walking ? Math.sin(walkPhase) * 1.4 : 0
 
   ctx.save()
-  ctx.translate(cx, cy + bob)
-  if (totalRot) ctx.rotate((totalRot * Math.PI) / 180)
-  ctx.translate(-cx, -cy)
+  ctx.translate(x + W / 2, baseY)
+  if (rot) ctx.rotate((rot * Math.PI) / 180)
+  ctx.translate(-(x + W / 2), -baseY)
 
-  if (img && img.complete && img.naturalWidth) {
-    const aspect = img.naturalWidth / img.naturalHeight
-    const drawH = H * 1.25
-    const drawW = drawH * aspect
-    ctx.drawImage(img, x + (W - drawW) / 2, y - (drawH - H) * 0.5, drawW, drawH)
-  } else {
-    ctx.fillStyle = '#e8edf3'
-    roundRect(ctx, x + 4, y + 18, W - 8, H - 26, 14); ctx.fill()
-    ctx.fillStyle = '#7bff8e'
-    roundRect(ctx, x + 2, y + 6, W - 4, 20, 10); ctx.fill()
+  // ---------- LEGS (animated) ----------
+  const footY = baseY - 2
+  const legW = 7, legH = 8
+  const stride = walking ? Math.sin(walkPhase) * 6 : 0
+  const lift   = walking ? Math.max(0, Math.sin(walkPhase)) * 5 : 0
+  const liftR  = walking ? Math.max(0, -Math.sin(walkPhase)) * 5 : 0
+
+  ctx.fillStyle = '#f1f5fb'
+  // left foot
+  roundRect(ctx, x + W * 0.30 - legW / 2 + stride, footY - legH - lift, legW, legH, 3); ctx.fill()
+  // right foot
+  roundRect(ctx, x + W * 0.70 - legW / 2 - stride, footY - legH - liftR, legW, legH, 3); ctx.fill()
+  // tiny outline
+  ctx.strokeStyle = 'rgba(20,40,30,0.25)'; ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(x + W * 0.30 - legW / 2 + stride, footY - lift)
+  ctx.lineTo(x + W * 0.30 + legW / 2 + stride, footY - lift)
+  ctx.moveTo(x + W * 0.70 - legW / 2 - stride, footY - liftR)
+  ctx.lineTo(x + W * 0.70 + legW / 2 - stride, footY - liftR)
+  ctx.stroke()
+
+  ctx.translate(0, bodyBob)
+  if (bodyTilt) {
+    ctx.translate(x + W / 2, baseY - 6)
+    ctx.rotate((bodyTilt * Math.PI) / 180)
+    ctx.translate(-(x + W / 2), -(baseY - 6))
   }
 
+  // ---------- BODY (rounded white pill) ----------
+  const bodyX = x + 5, bodyY = y + 22, bodyW = W - 10, bodyH = H - 30
+  // body shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)'
+  roundRect(ctx, bodyX + 1, bodyY + 2, bodyW, bodyH, 14); ctx.fill()
+  // body fill gradient
+  const bg = ctx.createLinearGradient(bodyX, bodyY, bodyX, bodyY + bodyH)
+  bg.addColorStop(0, '#ffffff'); bg.addColorStop(1, '#cfd6e0')
+  ctx.fillStyle = bg
+  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 14); ctx.fill()
+  // subtle highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  roundRect(ctx, bodyX + 3, bodyY + 3, bodyW * 0.45, bodyH * 0.35, 10); ctx.fill()
+  // body outline
+  ctx.strokeStyle = 'rgba(20,40,30,0.35)'; ctx.lineWidth = 1.2
+  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 14); ctx.stroke()
+
+  // little dot eye / button
+  ctx.fillStyle = '#e7ecf2'
+  ctx.beginPath(); ctx.arc(x + W * 0.66, y + H * 0.72, 2.2, 0, Math.PI * 2); ctx.fill()
+  ctx.strokeStyle = 'rgba(20,40,30,0.4)'; ctx.lineWidth = 0.8; ctx.stroke()
+
+  // ---------- CAP (animated independently) ----------
+  const capBob  = walking ? Math.sin(walkPhase + 0.4) * 1.2 : Math.sin(capWobble) * 0.8
+  const capTilt = walking ? Math.sin(walkPhase + 0.6) * 4.5 : Math.sin(capWobble * 0.9) * 2.2
+
+  const capCx = x + W / 2
+  const capCy = y + 16
+
+  ctx.save()
+  ctx.translate(capCx, capCy + capBob)
+  ctx.rotate((capTilt * Math.PI) / 180)
+  ctx.translate(-capCx, -capCy)
+
+  // halo glow
+  const halo = ctx.createRadialGradient(capCx, capCy, 4, capCx, capCy, 34)
+  halo.addColorStop(0, 'rgba(122,255,138,0.55)')
+  halo.addColorStop(1, 'rgba(122,255,138,0)')
+  ctx.fillStyle = halo
+  ctx.beginPath(); ctx.arc(capCx, capCy, 34, 0, Math.PI * 2); ctx.fill()
+
+  // brim
+  ctx.fillStyle = '#2cd74f'
+  ctx.beginPath()
+  ctx.ellipse(capCx + 4, capCy + 8, 22, 5, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // crown (dome)
+  const cg = ctx.createLinearGradient(capCx - 16, capCy - 14, capCx + 16, capCy + 8)
+  cg.addColorStop(0, '#b6ff9e'); cg.addColorStop(1, '#2cd74f')
+  ctx.fillStyle = cg
+  ctx.beginPath()
+  ctx.ellipse(capCx, capCy, 18, 13, 0, Math.PI, 2 * Math.PI)
+  ctx.lineTo(capCx + 18, capCy + 1)
+  ctx.lineTo(capCx - 18, capCy + 1)
+  ctx.closePath()
+  ctx.fill()
+  // outline
+  ctx.strokeStyle = 'rgba(20,60,30,0.55)'; ctx.lineWidth = 1
+  ctx.stroke()
+
+  // top button
+  ctx.fillStyle = '#1f9c3a'
+  ctx.beginPath(); ctx.arc(capCx, capCy - 13, 1.8, 0, Math.PI * 2); ctx.fill()
+
+  // FANVUE label
+  ctx.save()
+  ctx.beginPath()
+  ctx.ellipse(capCx, capCy - 1, 16, 11, 0, Math.PI, 2 * Math.PI)
+  ctx.lineTo(capCx + 16, capCy + 1)
+  ctx.lineTo(capCx - 16, capCy + 1)
+  ctx.closePath()
+  ctx.clip()
+  ctx.fillStyle = '#0d2618'
+  ctx.font = '700 8px ui-sans-serif, system-ui, -apple-system'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('FANVUE', capCx, capCy - 4)
   ctx.restore()
+
+  ctx.restore() // cap
+  ctx.restore() // body
 }
+
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
