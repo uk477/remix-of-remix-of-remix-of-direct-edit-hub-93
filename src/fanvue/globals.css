@@ -3549,7 +3549,7 @@ body::after { display: none; }
 /* ── LIVE STATUS — full-width pill, 3 cells ───────── */
 .shop-live {
   display: grid;
-  grid-template-columns: 0.85fr 1.35fr 0.95fr;
+  grid-template-columns: 0.78fr 1.5fr 1fr;
   align-items: stretch;
   gap: 0;
   width: 100%;
@@ -3569,9 +3569,9 @@ body::after { display: none; }
 }
 .shop-live-cell {
   display: inline-flex; align-items: center; justify-content: center;
-  gap: 6px; min-width: 0;
-  padding: 9px 6px;
-  font-size: 11px; color: var(--fv-soft);
+  gap: 5px; min-width: 0;
+  padding: 9px 4px;
+  font-size: 10.5px; color: var(--fv-soft);
   white-space: nowrap;
   border-right: 1px solid var(--fv-line);
   position: relative;
@@ -4104,6 +4104,12 @@ body::after { display: none; }
   .shop-live { font-size: 10px; }
   .shop-live-cell { padding: 8px 4px; gap: 5px; font-size: 10px; }
   .shop-feed-list li { padding: 6px 2px; }
+}
+
+@media (max-width: 410px) {
+  .shop-live { font-size: 9.5px; }
+  .shop-live-cell { padding: 8px 3px; gap: 4px; font-size: 9.5px; }
+  .shop-live-ic { width: 11px; height: 11px; }
 }
 
 /* ── SHOP feed extras ───────────────────────────────── */
