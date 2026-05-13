@@ -154,10 +154,11 @@ export default function Home() {
             transition={{ type: 'spring', stiffness: 520, damping: 22 }}
           >
             <span className="home-topup-bg" aria-hidden />
-            <span className="home-topup-edge" aria-hidden />
+            <span className="home-topup-gloss" aria-hidden />
+            <span className="home-topup-ring" aria-hidden />
             <span className="home-topup-l">
               <span className="home-topup-label">{lang === 'ru' ? 'ПОПОЛНИТЬ' : 'TOP UP'}</span>
-              <span className="home-topup-sub home-topup-coins" aria-hidden>
+              <span className="home-topup-coins" aria-hidden>
                 {[
                   { id: 'usdt', src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg' },
                   { id: 'eth',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/eth.svg' },
@@ -165,14 +166,18 @@ export default function Home() {
                   { id: 'sol',  src: 'https://assets.coingecko.com/coins/images/4128/standard/solana.png' },
                   { id: 'ton',  src: 'https://assets.coingecko.com/coins/images/17980/standard/ton_symbol.png' },
                 ].map((c) => (
-                  <img key={c.id} src={c.src} alt="" width={18} height={18} loading="lazy" />
+                  <span key={c.id} className="home-topup-coin">
+                    <img src={c.src} alt="" width={18} height={18} loading="lazy" />
+                  </span>
                 ))}
               </span>
             </span>
             <span className="home-topup-arrow" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter"/>
-              </svg>
+              <span className="home-topup-arrow-box">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
             </span>
             <AnimatePresence>
               {ripples.map((r) => (
