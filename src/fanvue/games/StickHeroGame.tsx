@@ -246,6 +246,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       const dt = Math.min(0.05, (t - st.last) / 1000)
       st.last = t
       st.bgT += dt
+      st.capWobble += dt
       if (st.perfectFlash > 0) st.perfectFlash = Math.max(0, st.perfectFlash - dt * 2.4)
       if (st.shake > 0) st.shake = Math.max(0, st.shake - dt * 3)
 
