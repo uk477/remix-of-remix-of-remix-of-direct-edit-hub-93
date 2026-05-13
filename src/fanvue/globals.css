@@ -4106,6 +4106,12 @@ body::after { display: none; }
   .shop-feed-list li { padding: 6px 2px; }
 }
 
+@media (max-width: 410px) {
+  .shop-live { font-size: 9.5px; }
+  .shop-live-cell { padding: 8px 3px; gap: 4px; font-size: 9.5px; }
+  .shop-live-ic { width: 11px; height: 11px; }
+}
+
 /* ── SHOP feed extras ───────────────────────────────── */
 .shop-feed-empty {
   padding: 14px 6px 10px;
