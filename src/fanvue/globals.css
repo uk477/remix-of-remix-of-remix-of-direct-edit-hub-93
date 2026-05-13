@@ -6999,16 +6999,16 @@ body::after { display: none; }
 .dpz .dpz-pay-hero-num--btn {
   background: transparent;
   border: 0;
-  padding: 6px 10px;
-  margin: -6px -10px;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
   border-radius: 0;
   position: relative;
-  transition: background 160ms ease;
   -webkit-tap-highlight-color: transparent;
 }
-.dpz .dpz-pay-hero-num--btn:hover { background: rgba(57,255,99,0.06); }
-.dpz .dpz-pay-hero-num--btn:active { background: rgba(57,255,99,0.12); }
+.dpz .dpz-pay-hero-num--btn:hover,
+.dpz .dpz-pay-hero-num--btn:active,
+.dpz .dpz-pay-hero-num--btn:focus { background: transparent; outline: none; }
 
 .dpz .dpz-pay-note-amount {
   background: transparent;
