@@ -1,26 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
+// Client-only: HashRouter + Telegram WebApp SDK touch window/document.
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: FanvueShell,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+function FanvueShell() {
+  const [App, setApp] = useState<React.ComponentType | null>(null);
 
-function Index() {
-  return <PlaceholderIndex />;
+  useEffect(() => {
+    let mounted = true;
+    import("@/fanvue/App").then((m) => {
+      if (mounted) setApp(() => m.default);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!App) {
+    return (
+      <div className="grid min-h-[100dvh] place-items-center bg-[#0a0a0c]">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
+      </div>
+    );
+  }
+
+  return <App />;
 }
