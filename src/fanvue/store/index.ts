@@ -130,6 +130,7 @@ interface AppStore {
   pinnedProductIds: number[]
   supportUnread: number
   stickHeroScores: { name: string; score: number; ts: number }[]
+  stickHeroName: string | null
 
   // User actions
   setLang: (lang: Lang) => void
@@ -171,6 +172,7 @@ interface AppStore {
   unpinProduct: (id: number) => void
   isAdmin: () => boolean
   addStickHeroScore: (score: number) => void
+  setStickHeroName: (name: string) => void
 }
 
 export const useStore = create<AppStore>()(
@@ -479,9 +481,10 @@ export const useStore = create<AppStore>()(
       },
 
       stickHeroScores: [],
+      stickHeroName: null,
+      setStickHeroName: (name) => set({ stickHeroName: name.trim().slice(0, 16) }),
       addStickHeroScore: (score) => set((s) => {
-        const u = get().user
-        const name = u?.username || u?.full_name || 'player'
+        const name = s.stickHeroName || 'player'
         const next = [...s.stickHeroScores, { name, score, ts: Date.now() }]
           .sort((a, b) => b.score - a.score)
           .slice(0, 50)
@@ -520,6 +523,7 @@ export const useStore = create<AppStore>()(
         pinnedProductIds: s.pinnedProductIds,
         supportUnread: s.supportUnread,
         stickHeroScores: s.stickHeroScores,
+        stickHeroName: s.stickHeroName,
       }),
     }
   )

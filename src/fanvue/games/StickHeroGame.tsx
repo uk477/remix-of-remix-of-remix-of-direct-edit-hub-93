@@ -4,28 +4,59 @@ import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 
 /* ───────── constants ───────── */
-const STICK_GROW = 220       // px per second
-const STICK_FALL = 720       // deg per second
-const HERO_WALK  = 320       // px per second
+const STICK_GROW = 240
+const STICK_FALL = 760
+const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 36
-const HERO_H = 44
+const HERO_W = 38
+const HERO_H = 46
 const MIN_GAP = 60
 const MAX_GAP = 220
-const MIN_PW = 30
+const MIN_PW = 28
 const MAX_PW = 110
-const PERFECT_R = 8          // perfect-tap radius
+const PERFECT_R = 8
 
-type Phase = 'waiting' | 'growing' | 'falling' | 'walking' | 'camera' | 'falling_off' | 'gameover'
+// Sequence: F-A-N-V-U-E- -M-A-R-K-E-T then meme emojis
+const GLYPHS = ['F','A','N','V','U','E','·','M','A','R','K','E','T']
+const MEMES  = ['🌈','🐱','🐶','🐸','🐵','🦄','🐙','🐼','🐲','🍕','👾','🤖','💎','🔥','⚡','🌟']
 
+type Phase = 'name' | 'waiting' | 'growing' | 'falling' | 'walking' | 'camera' | 'falling_off' | 'gameover'
 interface Plat { x: number; w: number }
+interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number }
 
-/* ───────── component ───────── */
+interface GameState {
+  phase: Phase
+  cur: Plat
+  next: Plat
+  stickLen: number
+  stickAngle: number
+  heroX: number
+  heroY: number
+  heroVy: number
+  heroRot: number
+  cameraX: number
+  cameraStartX: number
+  cameraTargetX: number
+  cameraT: number
+  cameraDur: number
+  cameraDone?: () => void
+  score: number
+  glyphIdx: number
+  last: number
+  perfect: boolean
+  perfectFlash: number
+  particles: Particle[]
+  bgT: number
+  shake: number
+}
+
 export default function StickHeroGame({ onExit }: { onExit: () => void }) {
   const lang = useStore((s) => s.lang)
   const scores = useStore((s) => s.stickHeroScores)
   const addScore = useStore((s) => s.addStickHeroScore)
+  const savedName = useStore((s) => s.stickHeroName)
+  const setSavedName = useStore((s) => s.setStickHeroName)
   const { haptic } = useTelegram()
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -33,159 +64,173 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
   const [score, setScore] = useState(0)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [over, setOver] = useState(false)
+  const [needName, setNeedName] = useState(!savedName)
+  const [nameInput, setNameInput] = useState('')
 
-  // Mutable game state (avoid React rerenders on every frame)
-  const stRef = useRef({
-    phase: 'waiting' as Phase,
-    cur: { x: 40, w: 70 } as Plat,
-    next: { x: 200, w: 60 } as Plat,
-    upcoming: null as Plat | null,
+  const stRef = useRef<GameState>({
+    phase: needName ? 'name' : 'waiting',
+    cur: { x: 30, w: 90 },
+    next: { x: 200, w: 70 },
     stickLen: 0,
-    stickAngle: 0,           // degrees, 0 = straight up
-    heroX: 40 + 70 - HERO_W, // hero stands on right edge of cur platform
-    heroY: 0,                // negative = falling
+    stickAngle: 0,
+    heroX: 30 + 90 - HERO_W,
+    heroY: 0,
+    heroVy: 0,
+    heroRot: 0,
     cameraX: 0,
+    cameraStartX: 0,
+    cameraTargetX: 0,
+    cameraT: 0,
+    cameraDur: 0.35,
     score: 0,
+    glyphIdx: 0,
     last: 0,
     perfect: false,
     perfectFlash: 0,
+    particles: [],
+    bgT: 0,
+    shake: 0,
   })
 
-  // Resize / DPR
+  // Resize
   useEffect(() => {
-    const cvs = canvasRef.current!
-    const wrap = wrapRef.current!
+    const cvs = canvasRef.current!; const wrap = wrapRef.current!
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const resize = () => {
-      const w = wrap.clientWidth
-      const h = wrap.clientHeight
-      cvs.width = Math.floor(w * dpr)
-      cvs.height = Math.floor(h * dpr)
-      cvs.style.width = w + 'px'
-      cvs.style.height = h + 'px'
-      const ctx = cvs.getContext('2d')!
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const w = wrap.clientWidth, h = wrap.clientHeight
+      cvs.width = Math.floor(w * dpr); cvs.height = Math.floor(h * dpr)
+      cvs.style.width = w + 'px'; cvs.style.height = h + 'px'
+      cvs.getContext('2d')!.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
-    resize()
-    window.addEventListener('resize', resize)
+    resize(); window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
-  }, [])
-
-  // Init first platforms
-  useEffect(() => {
-    const cvs = canvasRef.current!
-    const W = cvs.clientWidth
-    const st = stRef.current
-    const firstW = 90
-    st.cur = { x: 30, w: firstW }
-    st.heroX = st.cur.x + st.cur.w - HERO_W
-    st.heroY = 0
-    const gap = 80 + Math.random() * 60
-    const nextW = 70
-    st.next = { x: st.cur.x + st.cur.w + gap, y: 0, w: nextW } as Plat
-    st.upcoming = null
-    st.cameraX = 0
-    st.phase = 'waiting'
-    st.stickLen = 0
-    st.stickAngle = 0
-    st.score = 0
-    st.last = performance.now()
-    setScore(0)
-    setOver(false)
-    // ensure W var used
-    void W
   }, [])
 
   // Game loop
   useEffect(() => {
     const cvs = canvasRef.current!
     const ctx = cvs.getContext('2d')!
-    let raf = 0
-    let alive = true
+    let raf = 0; let alive = true
 
     const spawnNext = () => {
       const st = stRef.current
-      const cvsW = cvs.clientWidth
-      const gap = MIN_GAP + Math.random() * (MAX_GAP - MIN_GAP)
-      const w = MIN_PW + Math.random() * (MAX_PW - MIN_PW)
-      const x = st.cur.x + st.cur.w + gap
-      // make sure new next is mostly visible after camera shifts
-      st.next = { x, w }
-      void cvsW
+      // mild difficulty: gaps grow slightly, widths shrink slightly with score (but capped — original-feel)
+      const diff = Math.min(1, st.score / 30)
+      const minG = MIN_GAP + diff * 20
+      const maxG = MAX_GAP - diff * 30
+      const minW = MIN_PW
+      const maxW = MAX_PW - diff * 40
+      const gap = minG + Math.random() * Math.max(40, maxG - minG)
+      const w = minW + Math.random() * Math.max(20, maxW - minW)
+      st.next = { x: st.cur.x + st.cur.w + gap, w }
+    }
+
+    const emitParticles = (x: number, y: number, color: string, n = 18) => {
+      const st = stRef.current
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2
+        const sp = 80 + Math.random() * 220
+        st.particles.push({
+          x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80,
+          life: 0, max: 0.6 + Math.random() * 0.4, color,
+          size: 1.5 + Math.random() * 2.5,
+        })
+      }
     }
 
     const draw = () => {
-      const W = cvs.clientWidth
-      const H = cvs.clientHeight
+      const W = cvs.clientWidth, H = cvs.clientHeight
       const st = stRef.current
 
-      // BG gradient
+      // animated bg
+      const t = st.bgT
       const g = ctx.createLinearGradient(0, 0, 0, H)
-      g.addColorStop(0, '#0b0e14')
-      g.addColorStop(0.55, '#101822')
-      g.addColorStop(1, '#0a1410')
-      ctx.fillStyle = g
-      ctx.fillRect(0, 0, W, H)
+      g.addColorStop(0, '#0a0d12')
+      g.addColorStop(0.5, `hsl(${(t * 8) % 360}, 25%, 9%)`)
+      g.addColorStop(1, '#070a0e')
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
 
-      // Subtle grid
-      ctx.strokeStyle = 'rgba(57,255,99,0.04)'
-      ctx.lineWidth = 1
-      for (let y = 0; y < H; y += 32) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
+      // floating orbs
+      for (let i = 0; i < 3; i++) {
+        const ox = (W * (0.2 + i * 0.3)) + Math.sin(t * 0.6 + i) * 30
+        const oy = H * 0.25 + Math.cos(t * 0.4 + i * 1.7) * 40
+        const r = 90 + i * 25
+        const og = ctx.createRadialGradient(ox, oy, 0, ox, oy, r)
+        const hue = (t * 12 + i * 120) % 360
+        og.addColorStop(0, `hsla(${hue}, 80%, 60%, 0.10)`)
+        og.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = og; ctx.fillRect(0, 0, W, H)
       }
 
-      // Stars
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      // stars
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'
       const seed = Math.floor(st.cameraX / 4)
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 50; i++) {
         const sx = ((i * 73 + seed) % W)
         const sy = (i * 131) % (H - PLAT_Y_FROM_BOTTOM - 60)
-        ctx.fillRect(sx, sy, 1.2, 1.2)
+        const tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 2 + i))
+        ctx.globalAlpha = tw
+        ctx.fillRect(sx, sy, 1.3, 1.3)
       }
+      ctx.globalAlpha = 1
+
+      // shake
+      const shakeX = st.shake > 0 ? (Math.random() - 0.5) * st.shake * 8 : 0
+      const shakeY = st.shake > 0 ? (Math.random() - 0.5) * st.shake * 8 : 0
 
       ctx.save()
-      ctx.translate(-st.cameraX, 0)
+      ctx.translate(-st.cameraX + shakeX, shakeY)
 
-      // Platforms
       const groundY = H - PLAT_Y_FROM_BOTTOM
-      drawPlatform(ctx, st.cur, groundY)
-      drawPlatform(ctx, st.next, groundY)
+      drawPlatform(ctx, st.cur, groundY, t)
+      drawPlatform(ctx, st.next, groundY, t)
 
-      // Stick
-      const stickBaseX = st.cur.x + st.cur.w
-      const stickBaseY = groundY
-      ctx.save()
-      ctx.translate(stickBaseX, stickBaseY)
-      ctx.rotate((-90 + st.stickAngle) * Math.PI / 180) // start pointing up
-      ctx.strokeStyle = '#39ff63'
-      ctx.lineWidth = 4
-      ctx.lineCap = 'round'
-      ctx.shadowColor = 'rgba(57,255,99,0.55)'
-      ctx.shadowBlur = 8
+      // perfect target dot pulse
+      const pulse = 0.5 + 0.5 * Math.sin(t * 5)
+      ctx.fillStyle = `rgba(255,255,255,${0.4 + pulse * 0.5})`
       ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.lineTo(st.stickLen, 0)
-      ctx.stroke()
+      ctx.arc(st.next.x + st.next.w / 2, groundY + 6, 1.8 + pulse * 1.2, 0, Math.PI * 2)
+      ctx.fill()
+
+      // stick
+      const sx = st.cur.x + st.cur.w
+      ctx.save()
+      ctx.translate(sx, groundY)
+      ctx.rotate((-90 + st.stickAngle) * Math.PI / 180)
+      const sg = ctx.createLinearGradient(0, 0, st.stickLen, 0)
+      sg.addColorStop(0, '#39ff63'); sg.addColorStop(1, '#7bffb8')
+      ctx.strokeStyle = sg
+      ctx.lineWidth = 4; ctx.lineCap = 'round'
+      ctx.shadowColor = 'rgba(57,255,99,0.7)'; ctx.shadowBlur = 12
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(st.stickLen, 0); ctx.stroke()
       ctx.shadowBlur = 0
       ctx.restore()
 
-      // Hero (F glyph)
-      drawHero(ctx, st.heroX, groundY + st.heroY)
+      // particles
+      for (const p of st.particles) {
+        const a = 1 - p.life / p.max
+        ctx.globalAlpha = a
+        ctx.fillStyle = p.color
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill()
+      }
+      ctx.globalAlpha = 1
+
+      // hero
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, currentGlyph(st.glyphIdx))
 
       ctx.restore()
 
-      // Perfect flash
+      // perfect flash
       if (st.perfectFlash > 0) {
-        ctx.fillStyle = `rgba(57,255,99,${st.perfectFlash * 0.18})`
+        ctx.fillStyle = `rgba(57,255,99,${st.perfectFlash * 0.22})`
         ctx.fillRect(0, 0, W, H)
       }
 
-      // Foreground glow
-      const fg = ctx.createRadialGradient(W * 0.5, H, 0, W * 0.5, H, H * 0.7)
-      fg.addColorStop(0, 'rgba(57,255,99,0.06)')
-      fg.addColorStop(1, 'rgba(0,0,0,0)')
-      ctx.fillStyle = fg
-      ctx.fillRect(0, 0, W, H)
+      // vignette
+      const vg = ctx.createRadialGradient(W * 0.5, H * 0.55, H * 0.3, W * 0.5, H * 0.55, H * 0.85)
+      vg.addColorStop(0, 'rgba(0,0,0,0)')
+      vg.addColorStop(1, 'rgba(0,0,0,0.55)')
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H)
     }
 
     const tick = (t: number) => {
@@ -193,8 +238,21 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       const st = stRef.current
       const dt = Math.min(0.05, (t - st.last) / 1000)
       st.last = t
+      st.bgT += dt
+      if (st.perfectFlash > 0) st.perfectFlash = Math.max(0, st.perfectFlash - dt * 2.4)
+      if (st.shake > 0) st.shake = Math.max(0, st.shake - dt * 3)
 
-      if (st.perfectFlash > 0) st.perfectFlash = Math.max(0, st.perfectFlash - dt * 2.2)
+      // particles
+      for (const p of st.particles) {
+        p.life += dt
+        p.vy += 480 * dt
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+      }
+      st.particles = st.particles.filter((p) => p.life < p.max)
+
+      const H = cvs.clientHeight
+      const groundY = H - PLAT_Y_FROM_BOTTOM
 
       if (st.phase === 'growing') {
         st.stickLen += STICK_GROW * dt
@@ -202,26 +260,22 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         st.stickAngle += STICK_FALL * dt
         if (st.stickAngle >= 90) {
           st.stickAngle = 90
-          // determine outcome
-          const stickTip = st.cur.x + st.cur.w + st.stickLen
-          const nextL = st.next.x
-          const nextR = st.next.x + st.next.w
-          if (stickTip >= nextL && stickTip <= nextR) {
-            // success
-            const center = nextL + st.next.w / 2
-            st.perfect = Math.abs(stickTip - center) <= PERFECT_R
+          const tip = st.cur.x + st.cur.w + st.stickLen
+          const nL = st.next.x, nR = st.next.x + st.next.w
+          if (tip >= nL && tip <= nR) {
+            const center = nL + st.next.w / 2
+            st.perfect = Math.abs(tip - center) <= PERFECT_R
             if (st.perfect) {
-              st.score += 2
-              st.perfectFlash = 1
-              haptic('success')
+              st.score += 2; st.perfectFlash = 1; haptic('success')
+              emitParticles(center, groundY, '#ffcb3a', 22)
             } else {
-              st.score += 1
-              haptic('light')
+              st.score += 1; haptic('light')
+              emitParticles(tip, groundY, '#39ff63', 8)
             }
             setScore(st.score)
             st.phase = 'walking'
           } else {
-            haptic('error')
+            haptic('error'); st.shake = 1
             st.phase = 'falling_off'
           }
         }
@@ -231,10 +285,9 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         st.heroX += dir * HERO_WALK * dt
         if ((dir > 0 && st.heroX >= target) || (dir < 0 && st.heroX <= target)) {
           st.heroX = target
-          // shift world: cur becomes next
-          const shift = st.next.x - st.cur.x
-          // smooth camera
-          animateCamera(st, shift, () => {
+          // advance glyph on successful step
+          st.glyphIdx = (st.glyphIdx + 1) % (GLYPHS.length + MEMES.length)
+          animateCamera(st, () => {
             st.cur = { ...st.next }
             st.heroX = st.cur.x + st.cur.w - HERO_W
             st.cameraX = st.cur.x - 30
@@ -245,18 +298,19 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
           })
         }
       } else if (st.phase === 'camera') {
-        // camera animation handled inline below via cameraTween
         cameraTween(st, dt)
       } else if (st.phase === 'falling_off') {
-        // hero walks to end of stick then falls
-        const stickTip = st.cur.x + st.cur.w + st.stickLen
-        const target = stickTip - HERO_W / 2
-        if (st.heroX < target) {
+        const tip = st.cur.x + st.cur.w + st.stickLen
+        const target = tip - HERO_W / 2
+        if (st.heroX < target - 1) {
           st.heroX += HERO_WALK * dt
-          if (st.heroX > target) st.heroX = target
         } else {
-          st.heroY += 900 * dt * dt + 60 * dt
-          if (st.heroY > 600) {
+          // proper gravity, fast game over
+          st.heroVy += 1800 * dt
+          st.heroY += st.heroVy * dt
+          st.heroRot += 360 * dt
+          // game over as soon as hero clears the platform top by ~150px (off-screen feel)
+          if (st.heroY > 180) {
             st.phase = 'gameover'
             setOver(true)
             addScore(st.score)
@@ -274,24 +328,19 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Touch/mouse handlers
+  // Pointer
   useEffect(() => {
     const wrap = wrapRef.current!
     const onDown = (e: PointerEvent) => {
       const st = stRef.current
       if (st.phase !== 'waiting') return
-      st.phase = 'growing'
-      st.stickLen = 0
-      st.stickAngle = 0
-      haptic('light')
-      e.preventDefault()
+      st.phase = 'growing'; st.stickLen = 0; st.stickAngle = 0
+      haptic('light'); e.preventDefault()
     }
     const onUp = (e: PointerEvent) => {
       const st = stRef.current
       if (st.phase !== 'growing') return
-      st.phase = 'falling'
-      haptic('light')
-      e.preventDefault()
+      st.phase = 'falling'; haptic('light'); e.preventDefault()
     }
     wrap.addEventListener('pointerdown', onDown)
     window.addEventListener('pointerup', onUp)
@@ -308,17 +357,22 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     const st = stRef.current
     st.cur = { x: 30, w: 90 }
     st.heroX = st.cur.x + st.cur.w - HERO_W
-    st.heroY = 0
-    const gap = 80 + Math.random() * 60
-    st.next = { x: st.cur.x + st.cur.w + gap, w: 70 }
-    st.cameraX = 0
-    st.phase = 'waiting'
-    st.stickLen = 0
-    st.stickAngle = 0
-    st.score = 0
-    st.perfectFlash = 0
-    setScore(0)
-    setOver(false)
+    st.heroY = 0; st.heroVy = 0; st.heroRot = 0
+    st.next = { x: st.cur.x + st.cur.w + 80 + Math.random() * 60, w: 70 }
+    st.cameraX = 0; st.phase = 'waiting'
+    st.stickLen = 0; st.stickAngle = 0
+    st.score = 0; st.glyphIdx = 0
+    st.perfectFlash = 0; st.particles = []; st.shake = 0
+    setScore(0); setOver(false)
+  }
+
+  const submitName = () => {
+    const v = nameInput.trim()
+    if (v.length < 2) return
+    setSavedName(v)
+    setNeedName(false)
+    stRef.current.phase = 'waiting'
+    stRef.current.last = performance.now()
   }
 
   const top10 = [...scores].sort((a, b) => b.score - a.score).slice(0, 10)
@@ -327,14 +381,11 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       style={{
         position: 'fixed', inset: 0, zIndex: 10000,
-        background: '#000',
-        display: 'flex', flexDirection: 'column',
+        background: '#000', display: 'flex', flexDirection: 'column',
         touchAction: 'none', userSelect: 'none', overflow: 'hidden',
       }}
     >
@@ -345,68 +396,51 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         pointerEvents: 'none',
       }}>
-        <button
-          onClick={onExit}
-          style={{
-            pointerEvents: 'auto',
-            background: 'rgba(20,24,30,0.7)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 12, padding: '8px 12px',
-            color: '#fff', fontSize: 13, fontWeight: 700,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}
-        >
+        <button onClick={onExit} style={hudBtnStyle}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           {T('Меню', 'Menu')}
         </button>
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          background: 'rgba(20,24,30,0.7)', backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(57,255,99,0.18)',
-          borderRadius: 14, padding: '6px 16px',
-        }}>
-          <div style={{ fontSize: 10, color: '#7a8693', letterSpacing: '0.12em', fontWeight: 700 }}>SCORE</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#39ff63', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{score}</div>
-        </div>
-        <button
-          onClick={() => setShowLeaderboard(true)}
+
+        <motion.div
+          key={score}
+          initial={{ scale: 1.25 }} animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 18 }}
           style={{
-            pointerEvents: 'auto',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
             background: 'rgba(20,24,30,0.7)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 12, padding: '8px 10px',
-            color: '#fff', display: 'flex', alignItems: 'center', gap: 4,
+            border: '1px solid rgba(57,255,99,0.22)',
+            borderRadius: 14, padding: '6px 18px',
+            boxShadow: '0 8px 24px rgba(57,255,99,0.12)',
           }}
-          aria-label="Top players"
         >
+          <div style={{ fontSize: 10, color: '#7a8693', letterSpacing: '0.14em', fontWeight: 800 }}>SCORE</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#39ff63', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textShadow: '0 0 12px rgba(57,255,99,0.5)' }}>{score}</div>
+        </motion.div>
+
+        <button onClick={() => setShowLeaderboard(true)} style={{ ...hudBtnStyle, padding: '8px 10px' }} aria-label="Top players">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffcb3a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M17 4h3v3a4 4 0 0 1-4 4M7 4H4v3a4 4 0 0 0 4 4M17 4H7v6a5 5 0 0 0 10 0V4Z"/></svg>
         </button>
       </div>
 
-      {/* Best banner */}
-      {best > 0 && !over && (
+      {savedName && best > 0 && !over && (
         <div style={{
           position: 'absolute', top: 64, left: '50%', transform: 'translateX(-50%)',
           fontSize: 11, color: '#7a8693', fontWeight: 600, zIndex: 4,
           background: 'rgba(20,24,30,0.55)', borderRadius: 8, padding: '3px 10px',
         }}>
-          {T('Рекорд', 'Best')}: <b style={{ color: '#fff' }}>{best}</b>
+          {T('Рекорд', 'Best')}: <b style={{ color: '#fff' }}>{best}</b> · @{savedName}
         </div>
       )}
 
-      {/* Hint */}
       <AnimatePresence>
-        {score === 0 && !over && (
+        {!needName && score === 0 && !over && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
             style={{
               position: 'absolute', bottom: 80, left: 0, right: 0,
               textAlign: 'center', color: 'rgba(255,255,255,0.7)',
-              fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
-              pointerEvents: 'none', zIndex: 3,
+              fontSize: 13, fontWeight: 600, pointerEvents: 'none', zIndex: 3,
             }}
           >
             {T('Удерживай экран — растягивай палку', 'Hold the screen — stretch the stick')}
@@ -414,28 +448,85 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         )}
       </AnimatePresence>
 
-      {/* Canvas */}
       <div ref={wrapRef} style={{ flex: 1, position: 'relative' }}>
         <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
       </div>
+
+      {/* Name modal */}
+      <AnimatePresence>
+        {needName && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 40,
+              background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(12px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+              style={{
+                background: 'linear-gradient(180deg,#10161e,#0a0e14)',
+                border: '1px solid rgba(57,255,99,0.25)',
+                borderRadius: 24, padding: 26, width: '100%', maxWidth: 340,
+                color: '#fff', textAlign: 'center',
+                boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(57,255,99,0.18)',
+              }}
+            >
+              <div style={{ fontSize: 38, marginBottom: 6 }}>🎮</div>
+              <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>
+                {T('Как тебя звать?', 'What\'s your name?')}
+              </div>
+              <div style={{ fontSize: 12, color: '#7a8693', marginBottom: 16 }}>
+                {T('Это имя попадёт в топ игроков. Спросим только один раз.', 'This name will be on the leaderboard. Asked only once.')}
+              </div>
+              <input
+                autoFocus
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value.slice(0, 16))}
+                onKeyDown={(e) => { if (e.key === 'Enter') submitName() }}
+                placeholder={T('твой ник', 'your nickname')}
+                maxLength={16}
+                style={{
+                  width: '100%', padding: '12px 14px', borderRadius: 12,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  color: '#fff', fontSize: 15, fontWeight: 700, textAlign: 'center',
+                  outline: 'none', marginBottom: 14,
+                }}
+              />
+              <button
+                onClick={submitName}
+                disabled={nameInput.trim().length < 2}
+                style={{
+                  width: '100%', padding: '13px', borderRadius: 12,
+                  background: nameInput.trim().length < 2 ? 'rgba(57,255,99,0.25)' : 'linear-gradient(180deg,#39ff63,#1fe07a)',
+                  color: '#062612', fontWeight: 900, fontSize: 14,
+                  opacity: nameInput.trim().length < 2 ? 0.5 : 1,
+                  boxShadow: '0 8px 22px rgba(57,255,99,0.35)',
+                }}
+              >
+                {T('Поехали', 'Let\'s go')}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Game over */}
       <AnimatePresence>
         {over && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{
               position: 'absolute', inset: 0, zIndex: 20,
               background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 24,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
             }}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 26 }}
               style={{
                 background: 'linear-gradient(180deg,#10161e,#0a0e14)',
@@ -445,51 +536,26 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
                 boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(57,255,99,0.15)',
               }}
             >
-              <div style={{ fontSize: 12, color: '#7a8693', letterSpacing: '0.18em', fontWeight: 700 }}>
-                GAME OVER
-              </div>
-              <div style={{ fontSize: 64, fontWeight: 900, color: '#39ff63', margin: '8px 0', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                {score}
-              </div>
+              <div style={{ fontSize: 12, color: '#7a8693', letterSpacing: '0.18em', fontWeight: 700 }}>GAME OVER</div>
+              <motion.div
+                initial={{ scale: 0.6 }} animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.05 }}
+                style={{ fontSize: 64, fontWeight: 900, color: '#39ff63', margin: '8px 0', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textShadow: '0 0 24px rgba(57,255,99,0.5)' }}
+              >{score}</motion.div>
               <div style={{ fontSize: 13, color: '#a8b2bf', marginBottom: 18 }}>
-                {score > best - 1 && score === scores.sort((a,b)=>b.score-a.score)[0]?.score
-                  ? T('Новый рекорд!', 'New record!')
+                {score >= best && score > 0
+                  ? '🏆 ' + T('Новый рекорд!', 'New record!')
                   : T(`Рекорд: ${best}`, `Best: ${best}`)}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  onClick={() => setShowLeaderboard(true)}
-                  style={{
-                    flex: 1, padding: '12px', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#fff', fontWeight: 700, fontSize: 13,
-                  }}
-                >
-                  {T('Топ', 'Top')}
-                </button>
-                <button
-                  onClick={restart}
-                  style={{
-                    flex: 1.4, padding: '12px', borderRadius: 12,
-                    background: 'linear-gradient(180deg,#39ff63,#1fe07a)',
-                    color: '#062612', fontWeight: 900, fontSize: 14,
-                    boxShadow: '0 8px 22px rgba(57,255,99,0.35)',
-                  }}
-                >
-                  {T('Ещё раз', 'Replay')}
-                </button>
+                <button onClick={() => setShowLeaderboard(true)} style={ghostBtnStyle}>{T('Топ', 'Top')}</button>
+                <button onClick={restart} style={primaryBtnStyle}>{T('Ещё раз', 'Replay')}</button>
               </div>
-              <button
-                onClick={onExit}
-                style={{
-                  marginTop: 10, width: '100%', padding: '10px',
-                  background: 'transparent', color: '#7a8693',
-                  fontSize: 12, fontWeight: 700, letterSpacing: '0.1em',
-                }}
-              >
-                {T('ВЫЙТИ В МЕНЮ', 'EXIT TO MENU')}
-              </button>
+              <button onClick={onExit} style={{
+                marginTop: 10, width: '100%', padding: '10px',
+                background: 'transparent', color: '#7a8693',
+                fontSize: 12, fontWeight: 700, letterSpacing: '0.1em',
+              }}>{T('ВЫЙТИ В МЕНЮ', 'EXIT TO MENU')}</button>
             </motion.div>
           </motion.div>
         )}
@@ -499,42 +565,31 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       <AnimatePresence>
         {showLeaderboard && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowLeaderboard(false)}
             style={{
               position: 'absolute', inset: 0, zIndex: 30,
               background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
             }}
           >
             <motion.div
-              initial={{ scale: 0.92, y: 16 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 background: 'linear-gradient(180deg,#11181f,#0a0e14)',
                 border: '1px solid rgba(57,255,99,0.2)',
                 borderRadius: 22, padding: 22, width: '100%', maxWidth: 360,
-                color: '#fff',
-                boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+                color: '#fff', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffcb3a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8M12 17v4M17 4h3v3a4 4 0 0 1-4 4M7 4H4v3a4 4 0 0 0 4 4M17 4H7v6a5 5 0 0 0 10 0V4Z"/></svg>
-                  <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.01em' }}>
-                    {T('Топ игроков', 'Top players')}
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 900 }}>{T('Топ игроков', 'Top players')}</div>
                 </div>
-                <button
-                  onClick={() => setShowLeaderboard(false)}
-                  style={{ color: '#7a8693', fontSize: 20, padding: 4 }}
-                >×</button>
+                <button onClick={() => setShowLeaderboard(false)} style={{ color: '#7a8693', fontSize: 20, padding: 4 }}>×</button>
               </div>
               {top10.length === 0 ? (
                 <div style={{ padding: '32px 0', textAlign: 'center', color: '#7a8693', fontSize: 13 }}>
@@ -542,31 +597,34 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
                 </div>
               ) : (
                 <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {top10.map((s, i) => (
-                    <li
-                      key={s.ts}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '10px 12px', borderRadius: 10,
-                        background: i < 3 ? 'rgba(57,255,99,0.06)' : 'rgba(255,255,255,0.025)',
-                        border: i === 0 ? '1px solid rgba(255,203,58,0.3)' : '1px solid transparent',
-                      }}
-                    >
-                      <div style={{
-                        width: 24, height: 24, borderRadius: 8,
-                        display: 'grid', placeItems: 'center',
-                        background: i === 0 ? '#ffcb3a' : i === 1 ? '#cfd6df' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.06)',
-                        color: i < 3 ? '#0a0e14' : '#7a8693',
-                        fontWeight: 900, fontSize: 12,
-                      }}>{i + 1}</div>
-                      <div style={{ flex: 1, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        @{s.name}
-                      </div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: '#39ff63', fontVariantNumeric: 'tabular-nums' }}>
-                        {s.score}
-                      </div>
-                    </li>
-                  ))}
+                  {top10.map((s, i) => {
+                    const isMe = savedName && s.name === savedName
+                    return (
+                      <motion.li
+                        key={s.ts}
+                        initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '10px 12px', borderRadius: 10,
+                          background: isMe ? 'rgba(57,255,99,0.12)' : i < 3 ? 'rgba(57,255,99,0.06)' : 'rgba(255,255,255,0.025)',
+                          border: i === 0 ? '1px solid rgba(255,203,58,0.35)' : isMe ? '1px solid rgba(57,255,99,0.3)' : '1px solid transparent',
+                        }}
+                      >
+                        <div style={{
+                          width: 26, height: 26, borderRadius: 8,
+                          display: 'grid', placeItems: 'center',
+                          background: i === 0 ? '#ffcb3a' : i === 1 ? '#cfd6df' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.06)',
+                          color: i < 3 ? '#0a0e14' : '#7a8693',
+                          fontWeight: 900, fontSize: 12,
+                        }}>{i + 1}</div>
+                        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          @{s.name}{isMe ? ' ·' : ''}
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: '#39ff63', fontVariantNumeric: 'tabular-nums' }}>{s.score}</div>
+                      </motion.li>
+                    )
+                  })}
                 </ol>
               )}
             </motion.div>
@@ -578,48 +636,75 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
 }
 
 /* ───────── helpers ───────── */
-function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number) {
-  // Body
-  const grad = ctx.createLinearGradient(0, groundY, 0, groundY + PLAT_H)
-  grad.addColorStop(0, '#1d2630')
-  grad.addColorStop(1, '#0a0e14')
-  ctx.fillStyle = grad
-  ctx.fillRect(p.x, groundY, p.w, PLAT_H)
-  // Top edge highlight
-  ctx.fillStyle = '#39ff63'
-  ctx.fillRect(p.x, groundY - 2, p.w, 2)
-  // Soft side line
-  ctx.fillStyle = 'rgba(57,255,99,0.15)'
-  ctx.fillRect(p.x, groundY, 1, PLAT_H)
-  ctx.fillRect(p.x + p.w - 1, groundY, 1, PLAT_H)
-  // Center perfect dot
-  ctx.fillStyle = 'rgba(255,255,255,0.6)'
-  ctx.beginPath()
-  ctx.arc(p.x + p.w / 2, groundY + 6, 1.6, 0, Math.PI * 2)
-  ctx.fill()
+const hudBtnStyle: React.CSSProperties = {
+  pointerEvents: 'auto',
+  background: 'rgba(20,24,30,0.7)', backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 12, padding: '8px 12px',
+  color: '#fff', fontSize: 13, fontWeight: 700,
+  display: 'flex', alignItems: 'center', gap: 6,
+}
+const ghostBtnStyle: React.CSSProperties = {
+  flex: 1, padding: '12px', borderRadius: 12,
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  color: '#fff', fontWeight: 700, fontSize: 13,
+}
+const primaryBtnStyle: React.CSSProperties = {
+  flex: 1.4, padding: '12px', borderRadius: 12,
+  background: 'linear-gradient(180deg,#39ff63,#1fe07a)',
+  color: '#062612', fontWeight: 900, fontSize: 14,
+  boxShadow: '0 8px 22px rgba(57,255,99,0.35)',
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number) {
-  // baseY is the platform top; hero stands on it
+function currentGlyph(idx: number): string {
+  if (idx < GLYPHS.length) return GLYPHS[idx]
+  return MEMES[(idx - GLYPHS.length) % MEMES.length]
+}
+
+function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t: number) {
+  const grad = ctx.createLinearGradient(0, groundY, 0, groundY + PLAT_H)
+  grad.addColorStop(0, '#1d2630'); grad.addColorStop(1, '#070a0e')
+  ctx.fillStyle = grad
+  ctx.fillRect(p.x, groundY, p.w, PLAT_H)
+  // animated top edge
+  const edgeAlpha = 0.7 + 0.3 * Math.sin(t * 3 + p.x * 0.05)
+  ctx.fillStyle = `rgba(57,255,99,${edgeAlpha})`
+  ctx.fillRect(p.x, groundY - 2, p.w, 2)
+  ctx.fillStyle = 'rgba(57,255,99,0.18)'
+  ctx.fillRect(p.x, groundY, 1, PLAT_H)
+  ctx.fillRect(p.x + p.w - 1, groundY, 1, PLAT_H)
+}
+
+function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number, rot: number, glyph: string) {
   const y = baseY - HERO_H
-  // Body (rounded square)
-  const r = 8
-  ctx.fillStyle = '#39ff63'
-  roundRect(ctx, x, y, HERO_W, HERO_H, r)
-  ctx.fill()
-  // Glow outline
-  ctx.strokeStyle = 'rgba(57,255,99,0.6)'
-  ctx.lineWidth = 1.5
-  ctx.shadowColor = 'rgba(57,255,99,0.7)'
-  ctx.shadowBlur = 10
-  ctx.stroke()
-  ctx.shadowBlur = 0
-  // F letter
-  ctx.fillStyle = '#062612'
-  ctx.font = '900 26px ui-sans-serif, system-ui, -apple-system'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('F', x + HERO_W / 2, y + HERO_H / 2 + 1)
+  const cx = x + HERO_W / 2, cy = y + HERO_H / 2
+  ctx.save()
+  ctx.translate(cx, cy)
+  if (rot) ctx.rotate(rot * Math.PI / 180)
+  ctx.translate(-cx, -cy)
+
+  const isEmoji = glyph.length > 1 || /\p{Extended_Pictographic}/u.test(glyph)
+  if (!isEmoji) {
+    ctx.fillStyle = '#39ff63'
+    roundRect(ctx, x, y, HERO_W, HERO_H, 9); ctx.fill()
+    ctx.strokeStyle = 'rgba(57,255,99,0.7)'
+    ctx.lineWidth = 1.5
+    ctx.shadowColor = 'rgba(57,255,99,0.7)'; ctx.shadowBlur = 12
+    ctx.stroke(); ctx.shadowBlur = 0
+    ctx.fillStyle = '#062612'
+    ctx.font = '900 26px ui-sans-serif, system-ui, -apple-system'
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(glyph, cx, cy + 1)
+  } else {
+    // emoji hero — soft halo
+    ctx.shadowColor = 'rgba(255,255,255,0.35)'; ctx.shadowBlur = 16
+    ctx.font = '36px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(glyph, cx, cy)
+    ctx.shadowBlur = 0
+  }
+  ctx.restore()
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -632,25 +717,17 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath()
 }
 
-/* Smooth camera shift used during walking */
-type CameraSt = { cameraX: number; cameraTargetX?: number; cameraStartX?: number; cameraT?: number; cameraDur?: number; phase: Phase }
-function animateCamera(st: any, _shift: number, done: () => void) {
-  // immediately do the swap; camera will catch up in cameraTween
-  const targetCameraX = st.next.x - 30
+function animateCamera(st: GameState, done: () => void) {
   st.cameraStartX = st.cameraX
-  st.cameraTargetX = targetCameraX
-  st.cameraT = 0
-  st.cameraDur = 0.35
+  st.cameraTargetX = st.next.x - 30
+  st.cameraT = 0; st.cameraDur = 0.35
   st.cameraDone = done
   st.phase = 'camera'
 }
-function cameraTween(st: any, dt: number) {
+function cameraTween(st: GameState, dt: number) {
   st.cameraT += dt
   const k = Math.min(1, st.cameraT / st.cameraDur)
-  const e = 1 - Math.pow(1 - k, 3) // easeOutCubic
+  const e = 1 - Math.pow(1 - k, 3)
   st.cameraX = st.cameraStartX + (st.cameraTargetX - st.cameraStartX) * e
-  if (k >= 1) {
-    st.cameraDone?.()
-  }
+  if (k >= 1) st.cameraDone?.()
 }
-export type { CameraSt }
