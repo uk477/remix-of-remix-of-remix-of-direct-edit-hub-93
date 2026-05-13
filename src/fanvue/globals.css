@@ -6790,6 +6790,8 @@ body::after { display: none; }
 .dpz .dpz-pay-qr {
   position: relative;
   z-index: 1;
+  align-self: center;
+  margin: 0 auto;
   width: min(220px, 62vw);
   height: min(220px, 62vw);
   padding: 12px;
