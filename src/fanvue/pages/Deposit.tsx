@@ -451,6 +451,7 @@ export function PayPanel({
   onSuccess: () => void
 }) {
   const { haptic } = useTelegram()
+  const toast = useToast()
   const [timer, setTimer] = useState(() => {
     if (!createdAt) return TOTAL_SECONDS
     const elapsed = Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000)
@@ -500,6 +501,13 @@ export function PayPanel({
     setTimeout(() => setCopied(false), 1800)
   }
 
+  const onCopyAmount = async () => {
+    const value = formatCryptoAmount(cryptoAmount, network)
+    try { await navigator.clipboard.writeText(value) } catch { /* ignore */ }
+    haptic('success')
+    toast.show(lang === 'ru' ? `Сумма ${value} ${cryptoSymbol} скопирована` : `Amount ${value} ${cryptoSymbol} copied`, 'success')
+  }
+
   const fmtTimer = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
   const pct = useMemo(() => (timer / TOTAL_SECONDS), [timer])
   const lowTime = timer < 60
@@ -545,16 +553,20 @@ export function PayPanel({
       <section className="dpz-pay-stage">
         <span className="dpz-pay-stage-glow" aria-hidden />
         <div className="dpz-pay-hero">
-          <motion.div
-            className="dpz-pay-hero-num"
+          <motion.button
+            type="button"
+            className="dpz-pay-hero-num dpz-pay-hero-num--btn"
+            onClick={onCopyAmount}
             key={String(cryptoAmount)}
             initial={{ y: 6, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.36, ease: EASE }}
+            whileTap={{ scale: 0.97 }}
+            aria-label={lang === 'ru' ? 'Скопировать сумму' : 'Copy amount'}
           >
             <span className="dpz-pay-hero-val">{formatCryptoAmount(cryptoAmount, network)}</span>
             <em>{cryptoSymbol}</em>
-          </motion.div>
+          </motion.button>
           <span className="dpz-pay-hero-eye">
             ≈ ${uniqueAmount.toFixed(2)}
           </span>
@@ -640,8 +652,8 @@ export function PayPanel({
         </span>
         <span>
           {lang === 'ru'
-            ? <>Переведите <b>ровно {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</b> на адрес выше — сумма уникальна и привязана к вашему счёту. Баланс пополнится автоматически после первого подтверждения сети.</>
-            : <>Send <b>exactly {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</b> to the address above — the amount is unique to your invoice. Your balance updates automatically after the first network confirmation.</>}
+            ? <>Переведите <button type="button" className="dpz-pay-note-amount" onClick={onCopyAmount}>ровно {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</button> на адрес выше — сумма уникальна и привязана к вашему счёту. Баланс пополнится автоматически после первого подтверждения сети.</>
+            : <>Send <button type="button" className="dpz-pay-note-amount" onClick={onCopyAmount}>exactly {formatCryptoAmount(cryptoAmount, network)} {cryptoSymbol}</button> to the address above — the amount is unique to your invoice. Your balance updates automatically after the first network confirmation.</>}
         </span>
       </div>
 
