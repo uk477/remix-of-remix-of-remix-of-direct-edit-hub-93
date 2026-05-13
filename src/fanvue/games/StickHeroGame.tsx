@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
-import heroSpriteUrl from '@/assets/fanvue-ninja.png'
 
 
 /* ───────── constants ───────── */
@@ -116,13 +115,6 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('resize', resize)
   }, [])
 
-  const heroImgRef = useRef<HTMLImageElement | null>(null)
-  useEffect(() => {
-    const img = new Image()
-    img.src = heroSpriteUrl
-    img.onload = () => { heroImgRef.current = img; canvasRef.current?.dispatchEvent(new Event('redraw')) }
-  }, [])
-
   // Game loop
   useEffect(() => {
     const cvs = canvasRef.current!
@@ -233,7 +225,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       ctx.globalAlpha = 1
 
       // hero
-      drawHero(ctx, heroImgRef.current, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
 
       ctx.restore()
 
