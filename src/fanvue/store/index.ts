@@ -130,6 +130,7 @@ interface AppStore {
   pinnedProductIds: number[]
   supportUnread: number
   stickHeroScores: { name: string; score: number; ts: number }[]
+  stickHeroName: string | null
 
   // User actions
   setLang: (lang: Lang) => void
