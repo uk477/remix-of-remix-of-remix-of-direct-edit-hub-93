@@ -481,9 +481,10 @@ export const useStore = create<AppStore>()(
       },
 
       stickHeroScores: [],
+      stickHeroName: null,
+      setStickHeroName: (name) => set({ stickHeroName: name.trim().slice(0, 16) }),
       addStickHeroScore: (score) => set((s) => {
-        const u = get().user
-        const name = u?.username || u?.full_name || 'player'
+        const name = s.stickHeroName || 'player'
         const next = [...s.stickHeroScores, { name, score, ts: Date.now() }]
           .sort((a, b) => b.score - a.score)
           .slice(0, 50)
