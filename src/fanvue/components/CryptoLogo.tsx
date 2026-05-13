@@ -39,8 +39,8 @@ export default function CryptoLogo({ network, size = 42, showBadge = true }: Pro
   const [imgFailed, setImgFailed] = useState(false)
   const data = NETWORK_MAP[network]
 
-  // Custom override from admin > local high-quality > CDN > emoji fallback
-  const override = photos[`crypto_${network}`] || LOCAL_LOGOS[network]
+  // Solana must always use the bundled crisp vector; older admin-uploaded PNGs were low-res.
+  const override = LOCAL_LOGOS[network] || photos[`crypto_${network}`]
   const useCdn = !override && !imgFailed
 
   return (

@@ -1,15 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="geometricPrecision">
   <defs>
-    <linearGradient id="solG" x1="10%" y1="10%" x2="90%" y2="90%">
-      <stop offset="0%" stop-color="#00FFA3"/>
-      <stop offset="50%" stop-color="#3CB4E7"/>
-      <stop offset="100%" stop-color="#9945FF"/>
+    <linearGradient id="solanaBars" x1="20" y1="30" x2="108" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9945FF"/>
+      <stop offset="0.48" stop-color="#19FB9B"/>
+      <stop offset="1" stop-color="#00C2FF"/>
     </linearGradient>
+    <filter id="coinShadow" x="-12" y="-10" width="152" height="152" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#02140A" flood-opacity="0.22"/>
+    </filter>
   </defs>
-  <circle cx="64" cy="64" r="64" fill="#000"/>
-  <g transform="translate(28 38)">
-    <path d="M11.6 36.9a2.3 2.3 0 0 1 1.6-.7h57.2c1 0 1.5 1.2.8 1.9l-9.5 9.5a2.3 2.3 0 0 1-1.6.7H2.9c-1 0-1.5-1.2-.8-1.9l9.5-9.5z" fill="url(#solG)"/>
-    <path d="M11.6 1.3A2.3 2.3 0 0 1 13.2.6h57.2c1 0 1.5 1.2.8 1.9l-9.5 9.5a2.3 2.3 0 0 1-1.6.7H2.9c-1 0-1.5-1.2-.8-1.9L11.6 1.3z" fill="url(#solG)"/>
-    <path d="M60.4 19a2.3 2.3 0 0 0-1.6-.7H1.6c-1 0-1.5 1.2-.8 1.9l9.5 9.5c.4.4 1 .7 1.6.7h57.2c1 0 1.5-1.2.8-1.9L60.4 19z" fill="url(#solG)"/>
+  <circle cx="64" cy="64" r="60" fill="#FFFFFF" filter="url(#coinShadow)"/>
+  <circle cx="64" cy="64" r="56" fill="#F7FFF9" stroke="#CFFFE5" stroke-width="4"/>
+  <g fill="url(#solanaBars)">
+    <path d="M35.7 82.8a3.1 3.1 0 0 1 2.2-.9h60.8c1.9 0 2.9 2.3 1.6 3.6l-11.9 11.9a3.1 3.1 0 0 1-2.2.9H25.4c-1.9 0-2.9-2.3-1.6-3.6l11.9-11.9Z"/>
+    <path d="M35.7 30.6a3.1 3.1 0 0 1 2.2-.9h60.8c1.9 0 2.9 2.3 1.6 3.6L88.4 45.2a3.1 3.1 0 0 1-2.2.9H25.4c-1.9 0-2.9-2.3-1.6-3.6l11.9-11.9Z"/>
+    <path d="M88.4 56.7a3.1 3.1 0 0 0-2.2-.9H25.4c-1.9 0-2.9 2.3-1.6 3.6l11.9 11.9a3.1 3.1 0 0 0 2.2.9h60.8c1.9 0 2.9-2.3 1.6-3.6L88.4 56.7Z"/>
   </g>
 </svg>
