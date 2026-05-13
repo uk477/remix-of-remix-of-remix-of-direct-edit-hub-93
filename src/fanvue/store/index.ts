@@ -514,6 +514,22 @@ export const useStore = create<AppStore>()(
               : o
           )
         }
+        // dedupe stickHeroScores: keep best per player (case-insensitive)
+        if (Array.isArray(s.stickHeroScores)) {
+          const best = new Map<string, { name: string; score: number; ts: number }>()
+          for (const r of s.stickHeroScores) {
+            if (!r || typeof r.name !== 'string') continue
+            const name = r.name.trim()
+            if (!name) continue
+            const score = Math.max(0, Math.min(99999, Math.floor(Number(r.score) || 0)))
+            const key = name.toLowerCase()
+            const prev = best.get(key)
+            if (!prev || prev.score < score) {
+              best.set(key, { name, score, ts: Number(r.ts) || Date.now() })
+            }
+          }
+          s.stickHeroScores = [...best.values()].sort((a, b) => b.score - a.score).slice(0, 100)
+        }
         return s
       },
       partialize: (s) => ({
