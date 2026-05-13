@@ -3658,10 +3658,6 @@ body::after { display: none; }
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-@keyframes shopSpinSoft {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 .shop-live-dot {
   position: relative; width: 7px; height: 7px; flex: 0 0 auto;
 }
@@ -3678,10 +3674,11 @@ body::after { display: none; }
 }
 .shop-live-t {
   display: inline-flex; align-items: baseline; gap: 4px;
-  overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  min-width: 0;
+  overflow: visible;
 }
 .shop-live-t b { color: var(--fv-text); font-weight: 900; font-variant-numeric: tabular-nums; }
-.shop-live-t--green { color: var(--fv-green); font-weight: 800; letter-spacing: 0.01em; }
+.shop-live-t--green { color: var(--fv-green); font-weight: 800; letter-spacing: 0; }
 
 /* LOTS GRID — single column */
 .shop-lots {
