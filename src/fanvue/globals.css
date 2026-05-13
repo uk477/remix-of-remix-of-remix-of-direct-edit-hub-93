@@ -6735,9 +6735,11 @@ body::after { display: none; }
   z-index: 1;
   display: flex;
   flex-direction: column-reverse;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   min-width: 0;
+  width: 100%;
+  text-align: center;
 }
 .dpz .dpz-pay-hero-eye {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
