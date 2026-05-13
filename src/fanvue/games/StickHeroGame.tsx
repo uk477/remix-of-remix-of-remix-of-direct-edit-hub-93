@@ -10,8 +10,8 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 56
-const HERO_H = 70
+const HERO_W = 64
+const HERO_H = 82
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
@@ -737,13 +737,11 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
 }
 
 /**
- * Draws the Fanvue mascot using the sprite. Animates:
- *  - subtle bob + tilt while walking
- *  - cap wobble (gentle whole-character sway when idle)
+ * Draws the Fanvue mascot directly on canvas so there is no fake checkerboard
+ * image background and the cap / legs can animate independently.
  */
 function drawHero(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement | null,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
 ) {
@@ -759,10 +757,10 @@ function drawHero(
 
   // ---------- LEGS (animated, behind body) ----------
   const footY = baseY - 1
-  const legW = 6, legH = 9
-  const stride = walking ? Math.sin(walkPhase) * 5 : 0
-  const liftL  = walking ? Math.max(0, Math.sin(walkPhase)) * 6 : 0
-  const liftR  = walking ? Math.max(0, -Math.sin(walkPhase)) * 6 : 0
+  const legW = 8, legH = 13
+  const stride = walking ? Math.sin(walkPhase) * 8 : 0
+  const liftL  = walking ? Math.max(0, Math.sin(walkPhase)) * 8 : 0
+  const liftR  = walking ? Math.max(0, -Math.sin(walkPhase)) * 8 : 0
 
   const drawLeg = (lx: number, lift: number) => {
     // shadow
@@ -780,7 +778,7 @@ function drawHero(
   drawLeg(cx + 9 - stride - legW / 2, liftR)
 
   // body bob (up when both legs are mid-step)
-  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 2.5 : Math.sin(capWobble * 1.4) * 0.6
+  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 3 : Math.sin(capWobble * 1.4) * 0.8
 
   ctx.save()
   ctx.translate(cx, baseY)
@@ -788,47 +786,67 @@ function drawHero(
   ctx.translate(-cx, -baseY)
   ctx.translate(0, bodyBob)
 
-  // ---------- SPRITE BODY (with cap wobble via slight horizontal squash on top half) ----------
-  if (img && img.complete && img.naturalWidth) {
-    // The sprite has body + cap baked in. We draw body normally, then redraw the
-    // top portion (cap area) on top with a small rotation for "cap wobble".
-    const aspect = img.naturalWidth / img.naturalHeight
-    const drawH = H + 6
-    const drawW = drawH * aspect
-    const dx = cx - drawW / 2
-    const dy = baseY - drawH + 2
+  // ---------- WHITE CAPSULE BODY ----------
+  const bodyW = 38
+  const bodyH = 52
+  const bodyX = cx - bodyW / 2
+  const bodyY = baseY - bodyH - 5
+  const bodyGrad = ctx.createLinearGradient(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH)
+  bodyGrad.addColorStop(0, '#cfd2d2')
+  bodyGrad.addColorStop(0.28, '#ffffff')
+  bodyGrad.addColorStop(1, '#d8dfe4')
+  ctx.fillStyle = bodyGrad
+  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.fill()
+  ctx.fillStyle = 'rgba(255,255,255,0.38)'
+  roundRect(ctx, bodyX + bodyW * 0.52, bodyY + 7, bodyW * 0.42, bodyH * 0.72, 13); ctx.fill()
+  ctx.strokeStyle = 'rgba(21,37,30,0.24)'; ctx.lineWidth = 1
+  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.stroke()
 
-    // full sprite (body + cap)
-    ctx.drawImage(img, dx, dy, drawW, drawH)
+  // side pom / eye detail from the reference
+  const pomX = bodyX + bodyW - 2
+  const pomY = bodyY + 17
+  const pomGrad = ctx.createRadialGradient(pomX - 4, pomY - 5, 1, pomX, pomY, 15)
+  pomGrad.addColorStop(0, '#ffffff')
+  pomGrad.addColorStop(1, '#bfc4c7')
+  ctx.fillStyle = pomGrad
+  ctx.beginPath(); ctx.arc(pomX, pomY, 10.5, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath(); ctx.arc(pomX + 4, pomY - 5, 3.4, 0, Math.PI * 2); ctx.fill()
 
-    // overlay cap region with wobble
-    const capWob = walking ? Math.sin(walkPhase + 0.6) * 3.5 : Math.sin(capWobble * 1.1) * 1.6
-    const capBobY = walking ? Math.sin(walkPhase + 0.4) * 0.8 : Math.sin(capWobble) * 0.5
-    if (Math.abs(capWob) > 0.05 || Math.abs(capBobY) > 0.05) {
-      // cap occupies roughly top 55% of sprite
-      const capFrac = 0.58
-      const srcCapH = img.naturalHeight * capFrac
-      const dstCapH = drawH * capFrac
-      ctx.save()
-      const pivotX = cx
-      const pivotY = dy + dstCapH * 0.85
-      ctx.translate(pivotX, pivotY + capBobY)
-      ctx.rotate((capWob * Math.PI) / 180)
-      ctx.translate(-pivotX, -pivotY)
-      ctx.drawImage(
-        img,
-        0, 0, img.naturalWidth, srcCapH,
-        dx, dy, drawW, dstCapH,
-      )
-      ctx.restore()
-    }
-  } else {
-    // fallback while image loads
-    ctx.fillStyle = '#e8edf3'
-    roundRect(ctx, x + 4, baseY - H + 18, W - 8, H - 26, 14); ctx.fill()
-    ctx.fillStyle = '#7bff8e'
-    roundRect(ctx, x + 2, baseY - H + 6, W - 4, 20, 10); ctx.fill()
-  }
+  // ---------- SEPARATE FANVUE CAP ----------
+  const capWob = walking ? Math.sin(walkPhase + 0.6) * 6 : Math.sin(capWobble * 1.2) * 2.2
+  const capBobY = walking ? Math.sin(walkPhase + 0.35) * 1.8 : Math.sin(capWobble) * 0.7
+  const capX = cx - 24
+  const capY = bodyY - 18
+  ctx.save()
+  ctx.translate(cx, bodyY + 8 + capBobY)
+  ctx.rotate((capWob * Math.PI) / 180)
+  ctx.translate(-cx, -(bodyY + 8))
+  ctx.shadowColor = 'rgba(124,255,0,0.72)'; ctx.shadowBlur = 16
+  const capGrad = ctx.createLinearGradient(capX, capY, capX + 48, capY + 34)
+  capGrad.addColorStop(0, '#baff00')
+  capGrad.addColorStop(0.52, '#88ff00')
+  capGrad.addColorStop(1, '#54c800')
+  ctx.fillStyle = capGrad
+  roundRect(ctx, capX + 4, capY + 2, 45, 29, 16); ctx.fill()
+  ctx.shadowBlur = 0
+  ctx.fillStyle = '#8cff00'
+  ctx.beginPath()
+  ctx.ellipse(capX + 6, capY + 29, 30, 7.5, -0.23, Math.PI, Math.PI * 2)
+  ctx.lineTo(capX + 46, capY + 27)
+  ctx.quadraticCurveTo(capX + 20, capY + 36, capX - 10, capY + 35)
+  ctx.quadraticCurveTo(capX - 12, capY + 29, capX + 6, capY + 29)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(35,110,0,0.55)'; ctx.lineWidth = 1.4
+  ctx.beginPath(); ctx.moveTo(capX + 7, capY + 30); ctx.quadraticCurveTo(capX + 22, capY + 25, capX + 48, capY + 29); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(capX + 26, capY + 4); ctx.quadraticCurveTo(capX + 20, capY + 18, capX + 20, capY + 30); ctx.stroke()
+  ctx.strokeStyle = 'rgba(255,255,255,0.68)'; ctx.lineWidth = 2
+  ctx.beginPath(); ctx.moveTo(capX + 12, capY + 8); ctx.quadraticCurveTo(capX + 2, capY + 17, capX + 1, capY + 27); ctx.stroke()
+  ctx.fillStyle = '#103000'
+  ctx.font = '700 6.5px Arial, sans-serif'
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText('FANVUE', cx + 3, capY + 18)
+  ctx.restore()
 
   ctx.restore()
 }
