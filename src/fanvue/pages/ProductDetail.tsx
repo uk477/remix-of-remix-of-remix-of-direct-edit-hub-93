@@ -181,6 +181,7 @@ export default function ProductDetail() {
             <span>{lang === 'ru' ? 'НАЗАД' : 'BACK'}</span>
           </motion.button>
           <div className="pdb-bar-meta">
+            <span className="pdb-bar-idx">№ {String(product.id).padStart(3, '0')}</span>
             <span className={`pdb-bar-dot${lowStock ? ' is-low' : ''}`}>
               <i /> {product.stock} {lang === 'ru' ? 'ШТ' : 'PCS'}
             </span>
@@ -280,6 +281,7 @@ export default function ProductDetail() {
 
         <section className="pdb-section">
           <div className="pdb-section-head">
+            <span className="pdb-section-num">02</span>
             <span className="pdb-section-bar" />
             <span className="pdb-section-name">{lang === 'ru' ? 'КОЛИЧЕСТВО' : 'QUANTITY'}</span>
             <span className="pdb-section-tail">{qty} × ${product.price.toFixed(0)}</span>
@@ -345,6 +347,7 @@ export default function ProductDetail() {
         {similar.length > 0 && (
           <section className="pdb-section pdb-section--similar">
             <div className="pdb-section-head">
+              <span className="pdb-section-num">03</span>
               <span className="pdb-section-bar" />
               <span className="pdb-section-name">{lang === 'ru' ? 'РЯДОМ' : 'NEARBY'}</span>
             </div>
