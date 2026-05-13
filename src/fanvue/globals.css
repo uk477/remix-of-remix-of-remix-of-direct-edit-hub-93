@@ -6716,23 +6716,19 @@ body::after { display: none; }
 /* HERO — exact amount + ≈ USD, kicker label "К ОПЛАТЕ" */
 .dpz .dpz-pay-stage {
   position: relative;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
-  padding: 18px 16px;
+  padding: 16px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   border-radius: 0;
   background: transparent;
+  overflow: visible;
 }
 .dpz .dpz-pay-stage::before { display: none; }
-.dpz .dpz-pay-stage-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(60% 80% at 0% 50%, rgba(57,255,99,0.14), transparent 70%);
-  opacity: 0.8;
-}
+.dpz .dpz-pay-stage-glow { display: none; }
 .dpz .dpz-pay-hero {
   position: relative;
   z-index: 1;
