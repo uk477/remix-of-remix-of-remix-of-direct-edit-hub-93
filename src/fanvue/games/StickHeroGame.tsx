@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
+import heroSpriteUrl from '@/assets/fanvue-ninja.png'
 
 /* ───────── constants ───────── */
 const STICK_GROW = 240
@@ -9,8 +10,8 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 42
-const HERO_H = 54
+const HERO_W = 56
+const HERO_H = 70
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
@@ -112,6 +113,14 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     }
     resize(); window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
+  }, [])
+
+  // Preload hero sprite
+  const heroImgRef = useRef<HTMLImageElement | null>(null)
+  useEffect(() => {
+    const img = new Image()
+    img.src = heroSpriteUrl
+    img.onload = () => { heroImgRef.current = img }
   }, [])
 
   // Game loop
@@ -224,7 +233,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       ctx.globalAlpha = 1
 
       // hero
-      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
+      drawHero(ctx, heroImgRef.current, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
 
       ctx.restore()
 
@@ -736,120 +745,49 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
 }
 
 /**
- * Fanvue ninja: light pill body, white pearl eye, neon-green cap with F·anvue,
- * subtle cap wobble, animated legs while walking.
+ * Draws the Fanvue mascot using the sprite. Animates:
+ *  - subtle bob + tilt while walking
+ *  - cap wobble (gentle whole-character sway when idle)
  */
 function drawHero(
   ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
 ) {
-  const y = baseY - HERO_H
-  const cx = x + HERO_W / 2, cy = y + HERO_H / 2
+  const W = HERO_W, H = HERO_H
+  const y = baseY - H
+
+  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.1 : 1
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'
+  ctx.beginPath()
+  ctx.ellipse(x + W / 2, baseY + 1, (W * 0.34) * shadowSquish, 2.8, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  const bob  = walking ? -Math.abs(Math.sin(walkPhase)) * 1.8 : Math.sin(capWobble * 1.6) * 0.4
+  const tilt = walking ? Math.sin(walkPhase) * 2.6 : Math.sin(capWobble * 1.2) * 1.0
+  const totalRot = rot + tilt
+
+  const cx = x + W / 2
+  const cy = y + H * 0.7
+
   ctx.save()
-  ctx.translate(cx, cy)
-  if (rot) ctx.rotate(rot * Math.PI / 180)
+  ctx.translate(cx, cy + bob)
+  if (totalRot) ctx.rotate((totalRot * Math.PI) / 180)
   ctx.translate(-cx, -cy)
 
-  // ── legs (animated when walking) ────────────────────────────
-  const legW = 6, legH = 9
-  const legBaseY = baseY - 2
-  const swing = walking ? Math.sin(walkPhase) * 4 : Math.sin(capWobble * 1.6) * 0.8
-  const legL_x = x + HERO_W * 0.28 - legW / 2
-  const legR_x = x + HERO_W * 0.72 - legW / 2
-  const legL_h = legH + (walking ? Math.max(0, swing) : 0)
-  const legR_h = legH + (walking ? Math.max(0, -swing) : 0)
-  ctx.fillStyle = '#cfd6df'
-  roundRect(ctx, legL_x, legBaseY - legL_h, legW, legL_h + 3, 2.5); ctx.fill()
-  roundRect(ctx, legR_x, legBaseY - legR_h, legW, legR_h + 3, 2.5); ctx.fill()
-  // shadow under feet
-  ctx.fillStyle = 'rgba(0,0,0,0.35)'
-  ctx.beginPath()
-  ctx.ellipse(x + HERO_W / 2, baseY + 2, HERO_W * 0.42, 2.4, 0, 0, Math.PI * 2)
-  ctx.fill()
+  if (img && img.complete && img.naturalWidth) {
+    const aspect = img.naturalWidth / img.naturalHeight
+    const drawH = H * 1.25
+    const drawW = drawH * aspect
+    ctx.drawImage(img, x + (W - drawW) / 2, y - (drawH - H) * 0.5, drawW, drawH)
+  } else {
+    ctx.fillStyle = '#e8edf3'
+    roundRect(ctx, x + 4, y + 18, W - 8, H - 26, 14); ctx.fill()
+    ctx.fillStyle = '#7bff8e'
+    roundRect(ctx, x + 2, y + 6, W - 4, 20, 10); ctx.fill()
+  }
 
-  // ── body (light pill) ───────────────────────────────────────
-  const bodyTop = y + 14
-  const bodyH = HERO_H - 18
-  const bg = ctx.createLinearGradient(0, bodyTop, 0, bodyTop + bodyH)
-  bg.addColorStop(0, '#f3f5f8')
-  bg.addColorStop(1, '#cdd3dc')
-  ctx.fillStyle = bg
-  roundRect(ctx, x + 3, bodyTop, HERO_W - 6, bodyH, (HERO_W - 6) / 2)
-  ctx.fill()
-  // body inner shading
-  ctx.fillStyle = 'rgba(0,0,0,0.06)'
-  roundRect(ctx, x + HERO_W - 12, bodyTop + 4, 6, bodyH - 8, 3); ctx.fill()
-  // pearl eye
-  ctx.fillStyle = '#ffffff'
-  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 2.2, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = 'rgba(0,0,0,0.45)'
-  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 1.1, 0, Math.PI * 2); ctx.fill()
-
-  // ── cap (with subtle wobble) ────────────────────────────────
-  const capWobbleDeg = Math.sin(capWobble * 1.4) * 1.6 + (walking ? Math.sin(walkPhase * 0.5) * 1.2 : 0)
-  const capCx = x + HERO_W / 2
-  const capCy = y + 9
-  ctx.save()
-  ctx.translate(capCx, capCy)
-  ctx.rotate((capWobbleDeg * Math.PI) / 180)
-  ctx.translate(-capCx, -capCy)
-
-  // cap halo glow
-  const halo = ctx.createRadialGradient(capCx, capCy, 2, capCx, capCy, 26)
-  halo.addColorStop(0, 'rgba(57,255,99,0.55)')
-  halo.addColorStop(1, 'rgba(57,255,99,0)')
-  ctx.fillStyle = halo
-  ctx.beginPath(); ctx.arc(capCx, capCy, 26, 0, Math.PI * 2); ctx.fill()
-
-  // brim — symmetric, slightly forward
-  const brimY = y + 13
-  ctx.fillStyle = '#1fae3c'
-  ctx.beginPath()
-  ctx.ellipse(capCx, brimY + 1, HERO_W * 0.58, 2.6, 0, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.fillStyle = '#2cd74f'
-  ctx.beginPath()
-  ctx.ellipse(capCx, brimY, HERO_W * 0.58, 2.4, 0, 0, Math.PI * 2)
-  ctx.fill()
-
-  // crown (dome) — clipped to keep label inside
-  const cg = ctx.createLinearGradient(0, y, 0, brimY)
-  cg.addColorStop(0, '#9bff9e')
-  cg.addColorStop(1, '#2cd74f')
-  ctx.fillStyle = cg
-  ctx.beginPath()
-  ctx.moveTo(x + 6, brimY)
-  ctx.quadraticCurveTo(capCx, y - 5, x + HERO_W - 6, brimY)
-  ctx.closePath()
-  ctx.fill()
-  // crown highlight
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(x + 9, brimY - 1)
-  ctx.quadraticCurveTo(capCx - 4, y - 1, capCx + 2, y + 1)
-  ctx.stroke()
-
-  // top button
-  ctx.fillStyle = '#1fae3c'
-  ctx.beginPath(); ctx.arc(capCx, y + 0.5, 1.4, 0, Math.PI * 2); ctx.fill()
-
-  // Fanvue "F" mark — single, centered, fits the cap
-  ctx.save()
-  ctx.beginPath()
-  ctx.moveTo(x + 6, brimY)
-  ctx.quadraticCurveTo(capCx, y - 5, x + HERO_W - 6, brimY)
-  ctx.closePath()
-  ctx.clip()
-  ctx.fillStyle = '#0a3d18'
-  ctx.font = '900 9px "Space Grotesk", ui-sans-serif, system-ui'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('F', capCx, y + 7)
-  ctx.restore()
-
-  ctx.restore()
   ctx.restore()
 }
 
