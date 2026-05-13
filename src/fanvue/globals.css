@@ -4135,10 +4135,10 @@ body::after { display: none; }
 }
 
 @media (max-width: 410px) {
-  .shop-live { grid-template-columns: minmax(74px, 0.78fr) minmax(146px, 1.45fr) minmax(112px, 0.95fr); font-size: 10.2px; }
-  .shop-live-cell { padding: 9px 4px 9px 7px; gap: 4px; font-size: 10.2px; }
+  .shop-live { grid-template-columns: minmax(68px, 0.72fr) minmax(126px, 1.32fr) minmax(124px, 1.28fr); font-size: 10px; }
+  .shop-live-cell { padding: 9px 5px 9px 7px; gap: 4px; font-size: 10px; }
   .shop-live-cell:first-child { padding-left: 7px; padding-right: 2px; }
-  .shop-live-cell:last-child { padding: 9px 4px; }
+  .shop-live-cell:last-child { padding: 9px 7px; }
   .shop-live-ic { width: 11px; height: 11px; }
   .shop-live-bolt { flex-basis: 12px; width: 12px; height: 12px; }
 }
