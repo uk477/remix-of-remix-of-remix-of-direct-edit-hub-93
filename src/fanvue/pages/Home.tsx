@@ -215,7 +215,6 @@ export default function Home() {
           <span className="shop-live-t">
             {lastSaleAgo ? (
               <>
-                {lang === 'ru' ? 'сделка' : 'sale'}{' '}
                 <AnimatePresence mode="popLayout" initial={false}>
                   <motion.b
                     key={lastSaleAgo}
