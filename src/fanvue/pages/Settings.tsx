@@ -192,7 +192,19 @@ function ContentSheet({
     : `${contentKey}_${lang}`) as keyof SiteContent
   const [draft, setDraft]     = useState(siteContent[langKey] ?? '')
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const sheetRef = useRef<HTMLDivElement | null>(null)
   const admin = isAdmin()
+  const y = useMotionValue(0)
+  const controls = useAnimationControls()
+  const overlayOpacity = useTransform(y, (v) => {
+    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+    return Math.max(0, 1 - v / h)
+  })
+  const closeSheet = async () => {
+    const h = sheetRef.current?.offsetHeight ?? window.innerHeight
+    await controls.start({ y: h }, { type: 'spring', stiffness: 380, damping: 38, mass: 0.8 })
+    onClose()
+  }
 
   const defaultTexts: Partial<Record<keyof SiteContent, string>> = {
     offer_ru: `## Публичная оферта
