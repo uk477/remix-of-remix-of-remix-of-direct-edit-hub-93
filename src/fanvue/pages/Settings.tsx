@@ -206,7 +206,13 @@ function ContentSheet({
   const closingRef = useRef(false)
   const admin = isAdmin()
 
-  const closeSheet = async () => {
+  useEffect(() => {
+    return () => {
+      closingRef.current = false
+    }
+  }, [])
+
+  const closeSheet = () => {
     if (closingRef.current) return
     closingRef.current = true
     onClose()
