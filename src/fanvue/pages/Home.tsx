@@ -162,7 +162,7 @@ export default function Home() {
                   { id: 'usdt', src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usdt.svg' },
                   { id: 'eth',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/eth.svg' },
                   { id: 'btc',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/btc.svg' },
-                  { id: 'sol',  src: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/sol.svg' },
+                  { id: 'sol',  src: 'https://assets.coingecko.com/coins/images/4128/standard/solana.png' },
                   { id: 'ton',  src: 'https://assets.coingecko.com/coins/images/17980/standard/ton_symbol.png' },
                 ].map((c) => (
                   <img key={c.id} src={c.src} alt="" width={18} height={18} loading="lazy" />
