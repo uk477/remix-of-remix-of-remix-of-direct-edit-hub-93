@@ -364,13 +364,19 @@ Always provide your **Order ID** when contacting support.`,
     toast.show(lang === 'ru' ? 'Сохранено' : 'Saved', 'success')
   }
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) closeSheet()
+  }
+
   return (
     <motion.div
       className="modal-overlay"
+      data-closing={closingRef.current ? 'true' : undefined}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={(e) => { if (e.target === e.currentTarget && !editing) closeSheet() }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      onClick={handleBackdropClick}
     >
       <motion.div
         ref={sheetRef}
@@ -379,7 +385,7 @@ Always provide your **Order ID** when contacting support.`,
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 340, damping: 34, mass: 0.75 }}
-        style={{ maxHeight: '85dvh', willChange: 'transform' }}
+        style={{ maxHeight: '85dvh', willChange: 'transform', touchAction: editing ? 'auto' : 'pan-y' }}
         drag={!editing ? 'y' : false}
         dragDirectionLock
         dragMomentum={false}
@@ -396,6 +402,7 @@ Always provide your **Order ID** when contacting support.`,
           const shouldClose = info.offset.y > h * 0.1 || info.velocity.y > 500
           if (shouldClose) closeSheet()
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="sheet-handle" style={{ cursor: editing ? 'default' : 'grab' }} />
         <div className="row-between mb-4">
