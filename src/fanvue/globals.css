@@ -6456,11 +6456,6 @@ body::after { display: none; }
   border-radius: 0;
   transition: background 140ms ease, border-color 140ms ease;
 }
-.dpz .dpz-back::after {
-  content: 'НАЗАД';
-  display: inline;
-}
-.dpz .dpz-back:lang(en)::after { content: 'BACK'; }
 .dpz .dpz-back svg { width: 12px; height: 12px; }
 .dpz .dpz-back:active {
   background: rgba(57,255,99,0.10);
