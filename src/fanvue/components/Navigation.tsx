@@ -159,17 +159,18 @@ export default function Navigation() {
     if (peekingRef.current) {
       e.preventDefault()
       const i = idxFromClientX(e.clientX)
-      // Snap pill to chosen tab before navigating for visual continuity
-      snapPillToIdx(i)
+      // Exit peek first so CSS transition applies, then animate snap to nearest tab
+      peekingRef.current = false
+      setPeeking(false)
+      requestAnimationFrame(() => snapPillToIdx(i))
       const target = items[i]
       if (target && i !== activeIdx) {
         haptic('success')
-        navigate(target.path)
+        // Navigate after the snap animation has had time to play
+        window.setTimeout(() => navigate(target.path), 180)
       } else {
         haptic('light')
       }
-      // Small delay so the snap is visible, then return to default state
-      window.setTimeout(() => close(), 60)
     }
     startRef.current = null
   }
