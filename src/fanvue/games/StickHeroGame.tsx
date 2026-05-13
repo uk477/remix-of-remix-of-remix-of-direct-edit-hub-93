@@ -61,6 +61,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const submittedRef = useRef(false)
   const [score, setScore] = useState(0)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [over, setOver] = useState(false)
@@ -313,7 +314,10 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
           if (st.heroY > 180) {
             st.phase = 'gameover'
             setOver(true)
-            addScore(st.score)
+            if (!submittedRef.current) {
+              submittedRef.current = true
+              addScore(st.score)
+            }
           }
         }
       }
@@ -363,6 +367,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
     st.stickLen = 0; st.stickAngle = 0
     st.score = 0; st.glyphIdx = 0
     st.perfectFlash = 0; st.particles = []; st.shake = 0
+    submittedRef.current = false
     setScore(0); setOver(false)
   }
 
@@ -484,7 +489,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
               <input
                 autoFocus
                 value={nameInput}
-                onChange={(e) => setNameInput(e.target.value.slice(0, 16))}
+                onChange={(e) => setNameInput(e.target.value.replace(/[^\p{L}\p{N}_\- .]/gu, '').slice(0, 16))}
                 onKeyDown={(e) => { if (e.key === 'Enter') submitName() }}
                 placeholder={T('твой ник', 'your nickname')}
                 maxLength={16}

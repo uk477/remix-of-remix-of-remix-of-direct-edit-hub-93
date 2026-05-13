@@ -211,6 +211,21 @@ export const useStore = create<AppStore>()(
       setLang: (lang) => set({ lang, langUserSet: true }),
 
       initUser: () => {
+        // one-time dedupe of any legacy duplicate stickHero scores
+        const cur = get().stickHeroScores
+        if (Array.isArray(cur) && cur.length > 0) {
+          const best = new Map<string, { name: string; score: number; ts: number }>()
+          for (const r of cur) {
+            if (!r || typeof r.name !== 'string') continue
+            const nm = r.name.trim(); if (!nm) continue
+            const sc = Math.max(0, Math.min(99999, Math.floor(Number(r.score) || 0)))
+            const k = nm.toLowerCase()
+            const prev = best.get(k)
+            if (!prev || prev.score < sc) best.set(k, { name: nm, score: sc, ts: Number(r.ts) || Date.now() })
+          }
+          const deduped = [...best.values()].sort((a, b) => b.score - a.score).slice(0, 100)
+          if (deduped.length !== cur.length) set({ stickHeroScores: deduped })
+        }
         try {
           type TGUser = { id?: number; username?: string; first_name?: string; language_code?: string; photo_url?: string }
           const tg = (window as Window & { Telegram?: { WebApp?: { initDataUnsafe?: { user?: TGUser } } } }).Telegram?.WebApp
@@ -482,12 +497,23 @@ export const useStore = create<AppStore>()(
 
       stickHeroScores: [],
       stickHeroName: null,
-      setStickHeroName: (name) => set({ stickHeroName: name.trim().slice(0, 16) }),
+      setStickHeroName: (name) => {
+        const clean = name.replace(/[^\p{L}\p{N}_\- .]/gu, '').trim().slice(0, 16)
+        if (clean.length < 2) return
+        set({ stickHeroName: clean })
+      },
       addStickHeroScore: (score) => set((s) => {
-        const name = s.stickHeroName || 'player'
-        const next = [...s.stickHeroScores, { name, score, ts: Date.now() }]
+        const name = (s.stickHeroName || '').trim()
+        if (!name) return {}
+        const safeScore = Math.max(0, Math.min(99999, Math.floor(Number(score) || 0)))
+        const key = name.toLowerCase()
+        const existing = s.stickHeroScores.find((x) => x.name.toLowerCase() === key)
+        // 1 player = 1 slot; only beat your own best
+        if (existing && existing.score >= safeScore) return {}
+        const filtered = s.stickHeroScores.filter((x) => x.name.toLowerCase() !== key)
+        const next = [...filtered, { name, score: safeScore, ts: Date.now() }]
           .sort((a, b) => b.score - a.score)
-          .slice(0, 50)
+          .slice(0, 100)
         return { stickHeroScores: next }
       }),
     }),
@@ -502,6 +528,22 @@ export const useStore = create<AppStore>()(
               ? { ...o, status: 'completed' as const }
               : o
           )
+        }
+        // dedupe stickHeroScores: keep best per player (case-insensitive)
+        if (Array.isArray(s.stickHeroScores)) {
+          const best = new Map<string, { name: string; score: number; ts: number }>()
+          for (const r of s.stickHeroScores) {
+            if (!r || typeof r.name !== 'string') continue
+            const name = r.name.trim()
+            if (!name) continue
+            const score = Math.max(0, Math.min(99999, Math.floor(Number(r.score) || 0)))
+            const key = name.toLowerCase()
+            const prev = best.get(key)
+            if (!prev || prev.score < score) {
+              best.set(key, { name, score, ts: Number(r.ts) || Date.now() })
+            }
+          }
+          s.stickHeroScores = [...best.values()].sort((a, b) => b.score - a.score).slice(0, 100)
         }
         return s
       },
