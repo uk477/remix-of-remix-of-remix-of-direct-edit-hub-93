@@ -291,10 +291,57 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         const target = st.next.x + st.next.w - HERO_W
         const dir = target > st.heroX ? 1 : -1
         st.heroX += dir * HERO_WALK * dt
+        st.walkPhase += dt * 14
         if ((dir > 0 && st.heroX >= target) || (dir < 0 && st.heroX <= target)) {
           st.heroX = target
-          // advance glyph on successful step
-          st.glyphIdx = (st.glyphIdx + 1) % (GLYPHS.length + MEMES.length)
+          st.walkPhase = 0
+          // Easter egg at exactly EGG_SCORE — fake fall + flip
+          if (!st.eggDone && st.score >= EGG_SCORE) {
+            st.eggDone = true
+            st.heroVy = 0; st.heroY = 0; st.heroRot = 0
+            st.eggT = 0
+            st.phase = 'egg_fall'
+            haptic('warning')
+          } else {
+            animateCamera(st, () => {
+              st.cur = { ...st.next }
+              st.heroX = st.cur.x + st.cur.w - HERO_W
+              st.cameraX = st.cur.x - 30
+              spawnNext()
+              st.stickLen = 0
+              st.stickAngle = 0
+              st.phase = 'waiting'
+            })
+          }
+        }
+      } else if (st.phase === 'camera') {
+        cameraTween(st, dt)
+      } else if (st.phase === 'egg_fall') {
+        // looks like real fall, but instead of game-over we trigger flip
+        st.heroVy += 1800 * dt
+        st.heroY += st.heroVy * dt
+        st.heroRot += 220 * dt
+        if (st.heroY > 200) {
+          st.phase = 'egg_flip'
+          st.eggT = 0
+          setFlipped(true)
+          haptic('medium')
+        }
+      } else if (st.phase === 'egg_flip') {
+        // hold flipped state briefly while hero "rests" off-screen
+        st.eggT += dt
+        if (st.eggT > 0.9) {
+          setFlipped(false)
+          st.phase = 'egg_unflip'
+          st.eggT = 0
+        }
+      } else if (st.phase === 'egg_unflip') {
+        st.eggT += dt
+        if (st.eggT > 0.55) {
+          // restore hero on current platform & continue normally
+          st.heroY = 0; st.heroVy = 0; st.heroRot = 0
+          st.heroX = st.cur.x + st.cur.w - HERO_W
+          haptic('success')
           animateCamera(st, () => {
             st.cur = { ...st.next }
             st.heroX = st.cur.x + st.cur.w - HERO_W
@@ -305,19 +352,15 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
             st.phase = 'waiting'
           })
         }
-      } else if (st.phase === 'camera') {
-        cameraTween(st, dt)
       } else if (st.phase === 'falling_off') {
         const tip = st.cur.x + st.cur.w + st.stickLen
         const target = tip - HERO_W / 2
         if (st.heroX < target - 1) {
           st.heroX += HERO_WALK * dt
         } else {
-          // proper gravity, fast game over
           st.heroVy += 1800 * dt
           st.heroY += st.heroVy * dt
           st.heroRot += 360 * dt
-          // game over as soon as hero clears the platform top by ~150px (off-screen feel)
           if (st.heroY > 180) {
             st.phase = 'gameover'
             setOver(true)
