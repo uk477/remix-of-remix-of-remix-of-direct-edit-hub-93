@@ -61,6 +61,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const submittedRef = useRef(false)
   const [score, setScore] = useState(0)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [over, setOver] = useState(false)
