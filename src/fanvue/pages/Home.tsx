@@ -48,6 +48,18 @@ export default function Home() {
   const todaySalesList = useMemo(() => getSalesToday(new Date(now)), [now])
   const todaySales = todaySalesList.length
   const recentSales = useMemo(() => getRecentSales(3, new Date(now)), [now])
+  const totalSales = useMemo(() => getTotalSales(new Date(now)) + orders.length, [now, orders.length])
+
+  // Animated count-up for total sales
+  const [shownTotal, setShownTotal] = useState(0)
+  useEffect(() => {
+    const c = animate(shownTotal, totalSales, {
+      duration: 1.1, delay: 0.15, ease: EASE,
+      onUpdate: (v) => setShownTotal(v),
+    })
+    return () => c.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalSales])
 
   const [historyOpen, setHistoryOpen] = useState(false)
 
