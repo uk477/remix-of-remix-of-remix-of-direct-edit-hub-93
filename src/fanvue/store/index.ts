@@ -482,12 +482,23 @@ export const useStore = create<AppStore>()(
 
       stickHeroScores: [],
       stickHeroName: null,
-      setStickHeroName: (name) => set({ stickHeroName: name.trim().slice(0, 16) }),
+      setStickHeroName: (name) => {
+        const clean = name.replace(/[^\p{L}\p{N}_\- .]/gu, '').trim().slice(0, 16)
+        if (clean.length < 2) return
+        set({ stickHeroName: clean })
+      },
       addStickHeroScore: (score) => set((s) => {
-        const name = s.stickHeroName || 'player'
-        const next = [...s.stickHeroScores, { name, score, ts: Date.now() }]
+        const name = (s.stickHeroName || '').trim()
+        if (!name) return {}
+        const safeScore = Math.max(0, Math.min(99999, Math.floor(Number(score) || 0)))
+        const key = name.toLowerCase()
+        const existing = s.stickHeroScores.find((x) => x.name.toLowerCase() === key)
+        // 1 player = 1 slot; only beat your own best
+        if (existing && existing.score >= safeScore) return {}
+        const filtered = s.stickHeroScores.filter((x) => x.name.toLowerCase() !== key)
+        const next = [...filtered, { name, score: safeScore, ts: Date.now() }]
           .sort((a, b) => b.score - a.score)
-          .slice(0, 50)
+          .slice(0, 100)
         return { stickHeroScores: next }
       }),
     }),
