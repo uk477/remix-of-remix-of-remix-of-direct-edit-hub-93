@@ -714,17 +714,11 @@ const primaryBtnStyle: React.CSSProperties = {
   boxShadow: '0 8px 22px rgba(57,255,99,0.35)',
 }
 
-function currentGlyph(idx: number): string {
-  if (idx < GLYPHS.length) return GLYPHS[idx]
-  return MEMES[(idx - GLYPHS.length) % MEMES.length]
-}
-
 function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t: number) {
   const grad = ctx.createLinearGradient(0, groundY, 0, groundY + PLAT_H)
   grad.addColorStop(0, '#1d2630'); grad.addColorStop(1, '#070a0e')
   ctx.fillStyle = grad
   ctx.fillRect(p.x, groundY, p.w, PLAT_H)
-  // animated top edge
   const edgeAlpha = 0.7 + 0.3 * Math.sin(t * 3 + p.x * 0.05)
   ctx.fillStyle = `rgba(57,255,99,${edgeAlpha})`
   ctx.fillRect(p.x, groundY - 2, p.w, 2)
@@ -733,7 +727,15 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
   ctx.fillRect(p.x + p.w - 1, groundY, 1, PLAT_H)
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number, rot: number, glyph: string) {
+/**
+ * Fanvue ninja: light pill body, white pearl eye, neon-green cap with F·anvue,
+ * subtle cap wobble, animated legs while walking.
+ */
+function drawHero(
+  ctx: CanvasRenderingContext2D,
+  x: number, baseY: number, rot: number,
+  walkPhase: number, capWobble: number, walking: boolean,
+) {
   const y = baseY - HERO_H
   const cx = x + HERO_W / 2, cy = y + HERO_H / 2
   ctx.save()
@@ -741,26 +743,88 @@ function drawHero(ctx: CanvasRenderingContext2D, x: number, baseY: number, rot: 
   if (rot) ctx.rotate(rot * Math.PI / 180)
   ctx.translate(-cx, -cy)
 
-  const isEmoji = glyph.length > 1 || /\p{Extended_Pictographic}/u.test(glyph)
-  if (!isEmoji) {
-    ctx.fillStyle = '#39ff63'
-    roundRect(ctx, x, y, HERO_W, HERO_H, 9); ctx.fill()
-    ctx.strokeStyle = 'rgba(57,255,99,0.7)'
-    ctx.lineWidth = 1.5
-    ctx.shadowColor = 'rgba(57,255,99,0.7)'; ctx.shadowBlur = 12
-    ctx.stroke(); ctx.shadowBlur = 0
-    ctx.fillStyle = '#062612'
-    ctx.font = '900 26px ui-sans-serif, system-ui, -apple-system'
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(glyph, cx, cy + 1)
-  } else {
-    // emoji hero — soft halo
-    ctx.shadowColor = 'rgba(255,255,255,0.35)'; ctx.shadowBlur = 16
-    ctx.font = '36px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(glyph, cx, cy)
-    ctx.shadowBlur = 0
-  }
+  // ── legs (animated when walking) ────────────────────────────
+  const legW = 6, legH = 9
+  const legBaseY = baseY - 2
+  const swing = walking ? Math.sin(walkPhase) * 4 : Math.sin(capWobble * 1.6) * 0.8
+  const legL_x = x + HERO_W * 0.28 - legW / 2
+  const legR_x = x + HERO_W * 0.72 - legW / 2
+  const legL_h = legH + (walking ? Math.max(0, swing) : 0)
+  const legR_h = legH + (walking ? Math.max(0, -swing) : 0)
+  ctx.fillStyle = '#cfd6df'
+  roundRect(ctx, legL_x, legBaseY - legL_h, legW, legL_h + 3, 2.5); ctx.fill()
+  roundRect(ctx, legR_x, legBaseY - legR_h, legW, legR_h + 3, 2.5); ctx.fill()
+  // shadow under feet
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'
+  ctx.beginPath()
+  ctx.ellipse(x + HERO_W / 2, baseY + 2, HERO_W * 0.42, 2.4, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // ── body (light pill) ───────────────────────────────────────
+  const bodyTop = y + 14
+  const bodyH = HERO_H - 18
+  const bg = ctx.createLinearGradient(0, bodyTop, 0, bodyTop + bodyH)
+  bg.addColorStop(0, '#f3f5f8')
+  bg.addColorStop(1, '#cdd3dc')
+  ctx.fillStyle = bg
+  roundRect(ctx, x + 3, bodyTop, HERO_W - 6, bodyH, (HERO_W - 6) / 2)
+  ctx.fill()
+  // body inner shading
+  ctx.fillStyle = 'rgba(0,0,0,0.06)'
+  roundRect(ctx, x + HERO_W - 12, bodyTop + 4, 6, bodyH - 8, 3); ctx.fill()
+  // pearl eye
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 2.2, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'
+  ctx.beginPath(); ctx.arc(x + HERO_W * 0.7, bodyTop + bodyH * 0.35, 1.1, 0, Math.PI * 2); ctx.fill()
+
+  // ── cap (with subtle wobble) ────────────────────────────────
+  const capWobbleDeg = Math.sin(capWobble * 1.4) * 1.6 + (walking ? Math.sin(walkPhase * 0.5) * 1.2 : 0)
+  const capCx = x + HERO_W / 2
+  const capCy = y + 9
+  ctx.save()
+  ctx.translate(capCx, capCy)
+  ctx.rotate((capWobbleDeg * Math.PI) / 180)
+  ctx.translate(-capCx, -capCy)
+
+  // cap halo glow
+  const halo = ctx.createRadialGradient(capCx, capCy, 2, capCx, capCy, 26)
+  halo.addColorStop(0, 'rgba(57,255,99,0.55)')
+  halo.addColorStop(1, 'rgba(57,255,99,0)')
+  ctx.fillStyle = halo
+  ctx.beginPath(); ctx.arc(capCx, capCy, 26, 0, Math.PI * 2); ctx.fill()
+
+  // brim
+  ctx.fillStyle = '#2cd74f'
+  ctx.beginPath()
+  ctx.ellipse(capCx + 6, y + 14, HERO_W * 0.55, 3.2, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // crown (dome)
+  const cg = ctx.createLinearGradient(0, y + 1, 0, y + 14)
+  cg.addColorStop(0, '#7bff8e')
+  cg.addColorStop(1, '#2cd74f')
+  ctx.fillStyle = cg
+  ctx.beginPath()
+  ctx.moveTo(x + 4, y + 13)
+  ctx.quadraticCurveTo(x + HERO_W / 2, y - 4, x + HERO_W - 4, y + 13)
+  ctx.closePath()
+  ctx.fill()
+
+  // top button
+  ctx.fillStyle = '#1fae3c'
+  ctx.beginPath(); ctx.arc(x + HERO_W / 2, y + 1.5, 1.6, 0, Math.PI * 2); ctx.fill()
+
+  // Fanvue mark on cap: bold "F" + small "anvue"
+  ctx.fillStyle = '#0a3d18'
+  ctx.font = '900 9px "Space Grotesk", ui-sans-serif, system-ui'
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
+  const labelY = y + 8
+  ctx.fillText('F', x + HERO_W * 0.3, labelY)
+  ctx.font = '800 6px "Inter", ui-sans-serif, system-ui'
+  ctx.fillText('anvue', x + HERO_W * 0.3 + 5.5, labelY + 0.4)
+
+  ctx.restore()
   ctx.restore()
 }
 
