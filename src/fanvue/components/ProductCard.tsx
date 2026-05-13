@@ -102,7 +102,7 @@ export default function ProductCard({ product, index = 0, disableNav = false }: 
     >
       {photo ? (
         <div style={{ position: 'relative', width: 'calc(100% + 28px)', aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', margin: '-14px -14px 0' }}>
-          <img src={photo} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
+          <img src={photo} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" decoding="async" />
           <div style={{
             position: 'absolute', inset: 0,
             background: 'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.35) 100%)',
