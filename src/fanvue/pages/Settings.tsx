@@ -9,6 +9,7 @@ import { useToast } from '../components/Toast'
 import { CONFIG } from '../config'
 import type { Lang } from '../store/types'
 import type { SiteContent } from '../store'
+import FanvueLogo from '../components/FanvueLogo'
 
 const NEON = '#00FF88'
 const FONT_LINK_ID = 'fv-settings-fonts'
@@ -413,6 +414,7 @@ export default function Settings() {
   const { haptic } = useTelegram()
   const toast    = useToast()
   const [openSheet, setOpenSheet] = useState<keyof SiteContent | null>(null)
+  const [sweep, setSweep] = useState<'channel' | 'reviews'>('channel')
 
   // Inject Inter + Space Mono once (scoped via CSS classes below)
   useEffect(() => {
@@ -491,8 +493,35 @@ export default function Settings() {
               fontSize: 46, fontWeight: 900, fontStyle: 'italic',
               letterSpacing: '-0.045em', lineHeight: 0.92, margin: 0,
               fontFamily: inter, color: '#fff',
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
             }}>
-              FANVUE<br/>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.6, rotate: -18 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                  whileHover={{ rotate: [0, -6, 6, 0], transition: { duration: 0.6 } }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 46, height: 46, marginRight: 2,
+                    position: 'relative',
+                  }}
+                >
+                  {/* Neon halo behind logo */}
+                  <motion.span
+                    aria-hidden
+                    animate={{ opacity: [0.5, 0.95, 0.5], scale: [0.95, 1.08, 0.95] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      position: 'absolute', inset: -6, borderRadius: '50%',
+                      background: `radial-gradient(circle, ${NEON}55, transparent 65%)`,
+                      filter: 'blur(8px)', pointerEvents: 'none',
+                    }}
+                  />
+                  <FanvueLogo size={42} />
+                </motion.span>
+                <span style={{ transform: 'translateY(1px)' }}>anvue</span>
+              </span>
               <span style={{ color: NEON }}>MARKET</span>
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
@@ -598,18 +627,23 @@ export default function Settings() {
                   position: 'relative', overflow: 'hidden',
                 }}
               >
-                {/* sweep shine */}
-                <motion.div
-                  aria-hidden
-                  initial={{ x: '-120%' }}
-                  animate={{ x: '220%' }}
-                  transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 2.4, ease: 'easeInOut' }}
-                  style={{
-                    position: 'absolute', top: 0, bottom: 0, width: 60,
-                    background: `linear-gradient(90deg, transparent, ${NEON}22, transparent)`,
-                    transform: 'skewX(-20deg)', pointerEvents: 'none',
-                  }}
-                />
+                {/* sweep shine — channel (left → right), then hands off to reviews */}
+                {sweep === 'channel' && (
+                  <motion.div
+                    key="sweep-channel"
+                    aria-hidden
+                    initial={{ x: '-120%' }}
+                    animate={{ x: '220%' }}
+                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    onAnimationComplete={() => setSweep('reviews')}
+                    style={{
+                      position: 'absolute', top: 0, bottom: 0, width: 70,
+                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
+                      transform: 'skewX(-20deg)', pointerEvents: 'none',
+                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
+                    }}
+                  />
+                )}
                 <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
                     Telegram
@@ -659,6 +693,23 @@ export default function Settings() {
                   position: 'relative', overflow: 'hidden',
                 }}
               >
+                {/* sweep shine — reviews (right → left), then hands off to channel */}
+                {sweep === 'reviews' && (
+                  <motion.div
+                    key="sweep-reviews"
+                    aria-hidden
+                    initial={{ x: '220%' }}
+                    animate={{ x: '-120%' }}
+                    transition={{ duration: 1.6, ease: 'easeInOut' }}
+                    onAnimationComplete={() => setSweep('channel')}
+                    style={{
+                      position: 'absolute', top: 0, bottom: 0, width: 70,
+                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
+                      transform: 'skewX(20deg)', pointerEvents: 'none',
+                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
+                    }}
+                  />
+                )}
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
                     {lang === 'ru' ? 'Сообщество' : 'Community'}
