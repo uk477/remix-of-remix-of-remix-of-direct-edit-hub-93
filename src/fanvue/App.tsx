@@ -11,6 +11,7 @@ import Deposit from './pages/Deposit'
 import Profile from './pages/Profile'
 import Orders from './pages/Orders'
 import Support from './pages/Support'
+import SupportHub from './pages/SupportHub'
 import Settings from './pages/Settings'
 import RefCalendar from './pages/RefCalendar'
 
