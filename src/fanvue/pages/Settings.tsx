@@ -597,7 +597,7 @@ export default function Settings() {
   const { haptic } = useTelegram()
   const toast    = useToast()
   const [openSheet, setOpenSheet] = useState<keyof SiteContent | null>(null)
-  const [sweep, setSweep] = useState<'channel' | 'reviews'>('channel')
+  
 
   // Inject Inter + Space Mono once (scoped via CSS classes below)
   useEffect(() => {
