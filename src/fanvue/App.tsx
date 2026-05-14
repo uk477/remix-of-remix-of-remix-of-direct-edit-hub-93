@@ -111,7 +111,8 @@ function AppInner() {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/support" element={<Support />} />
+            <Route path="/support" element={<SupportHub />} />
+            <Route path="/support/chat" element={<Support />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/referral-calendar" element={<RefCalendar />} />
           </Routes>
