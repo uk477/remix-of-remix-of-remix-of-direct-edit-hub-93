@@ -819,8 +819,13 @@ export default function Settings() {
                   }}
                 >
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Telegram</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
-                    {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                      {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
+                    </div>
+                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
+                      <ArrowBoxIcon size={20} />
+                    </span>
                   </div>
                 </motion.button>
                 <motion.button
@@ -836,8 +841,13 @@ export default function Settings() {
                   }}
                 >
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Feedback</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
-                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                      {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                    </div>
+                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
+                      <ArrowBoxIcon size={20} />
+                    </span>
                   </div>
                 </motion.button>
               </div>
