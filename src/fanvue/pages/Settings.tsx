@@ -22,7 +22,13 @@ const ContactIcon  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill=
 const ReferralIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
 const StarIcon     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
 const EditIcon    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
-const BackIcon    = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+const BackIcon    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+const ArrowBoxIcon = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
+    <rect x="3" y="3" width="18" height="18" />
+    <path d="M8 12h8M12 8l4 4-4 4" />
+  </svg>
+)
 const ChevronIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } } }
@@ -668,17 +674,17 @@ export default function Settings() {
             <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 26 }}>
               <motion.button
                 onClick={() => navigate(-1)}
-                whileTap={{ scale: 0.88 }}
-                whileHover={{ background: NEON, color: '#000' }}
+                whileTap={{ scale: 0.9, x: 3, y: 3 }}
+                whileHover={{ x: 2, y: 2 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                 style={{
-                  width: 46, height: 46,
-                  background: 'rgba(255,255,255,0.04)', color: '#fff',
-                  borderTop: '1px solid rgba(255,255,255,0.08)',
-                  borderLeft: '1px solid rgba(255,255,255,0.08)',
-                  borderRight: `2px solid ${NEON}`,
-                  borderBottom: `2px solid ${NEON}`,
+                  width: 48, height: 48,
+                  background: '#0a0a0a',
+                  color: '#fff',
+                  border: '1.5px solid rgba(255,255,255,0.18)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', borderRadius: 0,
+                  boxShadow: `5px 5px 0 0 ${NEON}, 5px 5px 18px 0 ${NEON}66`,
                 }}
               >
                 <BackIcon />
@@ -813,8 +819,13 @@ export default function Settings() {
                   }}
                 >
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Telegram</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
-                    {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                      {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
+                    </div>
+                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
+                      <ArrowBoxIcon size={20} />
+                    </span>
                   </div>
                 </motion.button>
                 <motion.button
@@ -830,8 +841,13 @@ export default function Settings() {
                   }}
                 >
                   <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Feedback</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
-                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                      {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                    </div>
+                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
+                      <ArrowBoxIcon size={20} />
+                    </span>
                   </div>
                 </motion.button>
               </div>
