@@ -674,17 +674,17 @@ export default function Settings() {
             <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 26 }}>
               <motion.button
                 onClick={() => navigate(-1)}
-                whileTap={{ scale: 0.88 }}
-                whileHover={{ background: NEON, color: '#000' }}
+                whileTap={{ scale: 0.9, x: 3, y: 3 }}
+                whileHover={{ x: 2, y: 2 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                 style={{
-                  width: 46, height: 46,
-                  background: 'rgba(255,255,255,0.04)', color: '#fff',
-                  borderTop: '1px solid rgba(255,255,255,0.08)',
-                  borderLeft: '1px solid rgba(255,255,255,0.08)',
-                  borderRight: `2px solid ${NEON}`,
-                  borderBottom: `2px solid ${NEON}`,
+                  width: 48, height: 48,
+                  background: '#0a0a0a',
+                  color: '#fff',
+                  border: '1.5px solid rgba(255,255,255,0.18)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', borderRadius: 0,
+                  boxShadow: `5px 5px 0 0 ${NEON}, 5px 5px 18px 0 ${NEON}66`,
                 }}
               >
                 <BackIcon />
