@@ -597,7 +597,7 @@ export default function Settings() {
   const { haptic } = useTelegram()
   const toast    = useToast()
   const [openSheet, setOpenSheet] = useState<keyof SiteContent | null>(null)
-  const [sweep, setSweep] = useState<'channel' | 'reviews'>('channel')
+  
 
   // Inject Inter + Space Mono once (scoped via CSS classes below)
   useEffect(() => {
@@ -629,69 +629,95 @@ export default function Settings() {
     <>
       <PageTransition>
         <motion.div
-        className="page"
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        style={{ position: 'relative', overflow: 'hidden', fontFamily: inter }}
-      >
-        {/* Background mesh blurs */}
-        <div style={{ position: 'absolute', top: '-10%', right: '-25%', width: 320, height: 320, background: `${NEON}1A`, filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-        <div style={{ position: 'absolute', bottom: '8%', left: '-25%', width: 260, height: 260, background: `${NEON}0D`, filter: 'blur(80px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-
-        {/* Decorative hairlines */}
-        <div style={{ position: 'absolute', top: 0, left: 48, width: 1, height: '100%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: 0, right: 48, width: 1, height: '100%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Header — back only */}
-          <motion.div variants={fadeUp} style={{ marginBottom: 18 }}>
-            <motion.button
-              onClick={() => navigate(-1)}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ x: -2 }}
+          className="page"
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          style={{ position: 'relative', overflow: 'hidden', fontFamily: inter, padding: '20px 18px 60px' }}
+        >
+          {/* === Animated diagonal speed lines === */}
+          <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+            {[0.18, 0.38, 0.58, 0.78].map((left, i) => (
+              <motion.div
+                key={i}
+                style={{
+                  position: 'absolute', top: '-30%', left: `${left * 100}%`,
+                  width: 1, height: '160%',
+                  background: `linear-gradient(180deg, transparent, ${NEON}55, transparent)`,
+                  transform: 'rotate(12deg)', transformOrigin: 'top',
+                  opacity: 0.35,
+                }}
+                animate={{ y: ['-12%', '12%', '-12%'] }}
+                transition={{ duration: 6 + i * 1.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              />
+            ))}
+            {/* Soft neon halo */}
+            <motion.div
               style={{
-                width: 42, height: 42, borderRadius: 14,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
-                backdropFilter: 'blur(12px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', cursor: 'pointer',
+                position: 'absolute', top: '-15%', right: '-25%',
+                width: 380, height: 380, borderRadius: '50%',
+                background: `${NEON}20`, filter: 'blur(110px)',
               }}
-            >
-              <BackIcon />
-            </motion.button>
-          </motion.div>
+              animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
 
-          {/* HERO TYPOGRAPHY */}
-          <motion.div variants={fadeUp} style={{ position: 'relative', marginBottom: 28 }}>
-            <div style={{
-              position: 'absolute', top: -14, left: -6,
-              fontSize: 76, fontWeight: 900, fontStyle: 'italic',
-              color: 'rgba(255,255,255,0.04)', lineHeight: 1, letterSpacing: '-0.04em',
-              userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
-            }}>
-              FANVUE
-            </div>
-            <h1 style={{
-              fontSize: 46, fontWeight: 900, fontStyle: 'italic',
-              letterSpacing: '-0.045em', lineHeight: 0.92, margin: 0,
-              fontFamily: inter, color: '#fff',
-              display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-            }}>
-              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 0 }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* === HEADER === */}
+            <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 26 }}>
+              <motion.button
+                onClick={() => navigate(-1)}
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ background: NEON, color: '#000' }}
+                style={{
+                  width: 46, height: 46,
+                  background: 'rgba(255,255,255,0.04)', color: '#fff',
+                  borderTop: '1px solid rgba(255,255,255,0.08)',
+                  borderLeft: '1px solid rgba(255,255,255,0.08)',
+                  borderRight: `2px solid ${NEON}`,
+                  borderBottom: `2px solid ${NEON}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', borderRadius: 0,
+                }}
+              >
+                <BackIcon />
+              </motion.button>
+              <div style={{ textAlign: 'right', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: NEON, lineHeight: 1.5 }}>
+                Internal Build<br />
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>v2.0.0_</span>
                 <motion.span
-                  aria-label="F"
-                  initial={{ opacity: 0, x: -10, rotate: -12 }}
-                  animate={{ opacity: 1, x: 0, rotate: 0 }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                  whileHover={{ rotate: [0, -4, 4, 0], transition: { duration: 0.6 } }}
+                  animate={{ opacity: [1, 1, 0, 0, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: 'linear', times: [0, 0.49, 0.5, 0.99, 1] }}
+                  style={{ color: NEON }}
+                >STABLE</motion.span>
+              </div>
+            </motion.div>
+
+            {/* === HERO LOGO + TITLE === */}
+            <motion.div variants={fadeUp} style={{ position: 'relative', marginBottom: 28 }}>
+              {/* Ghost text behind */}
+              <div aria-hidden style={{
+                position: 'absolute', top: -6, left: -8,
+                fontSize: 88, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(255,255,255,0.04)', lineHeight: 0.9, letterSpacing: '-0.05em',
+                userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
+              }}>
+                FANVUE
+              </div>
+
+              {/* anvue with logo F mark */}
+              <div style={{ display: 'flex', alignItems: 'baseline', position: 'relative' }}>
+                <motion.span
+                  initial={{ opacity: 0, x: -16, rotate: -18, scale: 0.7 }}
+                  animate={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                  whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.6 } }}
                   style={{
                     display: 'inline-block',
-                    width: 38, height: 40,
-                    marginRight: -2,
-                    transform: 'translateY(3px)',
-                    backgroundColor: NEON,
+                    width: 44, height: 46,
+                    transform: 'translateY(4px)',
+                    backgroundColor: '#fff',
                     WebkitMaskImage: `url(${fanvueMarkSrc})`,
                     maskImage: `url(${fanvueMarkSrc})`,
                     WebkitMaskRepeat: 'no-repeat',
@@ -700,308 +726,289 @@ export default function Settings() {
                     maskPosition: 'center',
                     WebkitMaskSize: 'contain',
                     maskSize: 'contain',
+                    filter: `drop-shadow(0 0 12px ${NEON}55)`,
                   }}
                 />
-                <span>anvue</span>
-              </span>
-              <span style={{ color: NEON }}>MARKET</span>
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
-              <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
-                Internal Build · v2.0.0
-              </span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
-            </div>
-          </motion.div>
-
-          {/* ASYMMETRIC BENTO — compact */}
-          <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
-            {/* LANGUAGE — compact tile with segmented toggle */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-              style={{
-                height: 140, background: NEON, borderRadius: 22, padding: 14,
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                position: 'relative', overflow: 'hidden',
-                boxShadow: `0 12px 40px -12px ${NEON}55, inset 0 0 0 1px rgba(255,255,255,0.15)`,
-              }}>
-              {/* Scan-line shimmer */}
-              <motion.div
-                aria-hidden
-                initial={{ y: '-120%' }}
-                animate={{ y: '220%' }}
-                transition={{ duration: 3.6, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
-                style={{
-                  position: 'absolute', left: 0, right: 0, height: 60,
-                  background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.25), transparent)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div style={{
-                position: 'absolute', right: -10, bottom: -22,
-                fontSize: 78, fontWeight: 900, fontStyle: 'italic',
-                color: 'rgba(0,0,0,0.08)', lineHeight: 1, fontFamily: inter,
-                userSelect: 'none', pointerEvents: 'none',
-              }}>
-                {lang === 'ru' ? 'RU' : 'EN'}
-              </div>
-              <div style={{ color: '#000', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.55 }}>
-                    Language
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', lineHeight: 1.1, marginTop: 2 }}>
-                    {lang === 'ru' ? 'РУССКИЙ' : 'ENGLISH'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Segmented toggle */}
-              <div style={{
-                position: 'relative', zIndex: 1,
-                display: 'grid', gridTemplateColumns: '1fr 1fr',
-                background: 'rgba(0,0,0,0.12)', borderRadius: 12, padding: 3,
-                height: 36,
-              }}>
-                <motion.div
-                  layout
-                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                <motion.span
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
                   style={{
-                    position: 'absolute', top: 3, bottom: 3,
-                    width: 'calc(50% - 3px)',
-                    left: lang === 'ru' ? 3 : 'calc(50% + 0px)',
-                    background: '#000', borderRadius: 9,
-                  }}
-                />
-                {(['ru', 'en'] as Lang[]).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => switchLang(l)}
-                    style={{
-                      position: 'relative', zIndex: 1,
-                      background: 'transparent', border: 0, cursor: 'pointer',
-                      color: lang === l ? NEON : 'rgba(0,0,0,0.55)',
-                      fontFamily: inter, fontWeight: 800, fontSize: 12,
-                      letterSpacing: '0.08em', transition: 'color 200ms',
-                    }}
-                  >
-                    {l.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Right column: stacked actions */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* OUR CHANNEL — compact */}
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                whileHover={{ y: -2, borderColor: `${NEON}55` }}
-                onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
-                style={{
-                  height: 64, background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18,
-                  padding: '0 12px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  cursor: 'pointer', textAlign: 'left',
-                  transition: 'border-color 300ms, transform 300ms',
-                  position: 'relative', overflow: 'hidden',
-                }}
-              >
-                {/* sweep shine — channel (left → right), then hands off to reviews */}
-                {sweep === 'channel' && (
-                  <motion.div
-                    key="sweep-channel"
-                    aria-hidden
-                    initial={{ x: '-120%' }}
-                    animate={{ x: '220%' }}
-                    transition={{ duration: 3.2, ease: "easeInOut" }}
-                    onAnimationComplete={() => setSweep('reviews')}
-                    style={{
-                      position: 'absolute', top: 0, bottom: 0, width: 70,
-                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
-                      transform: 'skewX(-20deg)', pointerEvents: 'none',
-                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
-                    }}
-                  />
-                )}
-                <div style={{ minWidth: 0, flex: 1, position: 'relative' }}>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
-                    Telegram
-                  </div>
-                  <div style={{
-                    fontSize: 15, fontWeight: 900, fontStyle: 'italic',
-                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
-                  </div>
-                </div>
-                <div style={{
-                  width: 38, height: 38, borderRadius: 12,
-                  border: `1px solid ${NEON}33`, background: `${NEON}10`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative', flexShrink: 0,
-                }}>
-                  <motion.div
-                    style={{ position: 'absolute', inset: -3, background: `${NEON}33`, filter: 'blur(8px)', borderRadius: 14 }}
-                    animate={{ opacity: [0.4, 0.9, 0.4] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.svg
-                    width="18" height="18" viewBox="0 0 24 24" fill={NEON}
-                    style={{ position: 'relative' }}
-                    animate={{ x: [0, 2, 0], y: [0, -1, 0] }}
-                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-                  </motion.svg>
-                </div>
-              </motion.button>
-
-              {/* REVIEWS */}
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                whileHover={{ y: -2, borderColor: `${NEON}55` }}
-                onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
-                style={{
-                  height: 64, background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18,
-                  padding: '0 12px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  cursor: 'pointer', textAlign: 'left',
-                  transition: 'border-color 300ms, transform 300ms',
-                  position: 'relative', overflow: 'hidden',
-                }}
-              >
-                {/* sweep shine — reviews (right → left), then hands off to channel */}
-                {sweep === 'reviews' && (
-                  <motion.div
-                    key="sweep-reviews"
-                    aria-hidden
-                    initial={{ x: '220%' }}
-                    animate={{ x: '-120%' }}
-                    transition={{ duration: 3.2, ease: "easeInOut" }}
-                    onAnimationComplete={() => setSweep('channel')}
-                    style={{
-                      position: 'absolute', top: 0, bottom: 0, width: 70,
-                      background: `linear-gradient(90deg, transparent, ${NEON}55, transparent)`,
-                      transform: 'skewX(20deg)', pointerEvents: 'none',
-                      filter: `drop-shadow(0 0 8px ${NEON}66)`,
-                    }}
-                  />
-                )}
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
-                    {lang === 'ru' ? 'Наши' : 'Our'}
-                  </div>
-                  <div style={{
-                    fontSize: 15, fontWeight: 900, fontStyle: 'italic',
-                    color: '#fff', marginTop: 2, letterSpacing: '-0.01em',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
-                  </div>
-                </div>
-                <div style={{
-                  width: 38, height: 38, borderRadius: 12,
-                  border: `1px solid ${NEON}33`, background: `${NEON}10`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative', flexShrink: 0,
-                }}>
-                  <div style={{ position: 'absolute', inset: -3, background: `${NEON}22`, filter: 'blur(8px)', borderRadius: 14 }} />
-                  <motion.svg
-                    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={NEON} strokeWidth="1.8" strokeLinejoin="round"
-                    style={{ position: 'relative' }}
-                    animate={{ rotate: [0, -8, 8, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </motion.svg>
-                </div>
-              </motion.button>
-            </div>
-          </motion.div>
-
-          {/* DOCS — blueprint list */}
-          <motion.div variants={fadeUp}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-              <h2 style={{
-                fontFamily: mono, fontSize: 11, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.3em',
-                color: 'rgba(255,255,255,0.4)', margin: 0,
-              }}>
-                {lang === 'ru' ? 'Документация' : 'Legal Docs'}
-              </h2>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-            </div>
-
-            <motion.div
-              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
-              initial="hidden"
-              animate="show"
-              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-            >
-              {links.map((item, i) => (
-                <motion.button
-                  key={item.key}
-                  variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } }}
-                  whileTap={{ scale: 0.98 }}
-                  whileHover={{ borderColor: `${NEON}80` }}
-                  onClick={() => { haptic('light'); setOpenSheet(item.key) }}
-                  style={{
-                    display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-                    padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    background: 'transparent', textAlign: 'left', cursor: 'pointer',
-                    transition: 'border-color 400ms',
+                    fontSize: 50, fontWeight: 900, fontStyle: 'italic',
+                    color: '#fff', letterSpacing: '-0.045em', lineHeight: 0.9,
+                    fontFamily: inter, marginLeft: -4,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
-                    <span style={{ fontFamily: mono, fontSize: 10, color: NEON, opacity: 0.6 }}>
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span style={{
-                      fontSize: 19, fontWeight: 300, letterSpacing: '-0.01em',
-                      color: '#fff', fontFamily: inter,
-                    }}>
-                      {item.label}
-                    </span>
-                  </div>
-                  <div style={{
-                    width: 8, height: 8, borderRadius: '50%',
-                    border: '1px solid rgba(255,255,255,0.2)', marginBottom: 8,
-                    transition: 'all 300ms',
-                  }} />
-                </motion.button>
-              ))}
+                  anvue
+                </motion.span>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.35 }}
+                style={{
+                  fontSize: 56, fontWeight: 900, fontStyle: 'italic',
+                  color: NEON, letterSpacing: '-0.045em', lineHeight: 0.9,
+                  fontFamily: inter, textShadow: `0 0 24px ${NEON}66`,
+                }}
+              >
+                MARKET
+              </motion.div>
             </motion.div>
 
-            {/* Footer metadata */}
-            <div style={{
-              marginTop: 32, marginBottom: 12,
+            {/* === LANGUAGE + SOCIALS GRID === */}
+            <motion.div variants={fadeUp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              {/* Language tile */}
+              <div style={{
+                background: 'rgba(255,255,255,0.04)', padding: 14, position: 'relative', overflow: 'hidden',
+                borderTop: '1px solid rgba(255,255,255,0.06)', borderLeft: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <div style={{ fontFamily: mono, fontSize: 9, color: NEON, textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 6 }}>Language</div>
+                <div style={{ fontSize: 22, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.02em', textTransform: 'uppercase', marginBottom: 12 }}>
+                  {lang === 'ru' ? 'РУССКИЙ' : 'ENGLISH'}
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(['ru','en'] as Lang[]).map((l) => (
+                    <motion.button
+                      key={l}
+                      onClick={() => switchLang(l)}
+                      whileTap={{ scale: 0.92 }}
+                      style={{
+                        padding: '5px 12px', fontSize: 11, fontWeight: 800, fontStyle: 'italic',
+                        background: lang === l ? NEON : 'rgba(255,255,255,0.08)',
+                        color: lang === l ? '#000' : 'rgba(255,255,255,0.45)',
+                        border: 0, borderRadius: 0, cursor: 'pointer',
+                        fontFamily: inter, letterSpacing: '0.05em',
+                      }}
+                    >
+                      {l.toUpperCase()}
+                    </motion.button>
+                  ))}
+                </div>
+                <motion.div
+                  aria-hidden
+                  style={{
+                    position: 'absolute', bottom: -10, right: -10,
+                    width: 28, height: 28, background: `${NEON}22`,
+                    transform: 'rotate(45deg)',
+                  }}
+                  animate={{ rotate: [45, 90, 45] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </div>
+
+              {/* Socials column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ background: 'rgba(0,255,136,0.08)' }}
+                  onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.channelUsername}`, '_blank') }}
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.04)',
+                    border: 0, padding: 12, cursor: 'pointer', textAlign: 'left',
+                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                    borderTop: '1px solid rgba(255,255,255,0.06)',
+                    borderLeft: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Telegram</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                    {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
+                  </div>
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ background: 'rgba(0,255,136,0.08)' }}
+                  onClick={() => { haptic('light'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.04)',
+                    border: 0, padding: 12, cursor: 'pointer', textAlign: 'left',
+                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                    borderTop: '1px solid rgba(255,255,255,0.06)',
+                    borderLeft: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Feedback</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+                    {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* === MAIN DIAGONAL CTA: НАШ ЧАТ === */}
+            <motion.button
+              variants={fadeUp}
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.015 }}
+              onClick={() => { haptic('medium'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
+              style={{
+                width: '100%', background: NEON, color: '#000',
+                padding: '20px 22px', position: 'relative', overflow: 'hidden',
+                border: 0, cursor: 'pointer', textAlign: 'left',
+                clipPath: 'polygon(0 0, 100% 0, 96% 100%, 0% 100%)',
+                marginBottom: 36,
+                boxShadow: `0 18px 50px -16px ${NEON}88`,
+                fontFamily: inter,
+              }}
+            >
+              {/* Sweep shine */}
+              <motion.div
+                aria-hidden
+                initial={{ x: '-130%' }}
+                animate={{ x: '230%' }}
+                transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute', top: 0, bottom: 0, width: 90,
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
+                  transform: 'skewX(-20deg)', pointerEvents: 'none',
+                }}
+              />
+              {/* Ghost label */}
+              <div aria-hidden style={{
+                position: 'absolute', right: -12, bottom: -34,
+                fontSize: 110, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(0,0,0,0.08)', lineHeight: 1, letterSpacing: '-0.06em',
+                userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
+              }}>
+                CHAT
+              </div>
+
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(0,0,0,0.6)', marginBottom: 4 }}>
+                    {lang === 'ru' ? 'New · Сообщество' : 'New · Community'}
+                  </div>
+                  <div style={{ fontSize: 32, fontWeight: 900, fontStyle: 'italic', color: '#000', letterSpacing: '-0.03em', lineHeight: 0.95, textTransform: 'uppercase' }}>
+                    {lang === 'ru' ? 'НАШ ЧАТ' : 'OUR CHAT'}
+                  </div>
+                </div>
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    width: 48, height: 48, flexShrink: 0,
+                    border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </motion.div>
+              </div>
+            </motion.button>
+
+            {/* === DOCS LIST with outline italic numbers === */}
+            <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                <div style={{ height: 2, flex: 1, background: `linear-gradient(90deg, ${NEON}, transparent)` }} />
+                <h2 style={{
+                  fontFamily: mono, fontSize: 11, fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.3em',
+                  color: NEON, margin: 0,
+                }}>
+                  {lang === 'ru' ? 'Документация' : 'Documentation'}
+                </h2>
+              </div>
+
+              <motion.div
+                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } }}
+                initial="hidden"
+                animate="show"
+                style={{ display: 'flex', flexDirection: 'column' }}
+              >
+                {links.map((item, i) => (
+                  <motion.button
+                    key={item.key}
+                    variants={{
+                      hidden: { opacity: 0, x: -20, filter: 'blur(6px)' },
+                      show: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+                    }}
+                    whileTap={{ scale: 0.985 }}
+                    whileHover={{ background: 'rgba(0,255,136,0.06)', x: 4 }}
+                    onClick={() => { haptic('light'); setOpenSheet(item.key) }}
+                    className="settings-doc-row"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '16px 12px', background: 'transparent', cursor: 'pointer',
+                      border: 0, borderBottom: '1px solid rgba(255,255,255,0.06)',
+                      textAlign: 'left', position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                      <span
+                        className="settings-doc-num"
+                        style={{
+                          fontSize: 30, fontWeight: 900, fontStyle: 'italic',
+                          letterSpacing: '-0.04em', lineHeight: 1, fontFamily: inter,
+                          color: 'transparent',
+                          WebkitTextStroke: `1px ${NEON}88`,
+                          minWidth: 38,
+                          transition: 'color 280ms, -webkit-text-stroke-color 280ms, text-shadow 280ms',
+                        }}
+                      >
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span style={{
+                        fontSize: 16, fontWeight: 900, fontStyle: 'italic',
+                        letterSpacing: '-0.015em', color: '#fff', fontFamily: inter,
+                        textTransform: 'uppercase',
+                      }}>
+                        {item.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%',
+                      border: `1px solid ${NEON}55`, background: 'transparent',
+                      transition: 'all 300ms',
+                    }} />
+                  </motion.button>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            {/* === FOOTER METADATA === */}
+            <motion.div variants={fadeUp} style={{
+              marginTop: 24, padding: '16px 14px',
+              background: `${NEON}0D`,
+              borderLeft: `2px solid ${NEON}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: mono, fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'rgba(255,255,255,0.2)' }}>
-                  {lang === 'ru' ? 'Защита маркета' : 'Market Security'}
-                </span>
-                <span style={{ fontFamily: mono, fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.18em', color: `${NEON}99` }}>
-                  {lang === 'ru' ? 'Шифрование активно' : 'Encryption active'}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <motion.div
+                    style={{ width: 6, height: 6, borderRadius: '50%', background: NEON, boxShadow: `0 0 8px ${NEON}` }}
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <span style={{ fontFamily: mono, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', color: NEON, fontWeight: 700 }}>
+                    {lang === 'ru' ? 'Шифрование активно' : 'Encryption active'}
+                  </span>
+                </div>
+                <span style={{ fontFamily: mono, fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'rgba(255,255,255,0.3)' }}>
+                  {lang === 'ru' ? 'Защита маркета · SECURE_256' : 'Market security · SECURE_256'}
                 </span>
               </div>
               <div style={{
-                fontSize: 30, fontWeight: 900, fontStyle: 'italic',
-                color: 'rgba(255,255,255,0.05)', letterSpacing: '-0.04em',
-                userSelect: 'none', fontFamily: inter,
+                fontSize: 32, fontWeight: 900, fontStyle: 'italic',
+                color: 'rgba(255,255,255,0.12)', letterSpacing: '-0.04em',
+                userSelect: 'none', fontFamily: inter, lineHeight: 1,
               }}>
                 2.0.0
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
 
+        {/* hover-fill style for outlined doc numbers */}
+        <style>{`
+          .settings-doc-row:hover .settings-doc-num {
+            color: ${NEON} !important;
+            -webkit-text-stroke-color: ${NEON} !important;
+            text-shadow: 0 0 18px ${NEON}88;
+          }
+        `}</style>
       </PageTransition>
 
       <AnimatePresence>
