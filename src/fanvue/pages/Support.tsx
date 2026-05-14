@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo, type CSSProperties } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, type CSSProperties, type RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
@@ -581,7 +581,7 @@ function Composer({
   quickReplies: string[]
   send: (value: string) => void
   haptic: (type?: 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'warning') => void
-  taRef: React.RefObject<HTMLTextAreaElement>
+  taRef: RefObject<HTMLTextAreaElement>
   t: (ru: string, en: string) => string
 }) {
   const isReceipt = variant === 'receipt'
