@@ -6,14 +6,19 @@ import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
 
 /**
- * SUPPORT CHAT — designer-grade.
- * Editorial dark vault · teal accent · mono eyebrows · Inter Black.
- * Quick replies, read-receipts, typing dots, smart input, scroll-to-bottom.
+ * FANVUE SUPPORT CHAT
+ * Black creator-commerce console · Fanvue green · focused mobile support desk.
  */
 
 const ease = [0.22, 1, 0.36, 1] as const
-const TEAL = '#5eead4'
-const TEAL_DEEP = '#0ea5a3'
+const GREEN = 'var(--fv-green, #39ff63)'
+const GREEN_2 = 'var(--fv-green-2, #22e84f)'
+const BLACK = 'var(--fv-black, #030303)'
+const PANEL = 'var(--fv-panel, #101111)'
+const PANEL_2 = 'var(--fv-panel-2, #171918)'
+const TEXT = 'var(--t-primary, #fff)'
+const SOFT = 'var(--t-secondary, rgba(255,255,255,0.72))'
+const MUTED = 'var(--t-muted, rgba(255,255,255,0.48))'
 const MONO = 'var(--font-mono, ui-monospace, monospace)'
 
 function formatTime(iso: string, lang: string) {
@@ -29,7 +34,7 @@ function formatDay(iso: string, lang: string) {
   const same = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
   if (same(d, today)) return lang === 'ru' ? 'Сегодня' : 'Today'
-  if (same(d, yest))  return lang === 'ru' ? 'Вчера'   : 'Yesterday'
+  if (same(d, yest)) return lang === 'ru' ? 'Вчера' : 'Yesterday'
   return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'long' })
 }
 
@@ -57,14 +62,13 @@ export default function Support() {
   useEffect(() => { clearSupportUnread() }, [clearSupportUnread])
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, typing])
 
-  // simulate typing reply when user sends a message
   useEffect(() => {
     if (messages.length === 0) return
     const last = messages[messages.length - 1]
     if (last.sender !== 'user') return
     if (typingTimer.current) window.clearTimeout(typingTimer.current)
     setTyping(true)
-    typingTimer.current = window.setTimeout(() => setTyping(false), 2600)
+    typingTimer.current = window.setTimeout(() => setTyping(false), 2200)
     return () => { if (typingTimer.current) window.clearTimeout(typingTimer.current) }
   }, [messages])
 
@@ -86,7 +90,7 @@ export default function Support() {
     const el = scrollRef.current
     if (!el) return
     const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
-    setShowScrollDown(distFromBottom > 240)
+    setShowScrollDown(distFromBottom > 220)
   }
 
   const send = (value: string) => {
@@ -111,13 +115,12 @@ export default function Support() {
   }
 
   const quickReplies = [
-    t('Не пришёл заказ', "Order didn't arrive"),
-    t('Вопрос по оплате', 'Payment question'),
-    t('Не работает функция', 'Something broken'),
-    t('Хочу вернуть деньги', 'Refund request'),
+    t('Статус заказа', 'Order status'),
+    t('Проблема с оплатой', 'Payment issue'),
+    t('Срок выдачи', 'Delivery ETA'),
+    t('Нужен оператор', 'Need an operator'),
   ]
 
-  // Group consecutive messages from same sender + insert day separators
   const groups = useMemo(() => {
     const out: Array<
       | { type: 'day'; key: string; label: string }
@@ -129,7 +132,8 @@ export default function Support() {
       const day = new Date(m.created).toDateString()
       if (day !== lastDay) {
         out.push({ type: 'day', key: 'd-' + day, label: formatDay(m.created, lang) })
-        lastDay = day; cur = null
+        lastDay = day
+        cur = null
       }
       if (!cur || cur.sender !== m.sender) {
         cur = { type: 'group', key: 'g-' + m.id, sender: m.sender, items: [] }
@@ -145,6 +149,8 @@ export default function Support() {
     return null
   }, [messages])
 
+  const lastMessageTime = messages.length > 0 ? formatTime(messages[messages.length - 1].created, lang) : '—'
+
   return (
     <div style={{
       position: 'absolute', inset: 0,
@@ -152,271 +158,181 @@ export default function Support() {
       paddingBottom: kbHeight > 0 ? kbHeight : undefined,
       transition: 'padding-bottom 100ms',
       overflow: 'hidden',
+      background: BLACK,
+      color: TEXT,
     }}>
-      {/* ── Ambient orbs ─────────── */}
-      <motion.div
-        aria-hidden
-        style={{
-          position: 'absolute', top: -160, right: -110, width: 360, height: 360,
-          background: `radial-gradient(circle, rgba(94,234,212,0.18), transparent 65%)`,
-          filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-        }}
-        animate={{ y: [0, 18, 0], x: [0, -10, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        aria-hidden
-        style={{
-          position: 'absolute', bottom: -140, left: -100, width: 320, height: 320,
-          background: 'radial-gradient(circle, rgba(14,165,163,0.14), transparent 65%)',
-          filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-        }}
-        animate={{ y: [0, -16, 0], x: [0, 12, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* subtle grain */}
       <div aria-hidden style={{
         position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-        opacity: 0.035, mixBlendMode: 'overlay',
-        backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>")',
+        background: [
+          'radial-gradient(70% 42% at 94% -8%, rgba(57,255,99,0.24), transparent 64%)',
+          'linear-gradient(115deg, rgba(57,255,99,0.08) 0%, transparent 28%, transparent 100%)',
+          'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
+          'linear-gradient(90deg, rgba(57,255,99,0.035) 1px, transparent 1px)',
+        ].join(','),
+        backgroundSize: 'auto, auto, 64px 64px, 64px 64px',
+        maskImage: 'linear-gradient(to bottom, #000 0%, #000 74%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 74%, transparent 100%)',
       }} />
 
-      {/* ── HEADER ─────────────────────────────────────── */}
-      <div style={{
-        position: 'relative', zIndex: 2,
-        flexShrink: 0,
-        padding: '14px 18px 14px',
-        display: 'flex', alignItems: 'center', gap: 12,
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        background: 'linear-gradient(180deg, rgba(10,14,20,0.88), rgba(10,14,20,0.55))',
-        backdropFilter: 'blur(18px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-      }}>
-        <motion.button
-          onClick={() => { haptic('light'); navigate('/support') }}
-          whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: 'rgba(255,255,255,0.04)' }}
-          whileTap={{ scale: 0.94 }}
-          style={{
-            width: 36, height: 36,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid rgba(255,255,255,0.14)',
-            borderRadius: 10, background: 'rgba(255,255,255,0.02)',
-            color: 'var(--t-primary)', cursor: 'pointer',
-            flexShrink: 0,
-          }}
-          aria-label="Back"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-        </motion.button>
-
-        {/* Avatar */}
-        <div style={{ position: 'relative', width: 42, height: 42, flexShrink: 0 }}>
-          <motion.div
+      <motion.header
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.42, ease }}
+        style={{
+          position: 'relative', zIndex: 3,
+          flexShrink: 0,
+          padding: '16px 18px 14px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          background: 'linear-gradient(180deg, rgba(3,3,3,0.96), rgba(3,3,3,0.76))',
+          backdropFilter: 'blur(22px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(22px) saturate(150%)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <motion.button
+            onClick={() => { haptic('light'); navigate('/support') }}
+            whileTap={{ scale: 0.94 }}
             style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              border: `1px solid rgba(94,234,212,0.5)`,
+              width: 42, height: 42,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid rgba(255,255,255,0.16)',
+              borderRadius: 14,
+              background: 'rgba(255,255,255,0.035)',
+              color: TEXT,
+              cursor: 'pointer',
+              flexShrink: 0,
             }}
-            animate={{ scale: [1, 1.4, 1.4], opacity: [0.55, 0, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
-          />
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${TEAL}, ${TEAL_DEEP})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#04201f', fontWeight: 800, fontSize: 15,
-            boxShadow: '0 10px 26px -10px rgba(94,234,212,0.55), inset 0 1px 0 rgba(255,255,255,0.25)',
-          }}>
-            FV
-          </div>
-          <div style={{
-            position: 'absolute', right: -1, bottom: -1, width: 12, height: 12,
-            borderRadius: '50%', background: '#10b981',
-            border: '2px solid #0a0e14',
-          }} />
-        </div>
+            aria-label={t('Назад', 'Back')}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </motion.button>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontWeight: 800, fontSize: 15.5, letterSpacing: '-0.01em',
-            color: 'var(--t-primary)', lineHeight: 1.15,
-          }}>
-            {t('Поддержка Fanvue', 'Fanvue Support')}
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 6, marginTop: 3,
-            fontFamily: MONO,
-            fontSize: 9.5, fontWeight: 600, letterSpacing: '0.14em',
-            color: 'var(--t-muted)', textTransform: 'uppercase',
-            height: 12,
-          }}>
-            <AnimatePresence mode="wait">
-              {typing ? (
-                <motion.span
-                  key="typing"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  style={{ color: TEAL, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  {t('Печатает', 'Typing')}
-                  <TypingDots />
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="online"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
-                  {t('Онлайн · отвечает за мин', 'Online · replies in min')}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+          <SupportAvatar large active={typing} />
 
-        <motion.button
-          whileHover={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-          whileTap={{ scale: 0.92 }}
-          style={{
-            width: 36, height: 36,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 10, background: 'transparent',
-            color: 'var(--t-muted)', cursor: 'pointer',
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              fontFamily: MONO,
+              fontSize: 9,
+              lineHeight: 1,
+              fontWeight: 800,
+              letterSpacing: '0.18em',
+              color: GREEN,
+              textTransform: 'uppercase',
+              marginBottom: 7,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: GREEN, boxShadow: '0 0 16px rgba(57,255,99,0.8)' }} />
+              {typing ? t('Печатает', 'Typing') : t('Онлайн · 24/7', 'Online · 24/7')}
+              {typing && <TypingDots />}
+            </div>
+            <div style={{
+              color: TEXT,
+              fontSize: 18,
+              fontWeight: 900,
+              lineHeight: 1.05,
+              letterSpacing: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              Fanvue Support Desk
+            </div>
+          </div>
+
+          <div style={{
             flexShrink: 0,
-          }}
-          aria-label="Info"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-          </svg>
-        </motion.button>
-      </div>
+            minWidth: 74,
+            padding: '8px 10px',
+            borderRadius: 14,
+            background: 'rgba(57,255,99,0.07)',
+            border: '1px solid rgba(57,255,99,0.18)',
+            textAlign: 'right',
+          }}>
+            <div style={{ fontFamily: MONO, color: GREEN, fontSize: 9, fontWeight: 900, letterSpacing: '0.12em' }}>
+              SLA
+            </div>
+            <div style={{ color: SOFT, fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>
+              {t('до 30м', '< 30m')}
+            </div>
+          </div>
+        </div>
 
-      {/* ── MESSAGES ───────────────────────────────────── */}
-      <div
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 8,
+          marginTop: 14,
+        }}>
+          <StatusChip label={t('Кейс', 'Case')} value="#FV-0214" />
+          <StatusChip label={t('Сообщений', 'Messages')} value={String(messages.length)} />
+          <StatusChip label={t('Апдейт', 'Update')} value={lastMessageTime} />
+        </div>
+      </motion.header>
+
+      <main
         ref={scrollRef}
         onScroll={handleScroll}
         style={{
           position: 'relative', zIndex: 1,
-          flex: 1, overflowY: 'auto', minHeight: 0,
-          padding: '20px 16px 14px',
-          display: 'flex', flexDirection: 'column', gap: 12,
-        }}>
+          flex: 1,
+          overflowY: 'auto',
+          minHeight: 0,
+          padding: '18px 16px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
         {messages.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
+          <EmptyChat
+            t={t}
+            quickReplies={quickReplies}
+            onPick={(q) => { haptic('light'); send(q) }}
+          />
+        )}
+
+        {messages.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease }}
+            transition={{ duration: 0.34, ease }}
             style={{
-              margin: 'auto 0', maxWidth: 460, width: '100%',
-              padding: '8px 4px',
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 12px',
+              borderRadius: 18,
+              border: '1px solid rgba(57,255,99,0.14)',
+              background: 'linear-gradient(135deg, rgba(57,255,99,0.08), rgba(255,255,255,0.025))',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
             }}
           >
-            {/* welcome bubble from support */}
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, ease, delay: 0.15 }}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                marginBottom: 22,
-              }}
-            >
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                background: `linear-gradient(135deg, ${TEAL}, ${TEAL_DEEP})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#04201f', fontWeight: 800, fontSize: 11,
-                boxShadow: '0 8px 20px -8px rgba(94,234,212,0.5)',
-              }}>FV</div>
-              <div style={{
-                maxWidth: '82%',
-                padding: '12px 16px 11px',
-                borderRadius: '4px 18px 18px 18px',
-                background: 'linear-gradient(160deg, rgba(94,234,212,0.07) 0%, rgba(20,28,38,0.85) 70%, rgba(15,20,28,0.95) 100%)',
-                border: '1px solid rgba(94,234,212,0.16)',
-                color: 'var(--t-primary)',
-                fontSize: 14.5, lineHeight: 1.5,
-                boxShadow: '0 14px 30px -16px rgba(0,0,0,0.6)',
-              }}>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                  {t('Привет 👋', 'Hey there 👋')}
-                </div>
-                <div style={{ color: 'var(--t-muted)', fontSize: 13.5 }}>
-                  {t(
-                    'Я на связи. Опишите вопрос или выберите тему ниже — отвечу в течение пары минут.',
-                    "I'm here. Describe your question or pick a topic below — I'll reply in a couple of minutes.",
-                  )}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* quick replies */}
             <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: 8,
-              paddingLeft: 42,
+              width: 34, height: 34, borderRadius: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(57,255,99,0.12)',
+              color: GREEN,
+              flexShrink: 0,
             }}>
-              {quickReplies.map((q, i) => (
-                <motion.button
-                  key={q}
-                  onClick={() => { haptic('light'); send(q) }}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.32, ease, delay: 0.35 + i * 0.06 }}
-                  whileHover={{
-                    backgroundColor: 'rgba(94,234,212,0.08)',
-                    borderColor: 'rgba(94,234,212,0.4)',
-                    color: TEAL,
-                  }}
-                  whileTap={{ scale: 0.96 }}
-                  style={{
-                    padding: '9px 14px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    background: 'rgba(255,255,255,0.02)',
-                    color: 'var(--t-primary)',
-                    fontSize: 12.5, fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'color 160ms',
-                  }}
-                >
-                  {q}
-                </motion.button>
-              ))}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
             </div>
-          </motion.div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: TEXT, fontWeight: 850, fontSize: 13.5, lineHeight: 1.2 }}>
+                {t('Диалог закреплён за live-командой', 'Live team is handling this thread')}
+              </div>
+              <div style={{ color: MUTED, fontSize: 11.5, lineHeight: 1.35, marginTop: 2 }}>
+                {t('Платежи, выдача и доступ — в одном тикете.', 'Payments, delivery and access — one ticket.')}
+              </div>
+            </div>
+          </motion.section>
         )}
 
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === 'day') {
-              return (
-                <div key={g.key} style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  margin: '6px 0 2px',
-                }}>
-                  <div style={{ flex: 1, height: 1, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
-                  <span style={{
-                    fontFamily: MONO,
-                    fontSize: 9, fontWeight: 600,
-                    color: 'var(--t-muted)',
-                    textTransform: 'uppercase', letterSpacing: '0.2em',
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                  }}>
-                    {g.label}
-                  </span>
-                  <div style={{ flex: 1, height: 1, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
-                </div>
-              )
+              return <DaySeparator key={g.key} label={g.label} />
             }
             const isUser = g.sender === 'user'
             return (
@@ -426,72 +342,79 @@ export default function Support() {
                 flexDirection: isUser ? 'row-reverse' : 'row',
                 alignItems: 'flex-end',
               }}>
-                {!isUser ? (
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                    background: `linear-gradient(135deg, ${TEAL}, ${TEAL_DEEP})`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#04201f', fontWeight: 800, fontSize: 9.5,
-                    boxShadow: '0 6px 16px -6px rgba(94,234,212,0.5)',
-                    marginBottom: 2,
-                  }}>FV</div>
-                ) : <div style={{ width: 28, flexShrink: 0 }} />}
+                {!isUser ? <SupportAvatar /> : <div style={{ width: 30, flexShrink: 0 }} />}
 
                 <div style={{
-                  display: 'flex', flexDirection: 'column',
+                  display: 'flex',
+                  flexDirection: 'column',
                   alignItems: isUser ? 'flex-end' : 'flex-start',
-                  gap: 3, maxWidth: 'calc(100% - 38px)',
+                  gap: 5,
+                  maxWidth: 'min(78%, 560px)',
                 }}>
                   {g.items.map((msg, idx) => {
                     const isFirst = idx === 0
                     const isLast = idx === g.items.length - 1
                     const radius = isUser
-                      ? `20px ${isFirst ? '20px' : '6px'} ${isLast ? '6px' : '20px'} 20px`
-                      : `${isFirst ? '20px' : '6px'} 20px 20px ${isLast ? '6px' : '20px'}`
+                      ? `22px ${isFirst ? '22px' : '10px'} ${isLast ? '8px' : '22px'} 22px`
+                      : `${isFirst ? '22px' : '10px'} 22px 22px ${isLast ? '8px' : '22px'}`
                     return (
-                      <motion.div
+                      <motion.article
                         key={msg.id}
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        initial={{ opacity: 0, y: 12, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.24, ease }}
+                        transition={{ duration: 0.25, ease }}
                         style={{
                           position: 'relative',
-                          padding: '10px 14px 9px',
+                          padding: isUser ? '12px 14px 10px 15px' : '12px 15px 10px 14px',
                           borderRadius: radius,
                           background: isUser
-                            ? `linear-gradient(135deg, ${TEAL} 0%, ${TEAL_DEEP} 100%)`
-                            : 'linear-gradient(160deg, rgba(94,234,212,0.05) 0%, rgba(22,30,40,0.92) 70%, rgba(15,20,28,0.96) 100%)',
-                          color: isUser ? '#04201f' : 'var(--t-primary)',
-                          border: isUser ? 'none' : '1px solid rgba(94,234,212,0.16)',
+                            ? 'linear-gradient(135deg, var(--fv-green, #39ff63), var(--fv-green-2, #22e84f))'
+                            : 'linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.028))',
+                          color: isUser ? '#021407' : TEXT,
+                          border: isUser ? '1px solid rgba(57,255,99,0.5)' : '1px solid rgba(255,255,255,0.10)',
                           boxShadow: isUser
-                            ? '0 12px 28px -14px rgba(94,234,212,0.55), inset 0 1px 0 rgba(255,255,255,0.22)'
-                            : '0 12px 26px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
+                            ? '0 14px 34px -18px rgba(57,255,99,0.7), inset 0 1px 0 rgba(255,255,255,0.36)'
+                            : '0 16px 34px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06)',
                           fontSize: 14.5,
-                          lineHeight: 1.45,
+                          lineHeight: 1.48,
                           wordBreak: 'break-word',
-                          fontWeight: isUser ? 600 : 500,
+                          fontWeight: isUser ? 800 : 650,
+                          letterSpacing: 0,
                         }}
                       >
+                        {!isUser && (
+                          <div aria-hidden style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 12,
+                            bottom: 12,
+                            width: 2,
+                            borderRadius: 99,
+                            background: GREEN,
+                            opacity: 0.8,
+                          }} />
+                        )}
                         <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
                         {isLast && (
                           <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: 5,
-                            float: 'right', marginLeft: 10, marginTop: 4,
+                            float: 'right', marginLeft: 12, marginTop: 5,
                             fontFamily: MONO,
-                            fontSize: 9.5, fontWeight: 600,
-                            color: isUser ? 'rgba(4,32,31,0.65)' : 'var(--t-muted)',
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            color: isUser ? 'rgba(2,20,7,0.58)' : MUTED,
                             letterSpacing: '0.08em',
                           }}>
                             {formatTime(msg.created, lang)}
                             {isUser && msg.id === lastUserId && (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 7L9.5 15.5 6 12"/>
-                                <path d="M22 7l-8.5 8.5"/>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 7L9.5 15.5 6 12" />
+                                <path d="M22 7l-8.5 8.5" />
                               </svg>
                             )}
                           </div>
                         )}
-                      </motion.div>
+                      </motion.article>
                     )
                   })}
                 </div>
@@ -502,23 +425,20 @@ export default function Support() {
           {typing && (
             <motion.div
               key="typing-bubble"
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.22 }}
               style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}
             >
+              <SupportAvatar active />
               <div style={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: `linear-gradient(135deg, ${TEAL}, ${TEAL_DEEP})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#04201f', fontWeight: 800, fontSize: 9.5,
-              }}>FV</div>
-              <div style={{
-                padding: '12px 16px',
-                borderRadius: '18px 18px 18px 6px',
-                background: 'linear-gradient(160deg, rgba(94,234,212,0.06) 0%, rgba(22,30,40,0.9) 100%)',
-                border: '1px solid rgba(94,234,212,0.16)',
+                padding: '13px 17px',
+                borderRadius: '20px 20px 20px 8px',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.028))',
+                border: '1px solid rgba(255,255,255,0.10)',
+                color: GREEN,
+                boxShadow: '0 16px 34px -20px rgba(0,0,0,0.8)',
               }}>
                 <TypingDots size={6} />
               </div>
@@ -526,9 +446,8 @@ export default function Support() {
           )}
         </AnimatePresence>
         <div ref={bottomRef} />
-      </div>
+      </main>
 
-      {/* scroll-to-bottom */}
       <AnimatePresence>
         {showScrollDown && (
           <motion.button
@@ -538,136 +457,335 @@ export default function Support() {
             onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
             whileTap={{ scale: 0.92 }}
             style={{
-              position: 'absolute', right: 18, bottom: 96, zIndex: 3,
-              width: 40, height: 40, borderRadius: '50%',
-              background: 'rgba(15,20,28,0.92)',
-              border: '1px solid rgba(94,234,212,0.3)',
-              color: TEAL, cursor: 'pointer',
+              position: 'absolute', right: 18, bottom: 116, zIndex: 4,
+              width: 42, height: 42, borderRadius: 15,
+              background: 'rgba(10,12,11,0.94)',
+              border: '1px solid rgba(57,255,99,0.32)',
+              color: GREEN,
+              cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backdropFilter: 'blur(14px)',
-              boxShadow: '0 12px 30px -10px rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 16px 34px -14px rgba(0,0,0,0.75)',
             }}
             aria-label="Scroll down"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
             </svg>
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* ── INPUT ──────────────────────────────────────── */}
-      <div style={{
-        position: 'relative', zIndex: 2,
+      <footer style={{
+        position: 'relative', zIndex: 3,
         flexShrink: 0,
-        padding: '12px 14px max(12px, env(safe-area-inset-bottom))',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        background: 'linear-gradient(180deg, rgba(10,14,20,0.55), rgba(10,14,20,0.95))',
-        backdropFilter: 'blur(18px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-        display: 'flex', alignItems: 'flex-end', gap: 10,
+        padding: '10px 14px max(12px, env(safe-area-inset-bottom))',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(180deg, rgba(3,3,3,0.72), rgba(3,3,3,0.98))',
+        backdropFilter: 'blur(24px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
       }}>
-        <motion.div
-          animate={{
-            borderColor: focused ? 'rgba(94,234,212,0.35)' : 'rgba(255,255,255,0.08)',
-            boxShadow: focused
-              ? '0 0 0 4px rgba(94,234,212,0.08), 0 8px 24px -12px rgba(94,234,212,0.3)'
-              : '0 0 0 0 rgba(94,234,212,0)',
-          }}
-          transition={{ duration: 0.2 }}
-          style={{
-            flex: 1,
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 22,
-            padding: '2px 6px 2px 6px',
-            display: 'flex', alignItems: 'center', gap: 4,
+        {messages.length > 0 && (
+          <div style={{
+            display: 'flex', gap: 8,
+            overflowX: 'auto',
+            padding: '0 0 9px',
+            scrollbarWidth: 'none',
           }}>
-          <button
-            type="button"
-            onClick={() => haptic('light')}
-            style={{
-              width: 36, height: 36, flexShrink: 0,
-              borderRadius: '50%', border: 'none',
-              background: 'transparent', color: 'var(--t-muted)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
+            {quickReplies.map((q) => (
+              <motion.button
+                key={q}
+                type="button"
+                onClick={() => { haptic('light'); send(q) }}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                  flex: '0 0 auto',
+                  padding: '8px 11px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(57,255,99,0.18)',
+                  background: 'rgba(57,255,99,0.055)',
+                  color: SOFT,
+                  fontSize: 11.5,
+                  fontWeight: 760,
+                  cursor: 'pointer',
+                  letterSpacing: 0,
+                }}
+              >
+                {q}
+              </motion.button>
+            ))}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 9 }}>
+          <motion.div
+            animate={{
+              borderColor: focused ? 'rgba(57,255,99,0.42)' : 'rgba(255,255,255,0.12)',
+              boxShadow: focused
+                ? '0 0 0 4px rgba(57,255,99,0.08), 0 12px 30px -18px rgba(57,255,99,0.65)'
+                : '0 0 0 0 rgba(57,255,99,0)',
             }}
-            aria-label="Attach"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
-          </button>
-          <textarea
-            ref={taRef}
-            placeholder={t('Сообщение…', 'Message…')}
-            value={text}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={(e) => {
-              setText(e.target.value)
-              const el = e.target as HTMLTextAreaElement
-              el.style.height = 'auto'
-              el.style.height = Math.min(el.scrollHeight, 120) + 'px'
-            }}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-            rows={1}
+            transition={{ duration: 0.18 }}
             style={{
               flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              color: 'var(--t-primary)',
-              fontFamily: 'var(--font, inherit)',
-              fontSize: 14.5,
-              lineHeight: 1.45,
-              padding: '11px 4px',
-              maxHeight: 120,
+              minHeight: 50,
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025))',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 18,
+              padding: '3px 5px',
+              display: 'flex', alignItems: 'center', gap: 3,
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
             }}
-          />
-        </motion.div>
+          >
+            <button
+              type="button"
+              onClick={() => haptic('light')}
+              style={{
+                width: 40, height: 40, flexShrink: 0,
+                borderRadius: 14,
+                border: 'none',
+                background: 'transparent',
+                color: MUTED,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              aria-label="Attach"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
+            <textarea
+              ref={taRef}
+              placeholder={t('Напишите в support desk…', 'Message support desk…')}
+              value={text}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onChange={(e) => {
+                setText(e.target.value)
+                const el = e.target as HTMLTextAreaElement
+                el.style.height = 'auto'
+                el.style.height = Math.min(el.scrollHeight, 118) + 'px'
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+              rows={1}
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                color: TEXT,
+                fontFamily: 'var(--font, inherit)',
+                fontSize: 14.5,
+                lineHeight: 1.45,
+                padding: '12px 4px',
+                maxHeight: 118,
+                letterSpacing: 0,
+              }}
+            />
+          </motion.div>
 
-        <motion.button
-          onClick={handleSend}
-          disabled={!text.trim()}
-          whileTap={{ scale: 0.88 }}
-          animate={{
-            scale: text.trim() ? 1 : 0.92,
-            rotate: text.trim() ? 0 : -90,
-          }}
-          transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-          style={{
-            width: 44, height: 44, borderRadius: '50%',
-            flexShrink: 0,
-            background: text.trim()
-              ? `linear-gradient(135deg, ${TEAL}, ${TEAL_DEEP})`
-              : 'rgba(255,255,255,0.04)',
-            border: text.trim() ? 'none' : '1px solid rgba(255,255,255,0.08)',
-            color: text.trim() ? '#04201f' : 'var(--t-muted)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: text.trim() ? 'pointer' : 'default',
-            boxShadow: text.trim()
-              ? '0 12px 28px -10px rgba(94,234,212,0.55), inset 0 1px 0 rgba(255,255,255,0.25)'
-              : 'none',
-            transition: 'background 200ms, box-shadow 200ms',
-          }}
-          aria-label="Send"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </motion.button>
+          <motion.button
+            onClick={handleSend}
+            disabled={!text.trim()}
+            whileTap={{ scale: 0.88 }}
+            animate={{ scale: text.trim() ? 1 : 0.94 }}
+            transition={{ type: 'spring', stiffness: 330, damping: 24 }}
+            style={{
+              width: 50, height: 50, borderRadius: 17,
+              flexShrink: 0,
+              background: text.trim()
+                ? 'linear-gradient(135deg, var(--fv-green, #39ff63), var(--fv-green-2, #22e84f))'
+                : 'rgba(255,255,255,0.055)',
+              border: text.trim() ? '1px solid rgba(57,255,99,0.55)' : '1px solid rgba(255,255,255,0.12)',
+              color: text.trim() ? '#021407' : MUTED,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: text.trim() ? 'pointer' : 'default',
+              boxShadow: text.trim()
+                ? '0 14px 32px -12px rgba(57,255,99,0.72), inset 0 1px 0 rgba(255,255,255,0.34)'
+                : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+              transition: 'background 200ms, box-shadow 200ms, border-color 200ms',
+            }}
+            aria-label="Send"
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.45" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 2 11 13" />
+              <path d="m22 2-7 20-4-9-9-4 20-7Z" />
+            </svg>
+          </motion.button>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+function StatusChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{
+      minWidth: 0,
+      padding: '8px 9px',
+      borderRadius: 14,
+      background: 'rgba(255,255,255,0.035)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+    }}>
+      <div style={{
+        fontFamily: MONO,
+        color: MUTED,
+        fontSize: 8,
+        fontWeight: 850,
+        letterSpacing: '0.14em',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}>{label}</div>
+      <div style={{
+        color: TEXT,
+        fontSize: 11.5,
+        fontWeight: 850,
+        lineHeight: 1.1,
+        marginTop: 4,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}>{value}</div>
+    </div>
+  )
+}
+
+function DaySeparator({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 11, margin: '2px 0 0' }}>
+      <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.11))' }} />
+      <span style={{
+        fontFamily: MONO,
+        fontSize: 9,
+        fontWeight: 850,
+        color: MUTED,
+        textTransform: 'uppercase',
+        letterSpacing: '0.16em',
+        padding: '5px 9px',
+        borderRadius: 999,
+        background: 'rgba(255,255,255,0.035)',
+        border: '1px solid rgba(255,255,255,0.07)',
+      }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.11), transparent)' }} />
+    </div>
+  )
+}
+
+function SupportAvatar({ large = false, active = false }: { large?: boolean; active?: boolean }) {
+  const size = large ? 46 : 30
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0, marginBottom: large ? 0 : 2 }}>
+      <motion.div
+        aria-hidden
+        style={{
+          position: 'absolute', inset: -2,
+          borderRadius: large ? 18 : 12,
+          border: '1px solid rgba(57,255,99,0.36)',
+        }}
+        animate={active ? { opacity: [0.55, 0.1, 0.55], scale: [1, 1.08, 1] } : { opacity: 0.35, scale: 1 }}
+        transition={{ duration: 1.8, repeat: active ? Infinity : 0, ease: 'easeInOut' }}
+      />
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: large ? 16 : 11,
+        background: 'linear-gradient(135deg, var(--fv-green, #39ff63), var(--fv-green-2, #22e84f))',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#021407',
+        fontWeight: 950,
+        fontSize: large ? 12 : 9,
+        letterSpacing: '-0.02em',
+        boxShadow: '0 10px 28px -12px rgba(57,255,99,0.82), inset 0 1px 0 rgba(255,255,255,0.34)',
+      }}>
+        FV
       </div>
     </div>
   )
 }
 
+function EmptyChat({
+  t,
+  quickReplies,
+  onPick,
+}: {
+  t: (ru: string, en: string) => string
+  quickReplies: string[]
+  onPick: (reply: string) => void
+}) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.44, ease }}
+      style={{
+        margin: 'auto 0',
+        display: 'grid',
+        gap: 14,
+      }}
+    >
+      <div style={{
+        padding: '18px',
+        borderRadius: 24,
+        border: '1px solid rgba(57,255,99,0.16)',
+        background: 'linear-gradient(145deg, rgba(57,255,99,0.10), rgba(255,255,255,0.035))',
+        boxShadow: '0 22px 44px -30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.06)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <SupportAvatar large />
+          <div>
+            <div style={{ color: TEXT, fontSize: 18, fontWeight: 950, lineHeight: 1.05 }}>
+              {t('Привет, на связи.', 'Hey, we are live.')}
+            </div>
+            <div style={{ color: SOFT, fontSize: 13, lineHeight: 1.45, marginTop: 7 }}>
+              {t(
+                'Опишите задачу коротко: заказ, оплата, доступ или выдача. Команда видит контекст и ответит без лишних вопросов.',
+                'Drop the issue: order, payment, access or delivery. The team sees the context and replies fast.',
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {quickReplies.map((q, i) => (
+          <motion.button
+            key={q}
+            onClick={() => onPick(q)}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease, delay: 0.12 + i * 0.04 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              padding: '12px 11px',
+              minHeight: 46,
+              borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.09)',
+              background: 'rgba(255,255,255,0.04)',
+              color: TEXT,
+              fontSize: 12.5,
+              fontWeight: 800,
+              cursor: 'pointer',
+              textAlign: 'left',
+              letterSpacing: 0,
+            }}
+          >
+            {q}
+          </motion.button>
+        ))}
+      </div>
+    </motion.section>
+  )
+}
+
 function TypingDots({ size = 4 }: { size?: number }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: size - 1 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: Math.max(2, size - 1) }}>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
@@ -675,8 +793,8 @@ function TypingDots({ size = 4 }: { size?: number }) {
             width: size, height: size, borderRadius: '50%',
             background: 'currentColor', display: 'inline-block',
           }}
-          animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
+          animate={{ opacity: [0.32, 1, 0.32], y: [0, -2, 0] }}
+          transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: 'easeInOut' }}
         />
       ))}
     </span>
