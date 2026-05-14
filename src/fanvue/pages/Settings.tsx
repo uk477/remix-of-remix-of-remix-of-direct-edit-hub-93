@@ -687,8 +687,8 @@ export default function Settings() {
                 Internal Build<br />
                 <span style={{ color: 'rgba(255,255,255,0.5)' }}>v2.0.0_</span>
                 <motion.span
-                  animate={{ opacity: [1, 0, 1] }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'steps(2)' }}
+                  animate={{ opacity: [1, 1, 0, 0, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: 'linear', times: [0, 0.49, 0.5, 0.99, 1] }}
                   style={{ color: NEON }}
                 >STABLE</motion.span>
               </div>
