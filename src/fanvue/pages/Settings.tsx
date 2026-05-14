@@ -845,36 +845,26 @@ export default function Settings() {
             {/* === MAIN DIAGONAL CTA: НАШ ЧАТ === */}
             <motion.button
               variants={fadeUp}
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              whileHover={{ borderColor: 'rgba(0,255,136,0.38)', backgroundColor: 'rgba(0,255,136,0.08)' }}
               onClick={() => { haptic('medium'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
               style={{
-                width: '100%', background: NEON, color: '#000',
-                padding: '20px 22px', position: 'relative', overflow: 'hidden',
-                border: 0, cursor: 'pointer', textAlign: 'left',
-                clipPath: 'polygon(0 0, 100% 0, 96% 100%, 0% 100%)',
+                width: '100%', background: 'rgba(255,255,255,0.04)', color: '#fff',
+                padding: '18px 18px', position: 'relative', overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.11)', cursor: 'pointer', textAlign: 'left',
+                clipPath: 'none',
                 marginBottom: 36,
-                boxShadow: `0 18px 50px -16px ${NEON}88`,
+                boxShadow: '0 18px 44px -26px rgba(0,0,0,0.85)',
                 fontFamily: inter,
+                backdropFilter: 'blur(14px)',
               }}
             >
-              {/* Sweep shine */}
-              <motion.div
-                aria-hidden
-                initial={{ x: '-130%' }}
-                animate={{ x: '230%' }}
-                transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
-                style={{
-                  position: 'absolute', top: 0, bottom: 0, width: 90,
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
-                  transform: 'skewX(-20deg)', pointerEvents: 'none',
-                }}
-              />
+              <div aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: NEON, boxShadow: `0 0 16px ${NEON}77` }} />
               {/* Ghost label */}
               <div aria-hidden style={{
                 position: 'absolute', right: -12, bottom: -34,
                 fontSize: 110, fontWeight: 900, fontStyle: 'italic',
-                color: 'rgba(0,0,0,0.08)', lineHeight: 1, letterSpacing: '-0.06em',
+                color: 'rgba(255,255,255,0.025)', lineHeight: 1, letterSpacing: '-0.06em',
                 userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
               }}>
                 CHAT
@@ -882,22 +872,22 @@ export default function Settings() {
 
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(0,0,0,0.6)', marginBottom: 4 }}>
+                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: NEON, marginBottom: 4 }}>
                     {lang === 'ru' ? 'New · Сообщество' : 'New · Community'}
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 900, fontStyle: 'italic', color: '#000', letterSpacing: '-0.03em', lineHeight: 0.95, textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 30, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.03em', lineHeight: 0.95, textTransform: 'uppercase' }}>
                     {lang === 'ru' ? 'НАШ ЧАТ' : 'OUR CHAT'}
                   </div>
                 </div>
                 <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                   style={{
-                    width: 48, height: 48, flexShrink: 0,
-                    border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 44, height: 44, flexShrink: 0,
+                    border: '1px solid rgba(0,255,136,0.28)', color: NEON,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(0,255,136,0.08)',
                   }}
                 >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </motion.div>
