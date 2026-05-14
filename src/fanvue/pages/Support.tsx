@@ -6,8 +6,10 @@ import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+function formatTime(iso: string, lang: string) {
+  return new Date(iso).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+    hour: '2-digit', minute: '2-digit', hour12: lang !== 'ru',
+  })
 }
 
 function formatDay(iso: string, lang: string) {
@@ -289,7 +291,7 @@ export default function Support() {
                         color: isUser ? 'rgba(26,20,16,0.55)' : 'var(--t-faint)',
                         letterSpacing: '0.04em',
                       }}>
-                        {formatTime(msg.created)}
+                        {formatTime(msg.created, lang)}
                       </div>
                     </motion.div>
                   )
