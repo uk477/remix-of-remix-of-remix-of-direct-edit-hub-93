@@ -1,13 +1,5 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-  type CSSProperties,
-  type RefObject,
-} from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect, useCallback, useMemo, type RefObject } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { useTelegram } from "../hooks/useTelegram";
@@ -24,63 +16,12 @@ const SOFT = "var(--t-secondary, rgba(255,255,255,0.72))";
 const MUTED = "var(--t-muted, rgba(255,255,255,0.48))";
 const MONO = "var(--font-mono, ui-sans-serif, system-ui, sans-serif)";
 
-type VariantId = "ledger" | "signal" | "receipt" | "editorial" | "control";
 type SupportMessage = {
   id: number | string;
   sender: "user" | "admin";
   text: string;
   created: string;
 };
-
-const VARIANTS: Array<{
-  id: VariantId;
-  index: string;
-  titleRu: string;
-  titleEn: string;
-  noteRu: string;
-  noteEn: string;
-}> = [
-  {
-    id: "ledger",
-    index: "01",
-    titleRu: "Case Ledger",
-    titleEn: "Case Ledger",
-    noteRu: "заявка как премиум-досье",
-    noteEn: "premium case dossier",
-  },
-  {
-    id: "signal",
-    index: "02",
-    titleRu: "Signal Desk",
-    titleEn: "Signal Desk",
-    noteRu: "радио-канал поддержки",
-    noteEn: "live signal desk",
-  },
-  {
-    id: "receipt",
-    index: "03",
-    titleRu: "Market Receipt",
-    titleEn: "Market Receipt",
-    noteRu: "чат как чек сделки",
-    noteEn: "conversation as a receipt",
-  },
-  {
-    id: "editorial",
-    index: "04",
-    titleRu: "Concierge Note",
-    titleEn: "Concierge Note",
-    noteRu: "бутик-консьерж",
-    noteEn: "boutique concierge",
-  },
-  {
-    id: "control",
-    index: "05",
-    titleRu: "Ops Board",
-    titleEn: "Ops Board",
-    noteRu: "операционный центр",
-    noteEn: "operations board",
-  },
-];
 
 function formatTime(iso: string, lang: string) {
   return new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-US", {
@@ -119,19 +60,17 @@ export default function Support() {
   const [kbHeight, setKbHeight] = useState(0);
   const [focused, setFocused] = useState(false);
   const [typing, setTyping] = useState(false);
-  const [variant, setVariant] = useState<VariantId>("ledger");
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const typingTimer = useRef<number | null>(null);
 
-  const current = VARIANTS.find((v) => v.id === variant) ?? VARIANTS[0];
-
   useEffect(() => {
     clearSupportUnread();
   }, [clearSupportUnread]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, typing, variant]);
+  }, [messages, typing]);
 
   useEffect(() => {
     if (messages.length === 0) return;
@@ -203,6 +142,7 @@ export default function Support() {
       sender: "user" | "admin";
       items: SupportMessage[];
     } | null = null;
+
     messages.forEach((m) => {
       const day = new Date(m.created).toDateString();
       if (day !== lastDay) {
@@ -216,12 +156,14 @@ export default function Support() {
       }
       cur.items.push(m);
     });
+
     return out;
   }, [messages, lang]);
 
   const lastUserId = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--)
+    for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].sender === "user") return messages[i].id;
+    }
     return null;
   }, [messages]);
 
@@ -241,171 +183,45 @@ export default function Support() {
         color: TEXT,
       }}
     >
-      <Ambient variant={variant} />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: [
+            "radial-gradient(88% 34% at 50% -8%, rgba(57,255,99,0.13), transparent 66%)",
+            "linear-gradient(180deg, rgba(57,255,99,0.028), transparent 32%)",
+          ].join(","),
+        }}
+      />
 
-      <motion.header
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, ease }}
-        style={{ position: "relative", zIndex: 3, flexShrink: 0 }}
-      >
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: variant === "receipt" ? 8 : 22,
-            border:
-              variant === "ledger"
-                ? "1px solid rgba(57,255,99,0.25)"
-                : "1px solid rgba(255,255,255,0.12)",
-            background: headerBackground(variant),
-            boxShadow: "0 20px 48px -30px rgba(0,0,0,0.96), inset 0 1px 0 rgba(255,255,255,0.07)",
-          }}
-        >
-          <div
-            style={{
-              position: "relative",
-              padding: "12px 12px 10px",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <motion.button
-              onClick={() => {
-                haptic("light");
-                navigate("/support");
-              }}
-              whileTap={{ scale: 0.92 }}
-              style={{
-                width: 39,
-                height: 39,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid rgba(255,255,255,0.14)",
-                borderRadius: variant === "receipt" ? 7 : 14,
-                background: "rgba(255,255,255,0.045)",
-                color: TEXT,
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-              aria-label={t("Назад", "Back")}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.45"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
-            </motion.button>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontFamily:
-                    variant === "receipt" ? MONO : "var(--font-display, Inter, system-ui)",
-                  color: TEXT,
-                  fontSize: variant === "editorial" ? 21 : 17,
-                  fontWeight: variant === "editorial" ? 900 : 950,
-                  lineHeight: 1,
-                  letterSpacing: variant === "receipt" ? "0.02em" : "0.08em",
-                  textTransform: variant === "editorial" ? "none" : "uppercase",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                <span>{lang === "ru" ? current.titleRu : current.titleEn}</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}>
-                <motion.span
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 999,
-                    background: GREEN,
-                    boxShadow: "0 0 0 4px rgba(57,255,99,0.10), 0 0 18px rgba(57,255,99,0.85)",
-                  }}
-                  animate={{ opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span
-                  style={{
-                    color: typing ? GREEN : SOFT,
-                    fontSize: 11,
-                    fontWeight: 850,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {typing
-                    ? t("оператор печатает", "operator typing")
-                    : `${current.index} · ${lang === "ru" ? current.noteRu : current.noteEn}`}
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                placeItems: "center",
-                minWidth: 44,
-                height: 39,
-                borderRadius: variant === "receipt" ? 7 : 14,
-                background: variant === "receipt" ? "transparent" : GREEN,
-                color: variant === "receipt" ? GREEN : BLACK,
-                border:
-                  variant === "receipt"
-                    ? "1px dashed rgba(57,255,99,0.45)"
-                    : "1px solid rgba(57,255,99,0.55)",
-                fontFamily: MONO,
-                fontSize: 10,
-                fontWeight: 950,
-              }}
-            >
-              24/7
-            </div>
-          </div>
-
-          <VariantPicker
-            variant={variant}
-            setVariant={(id) => {
-              haptic("light");
-              setVariant(id);
-            }}
-          />
-        </div>
-      </motion.header>
+      <Header
+        typing={typing}
+        t={t}
+        onBack={() => {
+          haptic("light");
+          navigate("/support");
+        }}
+      />
 
       <main
         style={{
           position: "relative",
           zIndex: 1,
           flex: 1,
-          overflowY: "auto",
           minHeight: 0,
-          padding: variant === "editorial" ? "16px 0 10px" : "13px 0 8px",
-          display: "flex",
-          flexDirection: "column",
-          gap: variant === "receipt" ? 8 : 11,
+          overflowY: "auto",
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
+          padding: "12px 0 8px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
         }}
       >
         {messages.length === 0 && (
           <EmptyChat
-            variant={variant}
             t={t}
             quickReplies={quickReplies}
             onPick={(q) => {
@@ -415,28 +231,18 @@ export default function Support() {
           />
         )}
 
-        <AnimatePresence initial={false} mode="popLayout">
+        <AnimatePresence initial={false}>
           {groups.map((g) => {
-            if (g.type === "day")
-              return <DaySeparator key={g.key} label={g.label} variant={variant} />;
-            return (
-              <MessageGroup
-                key={`${variant}-${g.key}`}
-                variant={variant}
-                group={g}
-                lang={lang}
-                lastUserId={lastUserId}
-              />
-            );
+            if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
+            return <MessageGroup key={g.key} group={g} lang={lang} lastUserId={lastUserId} />;
           })}
 
-          {typing && <TypingIndicator key={`typing-${variant}`} variant={variant} />}
+          {typing && <TypingIndicator key="typing" />}
         </AnimatePresence>
         <div ref={bottomRef} />
       </main>
 
       <Composer
-        variant={variant}
         focused={focused}
         text={text}
         setText={setText}
@@ -452,627 +258,198 @@ export default function Support() {
   );
 }
 
-function Ambient({ variant }: { variant: VariantId }) {
-  const pattern =
-    variant === "receipt"
-      ? "linear-gradient(rgba(57,255,99,0.05) 1px, transparent 1px)"
-      : "radial-gradient(92% 42% at 50% -8%, rgba(57,255,99,0.17), transparent 62%), radial-gradient(70% 28% at 100% 32%, rgba(57,255,99,0.08), transparent 70%)";
+function Header({
+  typing,
+  t,
+  onBack,
+}: {
+  typing: boolean;
+  t: (ru: string, en: string) => string;
+  onBack: () => void;
+}) {
   return (
-    <div
-      aria-hidden
-      style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}
+    <motion.header
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.34, ease }}
+      style={{
+        position: "relative",
+        zIndex: 3,
+        flexShrink: 0,
+        overflow: "hidden",
+        borderRadius: 22,
+        border: "1px solid rgba(57,255,99,0.18)",
+        background: "linear-gradient(145deg, rgba(16,17,17,0.98), rgba(5,18,9,0.96))",
+        boxShadow: "0 18px 44px -30px rgba(0,0,0,0.96), inset 0 1px 0 rgba(255,255,255,0.06)",
+      }}
     >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px" }}>
+        <motion.button
+          onClick={onBack}
+          whileTap={{ scale: 0.92 }}
+          aria-label={t("Назад", "Back")}
+          style={{
+            width: 40,
+            height: 40,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            border: "1px solid rgba(255,255,255,0.13)",
+            borderRadius: 14,
+            background: "rgba(255,255,255,0.045)",
+            color: TEXT,
+            cursor: "pointer",
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.45"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </motion.button>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                background: GREEN,
+                color: BLACK,
+                display: "grid",
+                placeItems: "center",
+                fontWeight: 950,
+                fontSize: 17,
+                lineHeight: 1,
+              }}
+            >
+              F
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-display, Inter, system-ui)",
+                  color: TEXT,
+                  fontSize: 18,
+                  fontWeight: 950,
+                  lineHeight: 1,
+                  letterSpacing: "0.09em",
+                  textTransform: "uppercase",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {t("Поддержка", "Support")}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}>
+                <motion.span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: GREEN,
+                    boxShadow: "0 0 0 4px rgba(57,255,99,0.10), 0 0 16px rgba(57,255,99,0.72)",
+                  }}
+                  animate={{ opacity: [0.55, 1, 0.55] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <span style={{ color: typing ? GREEN : SOFT, fontSize: 11, fontWeight: 850 }}>
+                  {typing
+                    ? t("оператор печатает", "operator typing")
+                    : t("7 онлайн · ответ до 30м", "7 online · reply < 30m")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            placeItems: "center",
+            minWidth: 42,
+            height: 40,
+            borderRadius: 14,
+            background: GREEN,
+            color: BLACK,
+            fontFamily: MONO,
+            fontSize: 10.5,
+            fontWeight: 950,
+            boxShadow:
+              "0 14px 30px -18px rgba(57,255,99,0.76), inset 0 1px 0 rgba(255,255,255,0.32)",
+          }}
+        >
+          24/7
+        </div>
+      </div>
+
       <div
         style={{
-          position: "absolute",
-          inset: 0,
-          background: pattern,
-          backgroundSize: variant === "receipt" ? "100% 18px" : undefined,
-          opacity: variant === "receipt" ? 0.55 : 1,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          borderTop: "1px solid rgba(255,255,255,0.07)",
         }}
-      />
-      {variant !== "receipt" && (
-        <div
-          style={{
-            position: "absolute",
-            inset: "10% -18% auto",
-            height: 220,
-            background: "linear-gradient(90deg, transparent, rgba(57,255,99,0.10), transparent)",
-            filter: "blur(36px)",
-            transform: "rotate(-10deg)",
-          }}
-        />
-      )}
-      {variant === "control" && (
-        <div
-          style={{
-            position: "absolute",
-            right: -80,
-            bottom: 90,
-            width: 260,
-            height: 260,
-            border: "1px solid rgba(57,255,99,0.10)",
-            borderRadius: 999,
-          }}
-        />
-      )}
-    </div>
+      >
+        <HeaderMetric value="FAST" label={t("Быстрая выдача", "Fast delivery")} />
+        <HeaderMetric value="SAFE" label={t("Защита сделки", "Order protected")} />
+      </div>
+    </motion.header>
   );
 }
 
-function headerBackground(variant: VariantId) {
-  if (variant === "receipt") return "linear-gradient(180deg, rgba(8,8,8,0.98), rgba(4,4,4,0.96))";
-  if (variant === "editorial")
-    return "linear-gradient(145deg, rgba(22,23,21,0.98), rgba(5,13,7,0.98))";
-  if (variant === "signal")
-    return "linear-gradient(135deg, rgba(57,255,99,0.16), rgba(7,8,7,0.98) 42%, rgba(18,20,18,0.98))";
-  if (variant === "control")
-    return "linear-gradient(145deg, rgba(11,31,15,0.98), rgba(13,14,13,0.98))";
-  return "linear-gradient(145deg, rgba(16,17,17,0.98), rgba(5,19,9,0.98))";
-}
-
-function VariantPicker({
-  variant,
-  setVariant,
-}: {
-  variant: VariantId;
-  setVariant: (id: VariantId) => void;
-}) {
+function HeaderMetric({ value, label }: { value: string; label: string }) {
   return (
     <div
       style={{
-        position: "relative",
+        minHeight: 38,
         display: "flex",
-        gap: 1,
-        borderTop: "1px solid rgba(255,255,255,0.07)",
-        padding: 3,
-        overflowX: "auto",
-        scrollbarWidth: "none",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        color: SOFT,
+        borderRight: value === "FAST" ? "1px solid rgba(255,255,255,0.07)" : "none",
+        background: "rgba(0,0,0,0.16)",
       }}
-    >
-      {VARIANTS.map((v) => {
-        const active = v.id === variant;
-        return (
-          <motion.button
-            key={v.id}
-            type="button"
-            onClick={() => setVariant(v.id)}
-            whileTap={{ scale: 0.96 }}
-            style={{
-              flex: "1 0 54px",
-              minHeight: 34,
-              border: active ? "1px solid rgba(57,255,99,0.55)" : "1px solid transparent",
-              borderRadius: 12,
-              background: active ? "rgba(57,255,99,0.14)" : "rgba(255,255,255,0.035)",
-              color: active ? GREEN : MUTED,
-              fontFamily: MONO,
-              fontSize: 10,
-              fontWeight: 950,
-              letterSpacing: "0.08em",
-              cursor: "pointer",
-            }}
-          >
-            {v.index}
-          </motion.button>
-        );
-      })}
-    </div>
-  );
-}
-
-function MessageGroup({
-  variant,
-  group,
-  lang,
-  lastUserId,
-}: {
-  variant: VariantId;
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-}) {
-  const isUser = group.sender === "user";
-  if (variant === "ledger")
-    return <LedgerGroup group={group} lang={lang} lastUserId={lastUserId} />;
-  if (variant === "signal")
-    return <SignalGroup group={group} lang={lang} lastUserId={lastUserId} />;
-  if (variant === "receipt")
-    return <ReceiptGroup group={group} lang={lang} lastUserId={lastUserId} />;
-  if (variant === "editorial")
-    return <EditorialGroup group={group} lang={lang} lastUserId={lastUserId} />;
-  return <ControlGroup group={group} lang={lang} lastUserId={lastUserId} isUser={isUser} />;
-}
-
-function LedgerGroup({
-  group,
-  lang,
-  lastUserId,
-}: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-}) {
-  const isUser = group.sender === "user";
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.24, ease }}
-      style={{ display: "grid", justifyItems: isUser ? "end" : "start", padding: "0 1px" }}
-    >
-      <div
-        style={{
-          width: isUser ? "86%" : "90%",
-          position: "relative",
-          paddingLeft: isUser ? 0 : 11,
-          paddingRight: isUser ? 11 : 0,
-        }}
-      >
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: 4,
-            bottom: 4,
-            [isUser ? "right" : "left"]: 0,
-            width: 2,
-            borderRadius: 999,
-            background: isUser ? GREEN : "rgba(255,255,255,0.18)",
-          }}
-        />
-        <div style={{ display: "grid", gap: 6 }}>
-          {group.items.map((msg) => (
-            <article
-              key={msg.id}
-              style={{
-                position: "relative",
-                padding: "12px 13px",
-                borderRadius: isUser ? "18px 18px 6px 18px" : "6px 18px 18px 18px",
-                background: isUser
-                  ? "linear-gradient(135deg, rgba(57,255,99,0.18), rgba(57,255,99,0.08))"
-                  : "linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.032))",
-                border: isUser
-                  ? "1px solid rgba(57,255,99,0.34)"
-                  : "1px solid rgba(255,255,255,0.09)",
-                boxShadow: "0 14px 30px -24px rgba(0,0,0,0.95)",
-              }}
-            >
-              <MessageMeta
-                isUser={isUser}
-                msg={msg}
-                lang={lang}
-                lastUserId={lastUserId}
-                label={isUser ? "CLIENT" : "CONCIERGE"}
-              />
-              <div
-                style={{
-                  marginTop: 7,
-                  color: isUser ? TEXT : "rgba(255,255,255,0.9)",
-                  fontSize: 14.5,
-                  lineHeight: 1.42,
-                  fontWeight: isUser ? 850 : 650,
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  textAlign: isUser ? "right" : "left",
-                }}
-              >
-                {msg.text}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </motion.section>
-  );
-}
-
-function SignalGroup({
-  group,
-  lang,
-  lastUserId,
-}: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-}) {
-  const isUser = group.sender === "user";
-  return (
-    <motion.section
-      initial={{ opacity: 0, x: isUser ? 16 : -16 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.26, ease }}
-      style={{ display: "grid", justifyItems: isUser ? "end" : "start" }}
-    >
-      <div
-        style={{
-          width: "88%",
-          clipPath: isUser
-            ? "polygon(0 0, 94% 0, 100% 18px, 100% 100%, 0 100%)"
-            : "polygon(0 0, 100% 0, 100% 100%, 6% 100%, 0 calc(100% - 18px))",
-          background: isUser ? "rgba(57,255,99,0.16)" : "rgba(255,255,255,0.055)",
-          border: `1px solid ${isUser ? "rgba(57,255,99,0.36)" : "rgba(255,255,255,0.10)"}`,
-          padding: 1,
-        }}
-      >
-        <div
-          style={{
-            padding: "12px 13px",
-            background: isUser
-              ? "linear-gradient(135deg, rgba(57,255,99,0.19), rgba(7,8,7,0.88))"
-              : "linear-gradient(145deg, rgba(16,18,16,0.96), rgba(5,5,5,0.96))",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 10,
-              alignItems: "center",
-              marginBottom: 8,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: MONO,
-                color: isUser ? GREEN : MUTED,
-                fontSize: 9,
-                fontWeight: 950,
-                letterSpacing: "0.16em",
-              }}
-            >
-              {isUser ? "OUTGOING" : "INCOMING"}
-            </span>
-            <span style={{ fontFamily: MONO, color: MUTED, fontSize: 9, fontWeight: 850 }}>
-              {formatTime(group.items[group.items.length - 1].created, lang)}
-            </span>
-          </div>
-          {group.items.map((msg) => (
-            <div
-              key={msg.id}
-              style={{
-                color: isUser ? TEXT : SOFT,
-                fontSize: 14.5,
-                lineHeight: 1.42,
-                fontWeight: isUser ? 850 : 680,
-                textAlign: isUser ? "right" : "left",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {msg.text}
-            </div>
-          ))}
-          {isUser && group.items.some((m) => m.id === lastUserId) && (
-            <div
-              style={{
-                marginTop: 7,
-                color: GREEN,
-                fontFamily: MONO,
-                fontSize: 9,
-                textAlign: "right",
-              }}
-            >
-              DELIVERED ✓
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.section>
-  );
-}
-
-function ReceiptGroup({
-  group,
-  lang,
-  lastUserId,
-}: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-}) {
-  const isUser = group.sender === "user";
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.24, ease }}
-      style={{ padding: "0 1px" }}
-    >
-      <div
-        style={{
-          borderTop: "1px dashed rgba(255,255,255,0.13)",
-          borderBottom: "1px dashed rgba(255,255,255,0.08)",
-          background: isUser ? "rgba(57,255,99,0.085)" : "rgba(255,255,255,0.035)",
-          padding: "10px 0",
-        }}
-      >
-        {group.items.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "58px 1fr",
-              gap: 10,
-              padding: "2px 8px",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: MONO,
-                fontSize: 10,
-                color: isUser ? GREEN : MUTED,
-                fontWeight: 900,
-              }}
-            >
-              {formatTime(msg.created, lang)}
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 9,
-                  color: isUser ? GREEN : "rgba(255,255,255,0.34)",
-                  letterSpacing: "0.14em",
-                  fontWeight: 950,
-                  marginBottom: 4,
-                }}
-              >
-                {isUser ? "CUSTOMER_LINE" : "SUPPORT_LINE"}
-              </div>
-              <div
-                style={{
-                  color: isUser ? TEXT : SOFT,
-                  fontSize: 14,
-                  lineHeight: 1.42,
-                  fontWeight: isUser ? 850 : 650,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {msg.text}
-              </div>
-              {isUser && msg.id === lastUserId && (
-                <div style={{ marginTop: 5, color: GREEN, fontFamily: MONO, fontSize: 9 }}>
-                  PAID / SENT ✓
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </motion.section>
-  );
-}
-
-function EditorialGroup({
-  group,
-  lang,
-  lastUserId,
-}: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-}) {
-  const isUser = group.sender === "user";
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.28, ease }}
-      style={{ display: "grid", justifyItems: isUser ? "end" : "start", padding: "0 2px" }}
-    >
-      <div
-        style={{ width: isUser ? "82%" : "92%", padding: isUser ? "0 2px 0 16px" : "0 16px 0 2px" }}
-      >
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 9,
-            fontWeight: 950,
-            letterSpacing: "0.18em",
-            color: isUser ? GREEN : MUTED,
-            marginBottom: 7,
-            textAlign: isUser ? "right" : "left",
-          }}
-        >
-          {isUser ? "YOUR NOTE" : "CONCIERGE"} ·{" "}
-          {formatTime(group.items[group.items.length - 1].created, lang)}
-        </div>
-        <div
-          style={{
-            color: isUser ? GREEN : TEXT,
-            fontSize: isUser ? 17 : 16,
-            lineHeight: 1.32,
-            fontWeight: isUser ? 900 : 730,
-            textAlign: isUser ? "right" : "left",
-            padding: isUser ? "0 0 0 18px" : "0 18px 0 0",
-            borderRight: isUser ? "2px solid rgba(57,255,99,0.75)" : "none",
-            borderLeft: isUser ? "none" : "2px solid rgba(255,255,255,0.16)",
-            textShadow: isUser ? "0 0 18px rgba(57,255,99,0.16)" : "none",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {group.items.map((msg) => msg.text).join("\n")}
-        </div>
-        {isUser && group.items.some((m) => m.id === lastUserId) && (
-          <div
-            style={{
-              marginTop: 7,
-              color: MUTED,
-              fontFamily: MONO,
-              fontSize: 9,
-              textAlign: "right",
-            }}
-          >
-            seen ✓
-          </div>
-        )}
-      </div>
-    </motion.section>
-  );
-}
-
-function ControlGroup({
-  group,
-  lang,
-  lastUserId,
-  isUser,
-}: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
-  lang: string;
-  lastUserId: number | string | null;
-  isUser: boolean;
-}) {
-  return (
-    <motion.section
-      initial={{ opacity: 0, scale: 0.98, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.24, ease }}
-      style={{ display: "grid", justifyItems: isUser ? "end" : "start", padding: "0 1px" }}
-    >
-      <div
-        style={{
-          width: isUser ? "84%" : "90%",
-          borderRadius: 18,
-          overflow: "hidden",
-          border: isUser ? "1px solid rgba(57,255,99,0.32)" : "1px solid rgba(255,255,255,0.10)",
-          background: isUser ? "rgba(57,255,99,0.10)" : "rgba(255,255,255,0.045)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 8,
-            padding: "8px 11px",
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
-            background: "rgba(0,0,0,0.18)",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: MONO,
-              color: isUser ? GREEN : SOFT,
-              fontSize: 9,
-              fontWeight: 950,
-              letterSpacing: "0.12em",
-            }}
-          >
-            {isUser ? "CLIENT REQUEST" : "SUPPORT ACTION"}
-          </span>
-          <span style={{ fontFamily: MONO, color: MUTED, fontSize: 9 }}>
-            {formatTime(group.items[group.items.length - 1].created, lang)}
-          </span>
-        </div>
-        <div style={{ padding: 12, display: "grid", gap: 8 }}>
-          {group.items.map((msg) => (
-            <div
-              key={msg.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "18px 1fr",
-                gap: 8,
-                alignItems: "start",
-              }}
-            >
-              <span
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 6,
-                  display: "grid",
-                  placeItems: "center",
-                  background: isUser ? GREEN : "rgba(255,255,255,0.08)",
-                  color: isUser ? BLACK : GREEN,
-                  fontSize: 10,
-                  fontWeight: 950,
-                }}
-              >
-                {isUser ? "→" : "✓"}
-              </span>
-              <span
-                style={{
-                  color: isUser ? TEXT : SOFT,
-                  fontSize: 14.5,
-                  lineHeight: 1.38,
-                  fontWeight: isUser ? 850 : 650,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {msg.text}
-              </span>
-            </div>
-          ))}
-          {isUser && group.items.some((m) => m.id === lastUserId) && (
-            <div style={{ color: GREEN, fontFamily: MONO, fontSize: 9, textAlign: "right" }}>
-              QUEUED · DELIVERED
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.section>
-  );
-}
-
-function MessageMeta({
-  isUser,
-  msg,
-  lang,
-  lastUserId,
-  label,
-}: {
-  isUser: boolean;
-  msg: SupportMessage;
-  lang: string;
-  lastUserId: number | string | null;
-  label: string;
-}) {
-  return (
-    <div
-      style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}
     >
       <span
         style={{
           fontFamily: MONO,
           fontSize: 9,
           fontWeight: 950,
-          letterSpacing: "0.16em",
-          color: isUser ? GREEN : MUTED,
+          color: GREEN,
+          letterSpacing: "0.08em",
+        }}
+      >
+        {value}
+      </span>
+      <span
+        style={{
+          fontSize: 11.5,
+          fontWeight: 850,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
         {label}
-      </span>
-      <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 850, color: MUTED }}>
-        {formatTime(msg.created, lang)} {isUser && msg.id === lastUserId ? "✓" : ""}
       </span>
     </div>
   );
 }
 
-function DaySeparator({ label, variant }: { label: string; variant: VariantId }) {
-  if (variant === "receipt") {
-    return (
-      <div
-        style={{
-          fontFamily: MONO,
-          fontSize: 9,
-          fontWeight: 950,
-          color: MUTED,
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          textAlign: "center",
-          padding: "4px 0",
-        }}
-      >
-        ── {label} ──
-      </div>
-    );
-  }
+function DaySeparator({ label }: { label: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0 0" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
       <div
         style={{
           flex: 1,
@@ -1085,13 +462,13 @@ function DaySeparator({ label, variant }: { label: string; variant: VariantId })
           fontFamily: MONO,
           fontSize: 9,
           fontWeight: 900,
-          color: variant === "editorial" ? "rgba(255,255,255,0.36)" : MUTED,
+          color: MUTED,
           textTransform: "uppercase",
           letterSpacing: "0.13em",
-          padding: variant === "editorial" ? "0 4px" : "4px 8px",
+          padding: "4px 8px",
           borderRadius: 999,
-          background: variant === "editorial" ? "transparent" : "rgba(255,255,255,0.035)",
-          border: variant === "editorial" ? "none" : "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.035)",
+          border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {label}
@@ -1107,37 +484,109 @@ function DaySeparator({ label, variant }: { label: string; variant: VariantId })
   );
 }
 
-function TypingIndicator({ variant }: { variant: VariantId }) {
-  if (variant === "receipt")
-    return (
-      <div style={{ fontFamily: MONO, color: GREEN, fontSize: 10, padding: "8px 10px" }}>
-        SUPPORT_LINE IS PRINTING <TypingDots size={4} />
+function MessageGroup({
+  group,
+  lang,
+  lastUserId,
+}: {
+  group: { sender: "user" | "admin"; items: SupportMessage[] };
+  lang: string;
+  lastUserId: number | string | null;
+}) {
+  const isUser = group.sender === "user";
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.24, ease }}
+      style={{
+        display: "flex",
+        justifyContent: isUser ? "flex-end" : "flex-start",
+        padding: "0 1px",
+      }}
+    >
+      <div
+        style={{
+          width: isUser ? "84%" : "88%",
+          borderRadius: isUser ? "18px 18px 6px 18px" : "6px 18px 18px 18px",
+          overflow: "hidden",
+          border: isUser ? "1px solid rgba(57,255,99,0.38)" : "1px solid rgba(255,255,255,0.09)",
+          background: isUser
+            ? "linear-gradient(135deg, rgba(57,255,99,0.18), rgba(57,255,99,0.08))"
+            : "linear-gradient(145deg, rgba(255,255,255,0.078), rgba(255,255,255,0.032))",
+          boxShadow: "0 14px 30px -24px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.05)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "8px 12px",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(0,0,0,0.16)",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: MONO,
+              fontSize: 9,
+              fontWeight: 950,
+              color: isUser ? GREEN : MUTED,
+              letterSpacing: "0.14em",
+            }}
+          >
+            {isUser ? "ВЫ" : "ОПЕРАТОР"}
+          </span>
+          <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 850, color: MUTED }}>
+            {formatTime(group.items[group.items.length - 1].created, lang)}
+            {isUser && group.items.some((m) => m.id === lastUserId) ? " ✓" : ""}
+          </span>
+        </div>
+
+        <div style={{ display: "grid", gap: 7, padding: "11px 12px 12px" }}>
+          {group.items.map((msg) => (
+            <div
+              key={msg.id}
+              style={{
+                color: isUser ? TEXT : "rgba(255,255,255,0.9)",
+                fontSize: 14.5,
+                lineHeight: 1.42,
+                fontWeight: isUser ? 850 : 650,
+                letterSpacing: 0,
+                textAlign: isUser ? "right" : "left",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {msg.text}
+            </div>
+          ))}
+        </div>
       </div>
-    );
+    </motion.section>
+  );
+}
+
+function TypingIndicator() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.22 }}
-      style={{
-        padding: "0 1px",
-        display: "flex",
-        justifyContent: variant === "editorial" ? "center" : "flex-start",
-      }}
+      style={{ display: "flex", justifyContent: "flex-start", padding: "0 1px" }}
     >
       <div
         style={{
-          padding: variant === "editorial" ? "9px 0" : "11px 15px",
-          borderRadius: variant === "signal" ? 4 : 18,
-          background:
-            variant === "editorial"
-              ? "transparent"
-              : "linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.032))",
-          border: variant === "editorial" ? "none" : "1px solid rgba(255,255,255,0.09)",
+          padding: "11px 15px",
+          borderRadius: "6px 18px 18px 18px",
+          background: "linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.032))",
+          border: "1px solid rgba(255,255,255,0.09)",
           color: GREEN,
-          fontFamily: MONO,
-          fontSize: 11,
         }}
       >
         <TypingDots size={5} />
@@ -1147,7 +596,6 @@ function TypingIndicator({ variant }: { variant: VariantId }) {
 }
 
 function Composer({
-  variant,
   focused,
   text,
   setText,
@@ -1159,7 +607,6 @@ function Composer({
   taRef,
   t,
 }: {
-  variant: VariantId;
   focused: boolean;
   text: string;
   setText: (value: string) => void;
@@ -1171,16 +618,6 @@ function Composer({
   taRef: RefObject<HTMLTextAreaElement>;
   t: (ru: string, en: string) => string;
 }) {
-  const isReceipt = variant === "receipt";
-  const panelStyle: CSSProperties = {
-    borderRadius: isReceipt ? 10 : variant === "signal" ? 20 : 26,
-    background: isReceipt ? "rgba(5,5,5,0.96)" : `linear-gradient(180deg, ${PANEL_2}, ${PANEL})`,
-    border: isReceipt ? "1px dashed rgba(255,255,255,0.16)" : "1px solid rgba(255,255,255,0.11)",
-    boxShadow: "0 -20px 54px -32px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06)",
-    padding: 8,
-    overflow: "hidden",
-  };
-
   return (
     <footer
       style={{
@@ -1194,12 +631,19 @@ function Composer({
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.34, ease }}
-        style={panelStyle}
+        style={{
+          borderRadius: 26,
+          background: `linear-gradient(180deg, ${PANEL_2}, ${PANEL})`,
+          border: "1px solid rgba(255,255,255,0.11)",
+          boxShadow: "0 -20px 54px -32px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06)",
+          padding: 8,
+          overflow: "hidden",
+        }}
       >
         <div
           style={{
             display: "flex",
-            gap: isReceipt ? 5 : 7,
+            gap: 7,
             overflowX: "auto",
             padding: "2px 2px 8px",
             scrollbarWidth: "none",
@@ -1220,16 +664,15 @@ function Composer({
               whileTap={{ scale: 0.96 }}
               style={{
                 flex: "0 0 auto",
-                minHeight: isReceipt ? 31 : 34,
+                minHeight: 34,
                 maxWidth: i === 1 ? 154 : 132,
-                padding: isReceipt ? "0 9px" : "0 12px",
-                borderRadius: isReceipt ? 6 : variant === "signal" ? 11 : 999,
+                padding: "0 12px",
+                borderRadius: 999,
                 border:
                   i === 0 ? "1px solid rgba(57,255,99,0.48)" : "1px solid rgba(255,255,255,0.10)",
                 background: i === 0 ? "rgba(57,255,99,0.13)" : "rgba(255,255,255,0.045)",
                 color: i === 0 ? GREEN : SOFT,
-                fontFamily: isReceipt ? MONO : "inherit",
-                fontSize: isReceipt ? 10 : 11.5,
+                fontSize: 11.5,
                 fontWeight: 850,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
@@ -1237,7 +680,7 @@ function Composer({
                 textOverflow: "ellipsis",
               }}
             >
-              {isReceipt ? `# ${q}` : q}
+              {q}
             </motion.button>
           ))}
         </div>
@@ -1252,9 +695,9 @@ function Composer({
             style={{
               flex: 1,
               minHeight: 48,
-              background: isReceipt ? "rgba(0,0,0,0.62)" : "rgba(0,0,0,0.34)",
+              background: "rgba(0,0,0,0.34)",
               border: "1px solid rgba(255,255,255,0.10)",
-              borderRadius: isReceipt ? 7 : variant === "signal" ? 14 : 18,
+              borderRadius: 18,
               padding: "0 14px",
               display: "flex",
               alignItems: "center",
@@ -1262,11 +705,7 @@ function Composer({
           >
             <textarea
               ref={taRef}
-              placeholder={
-                isReceipt
-                  ? t("новая строка сделки…", "new deal line…")
-                  : t("Напишите сообщение…", "Write a message…")
-              }
+              placeholder={t("Напишите сообщение…", "Write a message…")}
               value={text}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
@@ -1290,8 +729,8 @@ function Composer({
                 outline: "none",
                 resize: "none",
                 color: TEXT,
-                fontFamily: isReceipt ? MONO : "inherit",
-                fontSize: isReceipt ? 12.5 : 14.5,
+                fontFamily: "inherit",
+                fontSize: 14.5,
                 lineHeight: 1.4,
                 padding: "13px 0",
                 maxHeight: 108,
@@ -1308,7 +747,7 @@ function Composer({
             style={{
               width: 48,
               height: 48,
-              borderRadius: isReceipt ? 7 : variant === "signal" ? 14 : 17,
+              borderRadius: 17,
               flexShrink: 0,
               background: text.trim()
                 ? `linear-gradient(135deg, ${GREEN}, ${GREEN_2})`
@@ -1348,12 +787,10 @@ function Composer({
 }
 
 function EmptyChat({
-  variant,
   t,
   quickReplies,
   onPick,
 }: {
-  variant: VariantId;
   t: (ru: string, en: string) => string;
   quickReplies: string[];
   onPick: (reply: string) => void;
@@ -1369,27 +806,14 @@ function EmptyChat({
         style={{
           position: "relative",
           overflow: "hidden",
-          borderRadius: variant === "receipt" ? 8 : 24,
+          borderRadius: 24,
           padding: 16,
-          background:
-            variant === "receipt"
-              ? "rgba(255,255,255,0.035)"
-              : `linear-gradient(145deg, ${PANEL_2}, rgba(5,19,9,0.98))`,
-          border:
-            variant === "receipt"
-              ? "1px dashed rgba(255,255,255,0.16)"
-              : "1px solid rgba(57,255,99,0.18)",
+          background: `linear-gradient(145deg, ${PANEL_2}, rgba(5,19,9,0.98))`,
+          border: "1px solid rgba(57,255,99,0.18)",
           boxShadow: "0 22px 48px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
-        <div
-          style={{
-            color: TEXT,
-            fontSize: variant === "editorial" ? 24 : 20,
-            fontWeight: 950,
-            lineHeight: 1.02,
-          }}
-        >
+        <div style={{ color: TEXT, fontSize: 20, fontWeight: 950, lineHeight: 1.02 }}>
           {t("Чем помочь?", "How can we help?")}
         </div>
         <div style={{ color: SOFT, fontSize: 13, lineHeight: 1.35, marginTop: 8, fontWeight: 650 }}>
@@ -1412,7 +836,7 @@ function EmptyChat({
             style={{
               minHeight: 48,
               padding: "10px 11px",
-              borderRadius: variant === "receipt" ? 7 : 16,
+              borderRadius: 16,
               border:
                 i === 0 ? "1px solid rgba(57,255,99,0.42)" : "1px solid rgba(255,255,255,0.09)",
               background: i === 0 ? "rgba(57,255,99,0.12)" : "rgba(255,255,255,0.045)",
