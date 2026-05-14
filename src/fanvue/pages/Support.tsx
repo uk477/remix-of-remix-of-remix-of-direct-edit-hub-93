@@ -291,7 +291,7 @@ export default function Support() {
                         color: isUser ? 'rgba(26,20,16,0.55)' : 'var(--t-faint)',
                         letterSpacing: '0.04em',
                       }}>
-                        {formatTime(msg.created)}
+                        {formatTime(msg.created, lang)}
                       </div>
                     </motion.div>
                   )
