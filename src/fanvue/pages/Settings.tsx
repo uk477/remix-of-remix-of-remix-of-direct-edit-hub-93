@@ -668,21 +668,21 @@ export default function Settings() {
             <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 26 }}>
               <motion.button
                 onClick={() => navigate(-1)}
-                whileTap={{ scale: 0.9, x: 3, y: 3 }}
-                whileHover={{ x: 2, y: 2 }}
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.04)' }}
                 transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                 style={{
-                  width: 48, height: 48,
-                  background: 'rgba(255,255,255,0.045)',
+                  height: 40, padding: '0 16px',
+                  background: 'transparent',
                   color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', borderRadius: 0,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.32)',
-                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.22)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  cursor: 'pointer', borderRadius: 4,
+                  fontFamily: mono, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600,
                 }}
               >
-                <BackIcon />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                Назад
               </motion.button>
               <div style={{ textAlign: 'right', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: NEON, lineHeight: 1.5 }}>
                 Internal Build<br />
