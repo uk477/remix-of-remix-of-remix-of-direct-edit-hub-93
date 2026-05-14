@@ -275,7 +275,7 @@ export default function Support() {
           flex: 1,
           overflowY: 'auto',
           minHeight: 0,
-          padding: '13px 2px 12px',
+          padding: '13px 2px 8px',
           display: 'flex',
           flexDirection: 'column',
           gap: 11,
@@ -441,16 +441,19 @@ export default function Support() {
                 style={{
                   flex: '0 0 auto',
                   minHeight: 34,
+                  maxWidth: i === 1 ? 150 : 128,
                   padding: '0 12px',
                   borderRadius: 999,
                   border: i === 0 ? '1px solid rgba(57,255,99,0.45)' : '1px solid rgba(255,255,255,0.10)',
                   background: i === 0 ? 'rgba(57,255,99,0.12)' : 'rgba(255,255,255,0.045)',
                   color: i === 0 ? GREEN : SOFT,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: 850,
                   cursor: 'pointer',
                   letterSpacing: 0,
                   whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {q}
