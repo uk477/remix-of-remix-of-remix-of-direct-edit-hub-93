@@ -23,12 +23,6 @@ const ReferralIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill=
 const StarIcon     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
 const EditIcon    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
 const BackIcon    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-const ArrowBoxIcon = ({ size = 22 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
-    <rect x="3" y="3" width="18" height="18" />
-    <path d="M8 12h8M12 8l4 4-4 4" />
-  </svg>
-)
 const ChevronIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } } }
@@ -679,12 +673,13 @@ export default function Settings() {
                 transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                 style={{
                   width: 48, height: 48,
-                  background: '#0a0a0a',
+                  background: 'rgba(255,255,255,0.045)',
                   color: '#fff',
-                  border: '1.5px solid rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.12)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', borderRadius: 0,
-                  boxShadow: `5px 5px 0 0 ${NEON}, 5px 5px 18px 0 ${NEON}66`,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.32)',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <BackIcon />
@@ -823,9 +818,6 @@ export default function Settings() {
                     <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
                       {lang === 'ru' ? 'КАНАЛ' : 'CHANNEL'}
                     </div>
-                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
-                      <ArrowBoxIcon size={20} />
-                    </span>
                   </div>
                 </motion.button>
                 <motion.button
@@ -845,9 +837,6 @@ export default function Settings() {
                     <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
                       {lang === 'ru' ? 'ОТЗЫВЫ' : 'REVIEWS'}
                     </div>
-                    <span style={{ color: NEON, display: 'inline-flex', filter: `drop-shadow(0 0 6px ${NEON}88)` }}>
-                      <ArrowBoxIcon size={20} />
-                    </span>
                   </div>
                 </motion.button>
               </div>
@@ -856,36 +845,26 @@ export default function Settings() {
             {/* === MAIN DIAGONAL CTA: НАШ ЧАТ === */}
             <motion.button
               variants={fadeUp}
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              whileHover={{ borderColor: 'rgba(0,255,136,0.38)', backgroundColor: 'rgba(0,255,136,0.08)' }}
               onClick={() => { haptic('medium'); window.open(`https://t.me/${CONFIG.communityUsername || CONFIG.channelUsername}`, '_blank') }}
               style={{
-                width: '100%', background: NEON, color: '#000',
-                padding: '20px 22px', position: 'relative', overflow: 'hidden',
-                border: 0, cursor: 'pointer', textAlign: 'left',
-                clipPath: 'polygon(0 0, 100% 0, 96% 100%, 0% 100%)',
+                width: '100%', background: 'rgba(255,255,255,0.04)', color: '#fff',
+                padding: '18px 18px', position: 'relative', overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.11)', cursor: 'pointer', textAlign: 'left',
+                clipPath: 'none',
                 marginBottom: 36,
-                boxShadow: `0 18px 50px -16px ${NEON}88`,
+                boxShadow: '0 18px 44px -26px rgba(0,0,0,0.85)',
                 fontFamily: inter,
+                backdropFilter: 'blur(14px)',
               }}
             >
-              {/* Sweep shine */}
-              <motion.div
-                aria-hidden
-                initial={{ x: '-130%' }}
-                animate={{ x: '230%' }}
-                transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
-                style={{
-                  position: 'absolute', top: 0, bottom: 0, width: 90,
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
-                  transform: 'skewX(-20deg)', pointerEvents: 'none',
-                }}
-              />
+              <div aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: NEON, boxShadow: `0 0 16px ${NEON}77` }} />
               {/* Ghost label */}
               <div aria-hidden style={{
                 position: 'absolute', right: -12, bottom: -34,
                 fontSize: 110, fontWeight: 900, fontStyle: 'italic',
-                color: 'rgba(0,0,0,0.08)', lineHeight: 1, letterSpacing: '-0.06em',
+                color: 'rgba(255,255,255,0.025)', lineHeight: 1, letterSpacing: '-0.06em',
                 userSelect: 'none', pointerEvents: 'none', fontFamily: inter,
               }}>
                 CHAT
@@ -893,22 +872,22 @@ export default function Settings() {
 
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(0,0,0,0.6)', marginBottom: 4 }}>
+                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: NEON, marginBottom: 4 }}>
                     {lang === 'ru' ? 'New · Сообщество' : 'New · Community'}
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 900, fontStyle: 'italic', color: '#000', letterSpacing: '-0.03em', lineHeight: 0.95, textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 30, fontWeight: 900, fontStyle: 'italic', color: '#fff', letterSpacing: '-0.03em', lineHeight: 0.95, textTransform: 'uppercase' }}>
                     {lang === 'ru' ? 'НАШ ЧАТ' : 'OUR CHAT'}
                   </div>
                 </div>
                 <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                   style={{
-                    width: 48, height: 48, flexShrink: 0,
-                    border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 44, height: 44, flexShrink: 0,
+                    border: '1px solid rgba(0,255,136,0.28)', color: NEON,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(0,255,136,0.08)',
                   }}
                 >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </motion.div>
