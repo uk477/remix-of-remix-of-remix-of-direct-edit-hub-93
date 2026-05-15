@@ -72,11 +72,45 @@ export interface Order {
   orderNum?: number
 }
 
+export interface SupportAttachment {
+  id: string
+  name: string
+  mime: string
+  size?: number
+  dataUrl: string
+}
+
+export type SupportMessageKind = 'text' | 'image' | 'file' | 'system' | 'quick_form'
+
 export interface SupportMessage {
   id: number
-  sender: 'user' | 'admin'
+  sender: 'user' | 'admin' | 'bot'
+  kind?: SupportMessageKind
   text: string
+  attachments?: SupportAttachment[]
   created: string
+  read_by_admin?: boolean
+  read_by_user?: boolean
+  reply_to?: number
+  deleted_for?: 'user' | 'all'
+  ticket_id?: string
+}
+
+export type SupportTicketStatus = 'triage' | 'open' | 'closed'
+export type SupportTicketCategory = 'payment' | 'delivery' | 'account' | 'operator' | 'other'
+
+export interface SupportTicket {
+  id: string
+  category: SupportTicketCategory
+  status: SupportTicketStatus
+  opened: string
+  closed?: string
+  summary?: string
+}
+
+export interface AdminPresence {
+  online: boolean
+  lastSeen: string
 }
 
 export interface CartItem {

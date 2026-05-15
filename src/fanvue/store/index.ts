@@ -5,6 +5,7 @@ import { api } from './api'
 import type {
   Lang, User, Category, Product, Order, SupportMessage, CartItem, CryptoOption,
   CryptoNetwork, PaymentLog, Broadcast, PaymentNotification, RefReward, RefWithdrawal,
+  SupportTicket, SupportTicketCategory, AdminPresence,
 } from './types'
 
 export const CRYPTO_OPTIONS: CryptoOption[] = [
@@ -77,11 +78,8 @@ const MOCK_ORDERS: Order[] = [
   },
 ]
 
-const MOCK_SUPPORT: SupportMessage[] = [
-  { id: 1, sender: 'admin', text: 'Здравствуйте! Чем могу помочь?', created: '2024-03-01T09:00:00Z' },
-  { id: 2, sender: 'user', text: 'Как долго занимает ручная доставка?', created: '2024-03-01T09:05:00Z' },
-  { id: 3, sender: 'admin', text: 'Ручная доставка занимает от 1 до 24 часов. В среднем — около 2 часов.', created: '2024-03-01T09:08:00Z' },
-]
+// Empty by default — bot triage greeting will be shown
+const MOCK_SUPPORT: SupportMessage[] = []
 
 const MOCK_LOGS: PaymentLog[] = [
   { id: 1, ts: '2024-04-22T14:22:00Z', uid: 7891011, username: 'alex_m', kind: 'buy', amount: 25.99, network: 'trc20', status: 'success', tx_hash: '0xa1b2c3...', product: 'Fanvue Pro Account' },
@@ -110,6 +108,10 @@ interface AppStore {
   products: Product[]
   orders: Order[]
   supportMessages: SupportMessage[]
+  supportTickets: SupportTicket[]
+  adminPresence: AdminPresence
+  userTyping: boolean
+  adminTyping: boolean
   cart: CartItem | null
   isLoading: boolean
 
@@ -138,6 +140,16 @@ interface AppStore {
   setCart: (cart: CartItem | null) => void
   addOrder: (order: Order) => void
   addSupportMessage: (msg: SupportMessage) => void
+  updateSupportMessage: (id: number, updates: Partial<SupportMessage>) => void
+  deleteSupportMessage: (id: number, mode: 'user' | 'all') => void
+  markUserMessagesReadByAdmin: () => void
+  markAdminMessagesReadByUser: () => void
+  setUserTyping: (v: boolean) => void
+  setAdminTyping: (v: boolean) => void
+  setAdminPresence: (p: Partial<AdminPresence>) => void
+  openSupportTicket: (category: SupportTicketCategory, summary?: string) => SupportTicket
+  closeSupportTicket: (id: string, reason?: string) => void
+  resetSupportSession: () => void
   clearSupportUnread: () => void
   updateBalance: (delta: number) => void
   addNotification: (n: Omit<PaymentNotification, 'read' | 'createdAt'>) => void
@@ -185,6 +197,10 @@ export const useStore = create<AppStore>()(
       products: MOCK_PRODUCTS,
       orders: MOCK_ORDERS,
       supportMessages: MOCK_SUPPORT,
+      supportTickets: [],
+      adminPresence: { online: true, lastSeen: new Date().toISOString() },
+      userTyping: false,
+      adminTyping: false,
       cart: null,
       isLoading: true,
 
@@ -313,6 +329,87 @@ export const useStore = create<AppStore>()(
       },
 
       clearSupportUnread: () => set({ supportUnread: 0 }),
+
+      updateSupportMessage: (id, updates) =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) => (m.id === id ? { ...m, ...updates } : m)),
+        })),
+
+      deleteSupportMessage: (id, mode) =>
+        set((s) => ({
+          supportMessages:
+            mode === 'all'
+              ? s.supportMessages.filter((m) => m.id !== id)
+              : s.supportMessages.map((m) => (m.id === id ? { ...m, deleted_for: 'user' } : m)),
+        })),
+
+      markUserMessagesReadByAdmin: () =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            m.sender === 'user' && !m.read_by_admin ? { ...m, read_by_admin: true } : m,
+          ),
+        })),
+
+      markAdminMessagesReadByUser: () =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            (m.sender === 'admin' || m.sender === 'bot') && !m.read_by_user ? { ...m, read_by_user: true } : m,
+          ),
+          supportUnread: 0,
+        })),
+
+      setUserTyping: (v) => set({ userTyping: v }),
+      setAdminTyping: (v) => set({ adminTyping: v }),
+      setAdminPresence: (p) => set((s) => ({ adminPresence: { ...s.adminPresence, ...p } })),
+
+      openSupportTicket: (category, summary) => {
+        const id = 'FV-' + Math.floor(1000 + Math.random() * 9000)
+        const ticket: SupportTicket = {
+          id, category, status: 'open',
+          opened: new Date().toISOString(),
+          summary,
+        }
+        set((s) => ({
+          supportTickets: [ticket, ...s.supportTickets],
+          supportMessages: [
+            ...s.supportMessages,
+            {
+              id: Date.now(),
+              sender: 'bot',
+              kind: 'system',
+              text: `ticket_opened:${id}`,
+              created: new Date().toISOString(),
+              ticket_id: id,
+            },
+          ],
+        }))
+        return ticket
+      },
+
+      closeSupportTicket: (id, reason) =>
+        set((s) => ({
+          supportTickets: s.supportTickets.map((t) =>
+            t.id === id ? { ...t, status: 'closed', closed: new Date().toISOString() } : t,
+          ),
+          supportMessages: [
+            ...s.supportMessages,
+            {
+              id: Date.now(),
+              sender: 'bot',
+              kind: 'system',
+              text: `ticket_closed:${id}${reason ? ':' + reason : ''}`,
+              created: new Date().toISOString(),
+              ticket_id: id,
+            },
+          ],
+        })),
+
+      resetSupportSession: () =>
+        set((s) => ({
+          supportTickets: s.supportTickets.map((t) =>
+            t.status !== 'closed' ? { ...t, status: 'closed', closed: new Date().toISOString() } : t,
+          ),
+        })),
 
       updateBalance: (delta) =>
         set((s) => ({
@@ -518,7 +615,7 @@ export const useStore = create<AppStore>()(
       }),
     }),
     {
-      name: 'fanvue-app-v6',
+      name: 'fanvue-app-v7',
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
@@ -560,6 +657,7 @@ export const useStore = create<AppStore>()(
         refWithdrawals: s.refWithdrawals,
         refDailyLog: s.refDailyLog,
         supportMessages: s.supportMessages,
+        supportTickets: s.supportTickets,
         orders: s.orders,
         supportForwardedOrders: s.supportForwardedOrders,
         pinnedProductIds: s.pinnedProductIds,

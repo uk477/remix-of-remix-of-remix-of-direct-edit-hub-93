@@ -4,11 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
+import { CONFIG } from "../config";
+import type {
+  SupportMessage,
+  SupportAttachment,
+  SupportTicket,
+  SupportTicketCategory,
+} from "../store/types";
 
-/* Fanvue Support — premium messenger feel.
-   Reference: iMessage / Telegram / Intercom Chat.
-   Philosophy: zero pretension. No ticket IDs, no mono-decoration,
-   no "concierge"/"e2e" labels. Quality of bubble, avatar, motion. */
+/* Fanvue Care — premium messenger.
+   Features: bot triage, tickets, attachments, replies, deletion,
+   read receipts, real presence, no fake typing. */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -17,6 +23,7 @@ const C = {
   surface: "#161618",
   surfaceHi: "#1d1d20",
   border: "rgba(255,255,255,0.07)",
+  borderHi: "rgba(255,255,255,0.14)",
   text: "#f5f5f7",
   soft: "rgba(245,245,247,0.66)",
   muted: "rgba(245,245,247,0.42)",
@@ -24,14 +31,14 @@ const C = {
   green: "#39ff63",
   greenInk: "#062a10",
   greenBubble: "linear-gradient(180deg, #3dff66 0%, #28e052 100%)",
+  danger: "#ff5a5f",
 };
 
-type SupportMessage = {
-  id: number | string;
-  sender: "user" | "admin";
-  text: string;
-  created: string;
-};
+let _msgCounter = 0;
+function newId(): number {
+  _msgCounter += 1;
+  return Date.now() * 1000 + (_msgCounter % 1000);
+}
 
 function fmtTime(iso: string, lang: string) {
   return new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-US", {
@@ -55,12 +62,53 @@ function fmtDay(iso: string, lang: string) {
   return d.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "long" });
 }
 
+function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string {
+  const ru = lang === "ru";
+  if (online) return ru ? "в сети" : "online";
+  const last = new Date(lastSeenIso).getTime();
+  const now = Date.now();
+  const diffMs = Math.max(0, now - last);
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH = Math.floor(diffMs / 3600000);
+  const today = new Date();
+  const lastD = new Date(lastSeenIso);
+  const sameDay = today.toDateString() === lastD.toDateString();
+  const yest = new Date();
+  yest.setDate(today.getDate() - 1);
+  const isYest = yest.toDateString() === lastD.toDateString();
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 2) return ru ? "был только что" : "just now";
+  if (diffMin < 60) return ru ? "был в этом часу" : "within the hour";
+  if (sameDay && diffH < 6) return ru ? `был ${diffH} ч. назад` : `${diffH}h ago`;
+  if (sameDay) return ru ? `был сегодня в ${fmtTime(lastSeenIso, lang)}` : `today at ${fmtTime(lastSeenIso, lang)}`;
+  if (isYest) return ru ? `был вчера в ${fmtTime(lastSeenIso, lang)}` : `yesterday at ${fmtTime(lastSeenIso, lang)}`;
+  if (diffDays < 7) return ru ? `был ${diffDays} дн. назад` : `${diffDays}d ago`;
+  return ru
+    ? `был ${lastD.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`
+    : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
+}
+
+const CATEGORIES: Array<{ id: SupportTicketCategory; emoji: string; ru: string; en: string }> = [
+  { id: "payment", emoji: "💳", ru: "Проблема с платежом", en: "Payment issue" },
+  { id: "delivery", emoji: "📦", ru: "Вопрос о доставке", en: "Delivery question" },
+  { id: "account", emoji: "👤", ru: "Аккаунт/верификация", en: "Account / verification" },
+  { id: "operator", emoji: "💬", ru: "Связь с оператором", en: "Talk to operator" },
+];
+
 export default function Support() {
   const navigate = useNavigate();
   const { haptic } = useTelegram();
-  const messages = useStore((s) => s.supportMessages) as SupportMessage[];
+  const messages = useStore((s) => s.supportMessages);
+  const tickets = useStore((s) => s.supportTickets);
+  const presence = useStore((s) => s.adminPresence);
+  const adminTyping = useStore((s) => s.adminTyping);
   const addSupportMessage = useStore((s) => s.addSupportMessage);
-  const clearSupportUnread = useStore((s) => s.clearSupportUnread);
+  const updateSupportMessage = useStore((s) => s.updateSupportMessage);
+  const deleteSupportMessage = useStore((s) => s.deleteSupportMessage);
+  const markAdminMessagesReadByUser = useStore((s) => s.markAdminMessagesReadByUser);
+  const setUserTyping = useStore((s) => s.setUserTyping);
+  const openSupportTicket = useStore((s) => s.openSupportTicket);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
 
@@ -69,31 +117,50 @@ export default function Support() {
   const [text, setText] = useState("");
   const [kbHeight, setKbHeight] = useState(0);
   const [focused, setFocused] = useState(false);
-  const [typing, setTyping] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<SupportAttachment[]>([]);
+  const [replyTo, setReplyTo] = useState<SupportMessage | null>(null);
+  const [actionMsg, setActionMsg] = useState<SupportMessage | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const [revealedDeleted, setRevealedDeleted] = useState<Set<number>>(new Set());
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimer = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingDebounce = useRef<number | null>(null);
 
+  // Active ticket = newest non-closed
+  const activeTicket = useMemo(
+    () => tickets.find((t) => t.status !== "closed") ?? null,
+    [tickets],
+  );
+
+  // Mark admin/bot messages as read on entry + when new arrive
   useEffect(() => {
-    clearSupportUnread();
-  }, [clearSupportUnread]);
+    markAdminMessagesReadByUser();
+  }, [markAdminMessagesReadByUser, messages.length]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, typing]);
+  }, [messages, adminTyping]);
 
+  // Real typing flag (debounced)
   useEffect(() => {
-    if (messages.length === 0) return;
-    const last = messages[messages.length - 1];
-    if (last.sender !== "user") return;
-    if (typingTimer.current) window.clearTimeout(typingTimer.current);
-    setTyping(true);
-    typingTimer.current = window.setTimeout(() => setTyping(false), 2200);
+    if (!text) {
+      setUserTyping(false);
+      return;
+    }
+    setUserTyping(true);
+    if (typingDebounce.current) window.clearTimeout(typingDebounce.current);
+    typingDebounce.current = window.setTimeout(() => setUserTyping(false), 1500);
     return () => {
-      if (typingTimer.current) window.clearTimeout(typingTimer.current);
+      if (typingDebounce.current) window.clearTimeout(typingDebounce.current);
     };
-  }, [messages]);
+  }, [text, setUserTyping]);
 
+  // Cleanup typing on unmount
+  useEffect(() => () => setUserTyping(false), [setUserTyping]);
+
+  // Keyboard handling
   const onResize = useCallback(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -112,52 +179,189 @@ export default function Support() {
     };
   }, [onResize]);
 
-  const send = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return;
+  // Bot greeting if no active ticket and no triage prompt outstanding
+  const lastBotPrompt = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.kind === "system" && m.text.startsWith("triage_prompt")) return m;
+      if (m.kind === "system" && m.text.startsWith("ticket_opened")) return null;
+    }
+    return null;
+  }, [messages]);
+
+  useEffect(() => {
+    if (!activeTicket && !lastBotPrompt && messages.length === 0) {
+      // initial greeting
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "text",
+        text: t(
+          `Привет${user?.full_name ? ", " + user.full_name : ""} 👋\nЯ — бот-помощник Fanvue Care. Подскажите, с чем нужна помощь, чтобы быстрее подключить нужного оператора.`,
+          `Hi${user?.full_name ? ", " + user.full_name : ""} 👋\nI'm the Fanvue Care assistant. Tell me what's going on so I can route you to the right operator.`,
+        ),
+        created: new Date().toISOString(),
+      });
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "system",
+        text: "triage_prompt",
+        created: new Date().toISOString(),
+      });
+    } else if (!activeTicket && !lastBotPrompt && messages.length > 0) {
+      // returning after closed ticket
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "text",
+        text: t(
+          "С возвращением 🙌 Если появился новый вопрос — выберите тему ниже, и мы откроем заявку.",
+          "Welcome back 🙌 New issue? Pick a topic and we'll open a ticket.",
+        ),
+        created: new Date().toISOString(),
+      });
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "system",
+        text: "triage_prompt",
+        created: new Date().toISOString(),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTicket?.id]);
+
+  const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
     haptic("light");
-    addSupportMessage({
-      id: Date.now(),
-      sender: "user",
-      text: trimmed,
-      created: new Date().toISOString(),
-    });
+    // Open ticket
+    const ticket = openSupportTicket(cat.id);
+    // Bot follow-up
+    const followUp: Record<SupportTicketCategory, { ru: string; en: string }> = {
+      payment: {
+        ru: "Опишите, пожалуйста, проблему с платежом: дата, сумма, сеть. Можно прикрепить скриншот.",
+        en: "Please describe the payment issue: date, amount, network. Feel free to attach a screenshot.",
+      },
+      delivery: {
+        ru: "Укажите номер заказа (если есть) и что именно вас беспокоит. Если есть фото — прикрепите.",
+        en: "Share the order ID (if any) and what exactly is wrong. Attach a photo if helpful.",
+      },
+      account: {
+        ru: "Расскажите о ситуации с аккаунтом или верификацией. Скриншоты ускорят решение.",
+        en: "Tell us about your account or verification. Screenshots speed things up.",
+      },
+      operator: {
+        ru: "Подключаю оператора. Опишите вопрос подробно — оператор ответит в ближайшее время.",
+        en: "Connecting an operator. Describe your question in detail — they'll reply shortly.",
+      },
+      other: {
+        ru: "Опишите ваш вопрос подробно — мы постараемся помочь.",
+        en: "Describe your question in detail — we'll do our best.",
+      },
+    };
+    setTimeout(() => {
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "text",
+        text: t(followUp[cat.id].ru, followUp[cat.id].en),
+        created: new Date().toISOString(),
+        ticket_id: ticket.id,
+      });
+    }, 250);
     tgNotify(
-      `💬 Сообщение в поддержку\n👤 ${user?.username ? "@" + user.username : (user?.full_name ?? "—")} (ID: ${user?.uid})\n\n${trimmed}`,
+      `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
     );
   };
 
-  const handleSend = () => {
-    send(text);
+  const sendMessage = () => {
+    const trimmed = text.trim();
+    if (!trimmed && pendingFiles.length === 0) return;
+    haptic("light");
+
+    // Determine kind
+    const onlyImages = pendingFiles.length > 0 && pendingFiles.every((f) => f.mime.startsWith("image/"));
+    const kind = pendingFiles.length === 0 ? "text" : onlyImages ? "image" : "file";
+
+    addSupportMessage({
+      id: newId(),
+      sender: "user",
+      kind,
+      text: trimmed,
+      attachments: pendingFiles.length > 0 ? pendingFiles : undefined,
+      created: new Date().toISOString(),
+      reply_to: replyTo?.id,
+      ticket_id: activeTicket?.id,
+      read_by_admin: false,
+    });
+
+    const replyExcerpt = replyTo ? `\n↪ ${(replyTo.text || "[вложение]").slice(0, 80)}` : "";
+    const filesNote = pendingFiles.length > 0 ? `\n📎 ${pendingFiles.length} файл(ов)` : "";
+    tgNotify(
+      `💬 Сообщение в поддержку${activeTicket ? ` · ${activeTicket.id}` : ""}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})${replyExcerpt}${filesNote}\n\n${trimmed || "—"}`,
+    );
+
     setText("");
+    setPendingFiles([]);
+    setReplyTo(null);
     if (taRef.current) taRef.current.style.height = "auto";
+    setUserTyping(false);
   };
 
-  const quickReplies = [
-    t("Где мой заказ?", "Where is my order?"),
-    t("Проблема с оплатой", "Payment issue"),
-    t("Срок выдачи", "Delivery time"),
-    t("Связать с оператором", "Talk to operator"),
-  ];
+  const onPickFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const out: SupportAttachment[] = [];
+    for (const f of Array.from(files).slice(0, 4)) {
+      const dataUrl = await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = rej;
+        r.readAsDataURL(f);
+      });
+      out.push({
+        id: String(newId()),
+        name: f.name,
+        mime: f.type || "application/octet-stream",
+        size: f.size,
+        dataUrl,
+      });
+    }
+    setPendingFiles((p) => [...p, ...out].slice(0, 6));
+    haptic("light");
+  };
 
+  const handleDelete = (msg: SupportMessage, mode: "user" | "all") => {
+    haptic("medium");
+    deleteSupportMessage(msg.id, mode);
+    setActionMsg(null);
+  };
+
+  const handleReplyAction = (msg: SupportMessage) => {
+    haptic("light");
+    setReplyTo(msg);
+    setActionMsg(null);
+    taRef.current?.focus();
+  };
+
+  // Group messages by day + sender
   const groups = useMemo(() => {
-    const out: Array<
-      | { type: "day"; key: string; label: string }
-      | { type: "group"; key: string; sender: "user" | "admin"; items: SupportMessage[] }
-    > = [];
+    type DayItem = { type: "day"; key: string; label: string };
+    type GroupItem = { type: "group"; key: string; sender: SupportMessage["sender"]; items: SupportMessage[] };
+    type SystemItem = { type: "system"; key: string; msg: SupportMessage };
+    const out: Array<DayItem | GroupItem | SystemItem> = [];
     let lastDay = "";
-    let cur: {
-      type: "group";
-      key: string;
-      sender: "user" | "admin";
-      items: SupportMessage[];
-    } | null = null;
+    let cur: GroupItem | null = null;
     messages.forEach((m) => {
       const day = new Date(m.created).toDateString();
       if (day !== lastDay) {
         out.push({ type: "day", key: "d-" + day, label: fmtDay(m.created, lang) });
         lastDay = day;
         cur = null;
+      }
+      if (m.kind === "system") {
+        out.push({ type: "system", key: "s-" + m.id, msg: m });
+        cur = null;
+        return;
       }
       if (!cur || cur.sender !== m.sender) {
         cur = { type: "group", key: "g-" + m.id, sender: m.sender, items: [] };
@@ -191,11 +395,18 @@ export default function Support() {
       }}
     >
       <Header
-        typing={typing}
+        presence={presence}
+        adminTyping={adminTyping}
+        lang={lang}
         t={t}
         onBack={() => {
           haptic("light");
-          navigate("/support");
+          if (window.history.length > 1) navigate(-1);
+          else navigate("/");
+        }}
+        onInfo={() => {
+          haptic("light");
+          setShowInfo(true);
         }}
       />
 
@@ -213,23 +424,44 @@ export default function Support() {
           gap: 4,
         }}
       >
-        {messages.length === 0 && (
-          <EmptyChat
-            t={t}
-            quickReplies={quickReplies}
-            onPick={(q) => {
-              haptic("light");
-              send(q);
-            }}
-          />
-        )}
-
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
-            return <MessageGroup key={g.key} group={g} lang={lang} lastUserId={lastUserId} />;
+            if (g.type === "system")
+              return (
+                <SystemMessage
+                  key={g.key}
+                  msg={g.msg}
+                  lang={lang}
+                  t={t}
+                  tickets={tickets}
+                  onPickCategory={handlePickCategory}
+                />
+              );
+            return (
+              <MessageGroup
+                key={g.key}
+                group={g}
+                allMessages={messages}
+                lang={lang}
+                t={t}
+                lastUserId={lastUserId}
+                revealedDeleted={revealedDeleted}
+                onLongPress={(m) => {
+                  haptic("medium");
+                  setActionMsg(m);
+                }}
+                onRevealDeleted={(id) =>
+                  setRevealedDeleted((prev) => {
+                    const next = new Set(prev);
+                    next.add(id);
+                    return next;
+                  })
+                }
+              />
+            );
           })}
-          {typing && <TypingBubble key="typing" />}
+          {adminTyping && <TypingBubble key="typing" />}
         </AnimatePresence>
         <div ref={bottomRef} />
       </main>
@@ -239,26 +471,108 @@ export default function Support() {
         text={text}
         setText={setText}
         setFocused={setFocused}
-        handleSend={handleSend}
+        handleSend={sendMessage}
         haptic={haptic}
         taRef={taRef}
+        fileInputRef={fileInputRef}
+        onPickFiles={onPickFiles}
+        pendingFiles={pendingFiles}
+        removePending={(id) => setPendingFiles((p) => p.filter((x) => x.id !== id))}
+        replyTo={replyTo}
+        cancelReply={() => setReplyTo(null)}
         t={t}
       />
+
+      {/* Action sheet for message */}
+      <AnimatePresence>
+        {actionMsg && (
+          <MessageActionSheet
+            msg={actionMsg}
+            lang={lang}
+            t={t}
+            onClose={() => setActionMsg(null)}
+            onReply={() => handleReplyAction(actionMsg)}
+            onDelete={(mode) => handleDelete(actionMsg, mode)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInfo && <InfoSheet t={t} onClose={() => setShowInfo(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
 
 /* ── Header ─────────────────────────────────────────────────────── */
 
+function BrandAvatar({ size = 38 }: { size?: number }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #1a1a1c 0%, #0e0e10 100%)",
+        border: "1px solid rgba(57,255,99,0.28)",
+        boxShadow: "0 0 0 1px rgba(0,0,0,0.4) inset, 0 4px 16px -6px rgba(57,255,99,0.35)",
+        display: "grid",
+        placeItems: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: -2,
+          background:
+            "radial-gradient(circle at 30% 20%, rgba(57,255,99,0.22), transparent 55%), radial-gradient(circle at 70% 80%, rgba(57,255,99,0.10), transparent 60%)",
+          pointerEvents: "none",
+        }}
+      />
+      <svg
+        width={size * 0.55}
+        height={size * 0.55}
+        viewBox="0 0 24 24"
+        fill="none"
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        <defs>
+          <linearGradient id="fv-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#a8ffba" />
+            <stop offset="60%" stopColor="#39ff63" />
+            <stop offset="100%" stopColor="#0fbf3a" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M5 3h14v4H10v4h7v4h-7v6H5z"
+          fill="url(#fv-grad)"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function Header({
-  typing,
+  presence,
+  adminTyping,
+  lang,
   t,
   onBack,
+  onInfo,
 }: {
-  typing: boolean;
+  presence: { online: boolean; lastSeen: string };
+  adminTyping: boolean;
+  lang: string;
   t: (ru: string, en: string) => string;
   onBack: () => void;
+  onInfo: () => void;
 }) {
+  const status = adminTyping ? t("печатает…", "typing…") : fmtPresence(presence.online, presence.lastSeen, lang);
+  const statusColor = adminTyping || presence.online ? C.green : C.soft;
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -4 }}
@@ -280,69 +594,32 @@ function Header({
         onClick={onBack}
         whileTap={{ scale: 0.88 }}
         aria-label={t("Назад", "Back")}
-        style={{
-          width: 36,
-          height: 36,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          borderRadius: 999,
-          border: "none",
-          background: "transparent",
-          color: C.text,
-          cursor: "pointer",
-          padding: 0,
-        }}
+        style={iconBtn()}
       >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </motion.button>
 
-      {/* Avatar with online ring */}
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            background: `radial-gradient(circle at 30% 25%, #2a2a2e 0%, #131316 100%)`,
-            border: `1px solid ${C.border}`,
-            display: "grid",
-            placeItems: "center",
-            color: C.text,
-            fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
-            fontSize: 15,
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          F
-        </div>
-        <span
-          aria-hidden
-          style={{
-            position: "absolute",
-            right: -1,
-            bottom: -1,
-            width: 11,
-            height: 11,
-            borderRadius: "50%",
-            background: C.green,
-            border: `2px solid ${C.bg}`,
-            boxShadow: "0 0 8px rgba(57,255,99,0.6)",
-          }}
-        />
+        <BrandAvatar />
+        {presence.online && (
+          <motion.span
+            aria-hidden
+            animate={{ boxShadow: ["0 0 0 0 rgba(57,255,99,0.55)", "0 0 0 6px rgba(57,255,99,0)"] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              right: -1,
+              bottom: -1,
+              width: 11,
+              height: 11,
+              borderRadius: "50%",
+              background: C.green,
+              border: `2px solid ${C.bg}`,
+            }}
+          />
+        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -359,11 +636,11 @@ function Header({
             textOverflow: "ellipsis",
           }}
         >
-          {t("Поддержка Fanvue", "Fanvue Support")}
+          {t("Fanvue · Забота", "Fanvue Care")}
         </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={typing ? "t" : "o"}
+            key={status}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -372,44 +649,18 @@ function Header({
               marginTop: 2,
               fontSize: 12,
               fontWeight: 450,
-              color: typing ? C.green : C.soft,
+              color: statusColor,
               lineHeight: 1.2,
               letterSpacing: "-0.005em",
             }}
           >
-            {typing ? t("печатает…", "typing…") : t("в сети", "online")}
+            {status}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <motion.button
-        whileTap={{ scale: 0.92 }}
-        aria-label={t("Информация", "Info")}
-        style={{
-          width: 36,
-          height: 36,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          borderRadius: 999,
-          border: "none",
-          background: "transparent",
-          color: C.soft,
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+      <motion.button onClick={onInfo} whileTap={{ scale: 0.92 }} aria-label={t("Информация", "Info")} style={iconBtn(C.soft)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
           <path d="M12 8v4M12 16h.01" />
         </svg>
@@ -418,17 +669,28 @@ function Header({
   );
 }
 
+function iconBtn(color: string = C.text): React.CSSProperties {
+  return {
+    width: 36,
+    height: 36,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    borderRadius: 999,
+    border: "none",
+    background: "transparent",
+    color,
+    cursor: "pointer",
+    padding: 0,
+  };
+}
+
 /* ── Day pill ───────────────────────────────────────────────────── */
 
 function DaySeparator({ label }: { label: string }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        padding: "12px 0 8px",
-      }}
-    >
+    <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 8px" }}>
       <span
         style={{
           fontSize: 11.5,
@@ -446,21 +708,143 @@ function DaySeparator({ label }: { label: string }) {
   );
 }
 
+/* ── System message (triage prompt + ticket events) ─────────────── */
+
+function SystemMessage({
+  msg,
+  lang,
+  t,
+  tickets,
+  onPickCategory,
+}: {
+  msg: SupportMessage;
+  lang: string;
+  t: (ru: string, en: string) => string;
+  tickets: SupportTicket[];
+  onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
+}) {
+  if (msg.text === "triage_prompt") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.32, ease }}
+        style={{
+          alignSelf: "stretch",
+          margin: "10px 0 6px",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 8,
+        }}
+      >
+        {CATEGORIES.map((c, i) => (
+          <motion.button
+            key={c.id}
+            onClick={() => onPickCategory(c)}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 * i, duration: 0.24, ease }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "12px 12px",
+              borderRadius: 14,
+              border: `1px solid ${C.border}`,
+              background: C.surface,
+              color: C.text,
+              fontSize: 13.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              textAlign: "left",
+              lineHeight: 1.25,
+            }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
+            <span>{t(c.ru, c.en)}</span>
+          </motion.button>
+        ))}
+      </motion.div>
+    );
+  }
+  if (msg.text.startsWith("ticket_opened:")) {
+    const id = msg.text.split(":")[1];
+    const tk = tickets.find((x) => x.id === id);
+    return (
+      <SysPill
+        text={t(`Заявка ${id} · открыта`, `Ticket ${id} · opened`)}
+        sub={tk ? CATEGORIES.find((c) => c.id === tk.category)?.[lang === "ru" ? "ru" : "en"] : undefined}
+      />
+    );
+  }
+  if (msg.text.startsWith("ticket_closed:")) {
+    const id = msg.text.split(":")[1];
+    return <SysPill text={t(`Заявка ${id} · закрыта`, `Ticket ${id} · closed`)} accent />;
+  }
+  return null;
+}
+
+function SysPill({ text, sub, accent }: { text: string; sub?: string; accent?: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.24, ease }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+        padding: "10px 0 6px",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 11.5,
+          fontWeight: 600,
+          color: accent ? C.green : C.soft,
+          padding: "5px 12px",
+          borderRadius: 999,
+          background: accent ? "rgba(57,255,99,0.10)" : C.surface,
+          border: accent ? `1px solid rgba(57,255,99,0.28)` : `1px solid ${C.border}`,
+          letterSpacing: 0,
+        }}
+      >
+        {text}
+      </span>
+      {sub && <span style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</span>}
+    </motion.div>
+  );
+}
+
 /* ── Message group ──────────────────────────────────────────────── */
 
 function MessageGroup({
   group,
+  allMessages,
   lang,
+  t,
   lastUserId,
+  revealedDeleted,
+  onLongPress,
+  onRevealDeleted,
 }: {
-  group: { sender: "user" | "admin"; items: SupportMessage[] };
+  group: { sender: SupportMessage["sender"]; items: SupportMessage[] };
+  allMessages: SupportMessage[];
   lang: string;
-  lastUserId: number | string | null;
+  t: (ru: string, en: string) => string;
+  lastUserId: number | null;
+  revealedDeleted: Set<number>;
+  onLongPress: (msg: SupportMessage) => void;
+  onRevealDeleted: (id: number) => void;
 }) {
   const isUser = group.sender === "user";
 
   return (
     <motion.section
+      layout
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0 }}
@@ -476,76 +860,278 @@ function MessageGroup({
     >
       {group.items.map((msg, idx) => {
         const isLast = idx === group.items.length - 1;
-        const time = fmtTime(msg.created, lang);
-        const showTail = isLast;
         const showCheck = isUser && msg.id === lastUserId;
+        const replyMsg = msg.reply_to ? allMessages.find((x) => x.id === msg.reply_to) : null;
 
-        // iMessage-style tight stacking with tail only on last bubble
-        const radiusUser = showTail ? "22px 22px 6px 22px" : "22px 22px 22px 22px";
-        const radiusAdmin = showTail ? "22px 22px 22px 6px" : "22px 22px 22px 22px";
+        // Deleted-for-user → for the user, replace with placeholder
+        if (msg.deleted_for === "user" && !revealedDeleted.has(msg.id)) {
+          return (
+            <DeletedPlaceholder
+              key={msg.id}
+              isUser={isUser}
+              t={t}
+              onReveal={() => onRevealDeleted(msg.id)}
+            />
+          );
+        }
 
         return (
-          <div
+          <Bubble
             key={msg.id}
-            style={{
-              maxWidth: "78%",
-              position: "relative",
-              padding: "9px 14px 9px 14px",
-              borderRadius: isUser ? radiusUser : radiusAdmin,
-              background: isUser ? C.greenBubble : C.surface,
-              color: isUser ? C.greenInk : C.text,
-              fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-              fontSize: 15,
-              lineHeight: 1.35,
-              fontWeight: isUser ? 550 : 450,
-              letterSpacing: "-0.005em",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              boxShadow: isUser
-                ? "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -16px rgba(57,255,99,0.5)"
-                : "0 1px 2px rgba(0,0,0,0.3)",
-            }}
-          >
-            <span>{msg.text}</span>
-            {/* Inline timestamp + check, hugging bottom-right inside the bubble */}
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 3,
-                marginLeft: 8,
-                fontSize: 10,
-                fontWeight: 500,
-                color: isUser ? "rgba(6,42,16,0.62)" : C.muted,
-                verticalAlign: "baseline",
-                whiteSpace: "nowrap",
-                position: "relative",
-                top: 2,
-                letterSpacing: 0,
-              }}
-            >
-              {time}
-              {showCheck && (
-                <svg
-                  width="13"
-                  height="9"
-                  viewBox="0 0 13 9"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ marginLeft: 1 }}
-                >
-                  <path d="M1 4.5l3 3L8 2" />
-                  <path d="M5 7.5L8.5 4 12 0.5" />
-                </svg>
-              )}
-            </span>
-          </div>
+            msg={msg}
+            isUser={isUser}
+            isLast={isLast}
+            isBot={msg.sender === "bot"}
+            showCheck={showCheck}
+            replyMsg={replyMsg}
+            time={fmtTime(msg.created, lang)}
+            t={t}
+            onLongPress={() => onLongPress(msg)}
+            wasDeletedForUser={msg.deleted_for === "user"}
+          />
         );
       })}
     </motion.section>
+  );
+}
+
+function DeletedPlaceholder({
+  isUser,
+  t,
+  onReveal,
+}: {
+  isUser: boolean;
+  t: (ru: string, en: string) => string;
+  onReveal: () => void;
+}) {
+  return (
+    <motion.button
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      onClick={onReveal}
+      style={{
+        alignSelf: isUser ? "flex-end" : "flex-start",
+        maxWidth: "78%",
+        padding: "8px 14px",
+        borderRadius: 18,
+        background: "transparent",
+        border: `1px dashed ${C.borderHi}`,
+        color: C.muted,
+        fontSize: 12.5,
+        fontStyle: "italic",
+        cursor: "pointer",
+        marginTop: 2,
+      }}
+    >
+      {t("Сообщение удалено · показать", "Message deleted · reveal")}
+    </motion.button>
+  );
+}
+
+function Bubble({
+  msg,
+  isUser,
+  isLast,
+  isBot,
+  showCheck,
+  replyMsg,
+  time,
+  t,
+  onLongPress,
+  wasDeletedForUser,
+}: {
+  msg: SupportMessage;
+  isUser: boolean;
+  isLast: boolean;
+  isBot: boolean;
+  showCheck: boolean;
+  replyMsg: SupportMessage | null | undefined;
+  time: string;
+  t: (ru: string, en: string) => string;
+  onLongPress: () => void;
+  wasDeletedForUser: boolean;
+}) {
+  const pressTimer = useRef<number | null>(null);
+  const startPress = () => {
+    if (pressTimer.current) window.clearTimeout(pressTimer.current);
+    pressTimer.current = window.setTimeout(() => onLongPress(), 420);
+  };
+  const cancelPress = () => {
+    if (pressTimer.current) window.clearTimeout(pressTimer.current);
+  };
+
+  const radiusUser = isLast ? "22px 22px 6px 22px" : "22px 22px 22px 22px";
+  const radiusOther = isLast ? "22px 22px 22px 6px" : "22px 22px 22px 22px";
+
+  const bg = isUser ? C.greenBubble : isBot ? "rgba(57,255,99,0.06)" : C.surface;
+  const color = isUser ? C.greenInk : C.text;
+  const border = isBot ? "1px solid rgba(57,255,99,0.16)" : "none";
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+      onPointerDown={startPress}
+      onPointerUp={cancelPress}
+      onPointerLeave={cancelPress}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onLongPress();
+      }}
+      style={{
+        maxWidth: "82%",
+        padding: msg.attachments && msg.attachments.length > 0 ? "6px 6px 8px" : "9px 14px",
+        borderRadius: isUser ? radiusUser : radiusOther,
+        background: bg,
+        color,
+        border,
+        fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+        fontSize: 15,
+        lineHeight: 1.35,
+        fontWeight: isUser ? 550 : 450,
+        letterSpacing: "-0.005em",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        boxShadow: isUser
+          ? "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -16px rgba(57,255,99,0.5)"
+          : "0 1px 2px rgba(0,0,0,0.3)",
+        position: "relative",
+        opacity: wasDeletedForUser ? 0.6 : 1,
+        userSelect: "none",
+        cursor: "pointer",
+      }}
+    >
+      {replyMsg && (
+        <div
+          style={{
+            margin: "0 0 6px",
+            padding: "6px 10px",
+            borderLeft: `3px solid ${isUser ? C.greenInk : C.green}`,
+            background: isUser ? "rgba(6,42,16,0.16)" : "rgba(255,255,255,0.04)",
+            borderRadius: 8,
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: isUser ? "rgba(6,42,16,0.78)" : C.soft,
+            lineHeight: 1.3,
+            maxHeight: 48,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 1 }}>
+            {replyMsg.sender === "user" ? t("Вы", "You") : replyMsg.sender === "bot" ? t("Бот", "Bot") : t("Поддержка", "Support")}
+          </div>
+          {replyMsg.text || (replyMsg.attachments?.length ? t("📎 вложение", "📎 attachment") : "—")}
+        </div>
+      )}
+
+      {msg.attachments && msg.attachments.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: msg.attachments.length === 1 ? "1fr" : "1fr 1fr",
+            gap: 4,
+            marginBottom: msg.text ? 6 : 0,
+          }}
+        >
+          {msg.attachments.map((a) =>
+            a.mime.startsWith("image/") ? (
+              <img
+                key={a.id}
+                src={a.dataUrl}
+                alt={a.name}
+                style={{
+                  width: "100%",
+                  maxHeight: 220,
+                  objectFit: "cover",
+                  borderRadius: 14,
+                  display: "block",
+                }}
+              />
+            ) : (
+              <a
+                key={a.id}
+                href={a.dataUrl}
+                download={a.name}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  background: "rgba(0,0,0,0.25)",
+                  color: isUser ? C.greenInk : C.text,
+                  textDecoration: "none",
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>📄</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                  {a.name}
+                </span>
+              </a>
+            ),
+          )}
+        </div>
+      )}
+
+      {msg.text && (
+        <span
+          style={{
+            padding: msg.attachments && msg.attachments.length > 0 ? "0 8px" : 0,
+            display: "inline",
+          }}
+        >
+          {msg.text}
+        </span>
+      )}
+
+      {/* Inline timestamp + check */}
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+          marginLeft: msg.text ? 8 : 0,
+          padding: msg.attachments && msg.attachments.length > 0 && !msg.text ? "0 10px 0 0" : 0,
+          fontSize: 10,
+          fontWeight: 500,
+          color: isUser ? "rgba(6,42,16,0.62)" : C.muted,
+          verticalAlign: "baseline",
+          whiteSpace: "nowrap",
+          position: "relative",
+          top: 2,
+          float: msg.text ? "right" : "none",
+        }}
+      >
+        {time}
+        {showCheck && (
+          <ReadCheck read={!!msg.read_by_admin} />
+        )}
+      </span>
+    </motion.div>
+  );
+}
+
+function ReadCheck({ read }: { read: boolean }) {
+  return (
+    <svg
+      width={read ? 16 : 12}
+      height="9"
+      viewBox={read ? "0 0 16 9" : "0 0 12 9"}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ marginLeft: 1 }}
+    >
+      <path d="M1 4.5l3 3L8 2" />
+      {read && <path d="M5 7.5L8.5 4 12 0.5" transform="translate(3 0)" />}
+    </svg>
   );
 }
 
@@ -568,29 +1154,17 @@ function TypingBubble() {
         boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
       }}
     >
-      <TypingDots />
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        {[0, 1, 2].map((i) => (
+          <motion.span
+            key={i}
+            style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor", display: "inline-block" }}
+            animate={{ opacity: [0.32, 1, 0.32], y: [0, -3, 0] }}
+            transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: "easeInOut" }}
+          />
+        ))}
+      </span>
     </motion.div>
-  );
-}
-
-function TypingDots() {
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: "currentColor",
-            display: "inline-block",
-          }}
-          animate={{ opacity: [0.32, 1, 0.32], y: [0, -3, 0] }}
-          transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: "easeInOut" }}
-        />
-      ))}
-    </span>
   );
 }
 
@@ -604,6 +1178,12 @@ function Composer({
   handleSend,
   haptic,
   taRef,
+  fileInputRef,
+  onPickFiles,
+  pendingFiles,
+  removePending,
+  replyTo,
+  cancelReply,
   t,
 }: {
   focused: boolean;
@@ -613,9 +1193,15 @@ function Composer({
   handleSend: () => void;
   haptic: (type?: "light" | "medium" | "heavy" | "success" | "error" | "warning") => void;
   taRef: RefObject<HTMLTextAreaElement | null>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onPickFiles: (files: FileList | null) => void;
+  pendingFiles: SupportAttachment[];
+  removePending: (id: string) => void;
+  replyTo: SupportMessage | null;
+  cancelReply: () => void;
   t: (ru: string, en: string) => string;
 }) {
-  const canSend = text.trim().length > 0;
+  const canSend = text.trim().length > 0 || pendingFiles.length > 0;
 
   return (
     <footer
@@ -628,54 +1214,137 @@ function Composer({
         paddingBottom: "max(8px, env(safe-area-inset-bottom))",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 8,
-          padding: "10px 12px",
-        }}
-      >
-        {/* Plus / attach — placeholder for premium feel */}
+      <AnimatePresence>
+        {replyTo && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{
+              padding: "8px 14px 0",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                padding: "6px 10px",
+                borderLeft: `3px solid ${C.green}`,
+                background: "rgba(255,255,255,0.04)",
+                borderRadius: 8,
+                fontSize: 12.5,
+                color: C.soft,
+                lineHeight: 1.3,
+                maxHeight: 48,
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ fontSize: 10.5, opacity: 0.7, marginBottom: 1, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                {t("Ответ", "Reply")} · {replyTo.sender === "user" ? t("вам", "you") : t("поддержке", "support")}
+              </div>
+              {(replyTo.text || t("📎 вложение", "📎 attachment")).slice(0, 100)}
+            </div>
+            <button onClick={cancelReply} style={{ ...iconBtn(C.soft), width: 28, height: 28 }} aria-label={t("Отмена", "Cancel")}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {pendingFiles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{ display: "flex", gap: 8, padding: "10px 14px 0", overflowX: "auto" }}
+          >
+            {pendingFiles.map((f) => (
+              <div key={f.id} style={{ position: "relative", flexShrink: 0 }}>
+                {f.mime.startsWith("image/") ? (
+                  <img
+                    src={f.dataUrl}
+                    alt={f.name}
+                    style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 10, border: `1px solid ${C.border}` }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 10,
+                      border: `1px solid ${C.border}`,
+                      background: C.surface,
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 22,
+                    }}
+                  >
+                    📄
+                  </div>
+                )}
+                <button
+                  onClick={() => removePending(f.id)}
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: `2px solid ${C.bg}`,
+                    background: C.danger,
+                    color: "#fff",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                  aria-label={t("Удалить", "Remove")}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, padding: "10px 12px" }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,application/pdf,.doc,.docx,.txt"
+          multiple
+          style={{ display: "none" }}
+          onChange={(e) => {
+            onPickFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+
         <motion.button
           whileTap={{ scale: 0.88 }}
-          onClick={() => haptic("light")}
-          aria-label={t("Добавить", "Attach")}
-          style={{
-            width: 36,
-            height: 36,
-            flexShrink: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 999,
-            border: "none",
-            background: "transparent",
-            color: C.soft,
-            cursor: "pointer",
-            padding: 0,
-            marginBottom: 2,
+          onClick={() => {
+            haptic("light");
+            fileInputRef.current?.click();
           }}
+          aria-label={t("Прикрепить", "Attach")}
+          style={{ ...iconBtn(C.soft), marginBottom: 2 }}
         >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v8M8 12h8" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
           </svg>
         </motion.button>
 
         <motion.div
-          animate={{
-            borderColor: focused ? "rgba(57,255,99,0.45)" : C.border,
-          }}
+          animate={{ borderColor: focused ? "rgba(57,255,99,0.45)" : C.border }}
           transition={{ duration: 0.16 }}
           style={{
             flex: 1,
@@ -751,16 +1420,7 @@ function Composer({
                 }}
                 aria-label="Send"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 19V5" />
                   <path d="M5 12l7-7 7 7" />
                 </svg>
@@ -773,155 +1433,322 @@ function Composer({
   );
 }
 
-/* ── Empty state ────────────────────────────────────────────────── */
+/* ── Action sheet ───────────────────────────────────────────────── */
 
-function EmptyChat({
+function MessageActionSheet({
+  msg,
+  lang,
   t,
-  quickReplies,
-  onPick,
+  onClose,
+  onReply,
+  onDelete,
 }: {
+  msg: SupportMessage;
+  lang: string;
   t: (ru: string, en: string) => string;
-  quickReplies: string[];
-  onPick: (reply: string) => void;
+  onClose: () => void;
+  onReply: () => void;
+  onDelete: (mode: "user" | "all") => void;
 }) {
+  const isOwn = msg.sender === "user";
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease }}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
       style={{
-        margin: "auto 0",
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        zIndex: 50,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 24,
-        padding: "20px 8px",
+        alignItems: "flex-end",
+        justifyContent: "center",
       }}
     >
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: "50%",
-          background: `radial-gradient(circle at 30% 25%, #2a2a2e 0%, #131316 100%)`,
-          border: `1px solid ${C.border}`,
-          display: "grid",
-          placeItems: "center",
-          color: C.text,
-          fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
-          fontSize: 26,
-          fontWeight: 700,
-          letterSpacing: "-0.03em",
-          position: "relative",
-        }}
-      >
-        F
-        <span
-          style={{
-            position: "absolute",
-            right: 2,
-            bottom: 2,
-            width: 14,
-            height: 14,
-            borderRadius: "50%",
-            background: C.green,
-            border: `3px solid ${C.bg}`,
-            boxShadow: "0 0 12px rgba(57,255,99,0.6)",
-          }}
-        />
-      </div>
-
-      <div style={{ textAlign: "center", maxWidth: 300 }}>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
-            fontSize: 22,
-            lineHeight: 1.2,
-            letterSpacing: "-0.025em",
-            fontWeight: 600,
-            color: C.text,
-          }}
-        >
-          {t("Поддержка Fanvue", "Fanvue Support")}
-        </h1>
-        <p
-          style={{
-            margin: "8px 0 0",
-            color: C.soft,
-            fontSize: 14,
-            lineHeight: 1.45,
-            fontWeight: 450,
-            letterSpacing: "-0.005em",
-          }}
-        >
-          {t(
-            "Мы здесь и готовы помочь. Обычно отвечаем за пару минут.",
-            "We're here and ready to help. Usually reply within a few minutes.",
-          )}
-        </p>
-      </div>
-
-      <div
+      <motion.div
+        initial={{ y: 200 }}
+        animate={{ y: 0 }}
+        exit={{ y: 200 }}
+        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          maxWidth: 340,
+          maxWidth: 480,
+          background: C.surfaceHi,
+          borderTopLeftRadius: 22,
+          borderTopRightRadius: 22,
+          padding: "10px 8px max(20px, env(safe-area-inset-bottom))",
+          border: `1px solid ${C.border}`,
         }}
       >
-        {quickReplies.map((q, i) => (
-          <motion.button
-            key={q}
-            onClick={() => onPick(q)}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, ease, delay: 0.12 + i * 0.05 }}
-            whileTap={{ scale: 0.985 }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 10,
-              padding: "13px 16px",
-              borderRadius: 14,
-              border: `1px solid ${C.border}`,
-              background: C.surface,
-              color: C.text,
-              fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-              fontSize: 14.5,
-              fontWeight: 500,
-              letterSpacing: "-0.005em",
-              cursor: "pointer",
-              textAlign: "left",
-            }}
-          >
-            <span
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {q}
-            </span>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={C.muted}
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ flexShrink: 0 }}
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </motion.button>
-        ))}
-      </div>
-    </motion.section>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: C.borderHi, margin: "4px auto 12px" }} />
+
+        <div
+          style={{
+            padding: "10px 14px",
+            margin: "0 8px 8px",
+            background: "rgba(255,255,255,0.03)",
+            borderRadius: 12,
+            fontSize: 13,
+            color: C.soft,
+            maxHeight: 80,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ fontSize: 11, color: C.muted, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            {fmtTime(msg.created, lang)}
+          </div>
+          {msg.text || t("📎 вложение", "📎 attachment")}
+        </div>
+
+        <ActionRow icon="↪" label={t("Ответить", "Reply")} onClick={onReply} />
+
+        {isOwn && (
+          <ActionRow
+            icon="🗑"
+            label={t("Удалить у себя", "Delete for me")}
+            onClick={() => onDelete("user")}
+            danger
+          />
+        )}
+        {!isOwn && (
+          <ActionRow
+            icon="🙈"
+            label={t("Скрыть у себя", "Hide for me")}
+            onClick={() => onDelete("user")}
+            danger
+          />
+        )}
+
+        <ActionRow icon="✖" label={t("Отмена", "Cancel")} onClick={onClose} />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ActionRow({
+  icon,
+  label,
+  onClick,
+  danger,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileTap={{ scale: 0.98 }}
+      style={{
+        width: "calc(100% - 16px)",
+        margin: "0 8px 4px",
+        padding: "14px 16px",
+        background: "transparent",
+        border: "none",
+        borderRadius: 12,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        color: danger ? C.danger : C.text,
+        fontSize: 15,
+        fontWeight: 500,
+        textAlign: "left",
+        cursor: "pointer",
+      }}
+    >
+      <span style={{ fontSize: 18, width: 22, textAlign: "center" }}>{icon}</span>
+      {label}
+    </motion.button>
+  );
+}
+
+/* ── Info sheet ─────────────────────────────────────────────────── */
+
+function InfoSheet({ t, onClose }: { t: (ru: string, en: string) => string; onClose: () => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const faq = [
+    {
+      q: t("Как составить заявку?", "How do I file a ticket?"),
+      a: t(
+        "Опишите вопрос одним сообщением: что произошло, когда, при каком заказе. Прикрепите скриншот через скрепку слева. Чем подробнее — тем быстрее ответ.",
+        "Describe the issue in one message: what happened, when, on which order. Attach a screenshot via the paperclip on the left. More detail = faster reply.",
+      ),
+    },
+    {
+      q: t("Время работы поддержки", "Support hours"),
+      a: t(
+        "Поддержка работает 24/7. Среднее время первого ответа — 2–10 минут днём, до 30 минут ночью.",
+        "Support is 24/7. Average first reply: 2–10 min daytime, up to 30 min at night.",
+      ),
+    },
+    {
+      q: t("Где мой заказ?", "Where is my order?"),
+      a: t(
+        "Авто-доставка приходит за 2–10 минут после оплаты. Ручная — от 1 до 24 часов. Если ждёте дольше — пришлите номер заказа.",
+        "Auto delivery arrives within 2–10 min of payment. Manual delivery 1–24h. Waiting longer? Send the order ID.",
+      ),
+    },
+    {
+      q: t("Платёж не зачислился", "Payment didn't credit"),
+      a: t(
+        "Пришлите скриншот транзакции и сеть. Транзакция в blockchain должна получить минимум 1 подтверждение.",
+        "Send a transaction screenshot and the network. The blockchain transaction needs at least 1 confirmation.",
+      ),
+    },
+    {
+      q: t("Возвраты и гарантии", "Refunds & guarantees"),
+      a: t(
+        "Если услуга не оказана — возвращаем 100% средств на баланс или в крипту. Условия — в разделе «Правила».",
+        "If a service isn't delivered — full refund to balance or crypto. See the Rules section.",
+      ),
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        zIndex: 60,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 280, damping: 32 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 480,
+          maxHeight: "85vh",
+          overflowY: "auto",
+          background: C.surfaceHi,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          padding: "10px 18px max(24px, env(safe-area-inset-bottom))",
+          border: `1px solid ${C.border}`,
+        }}
+      >
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: C.borderHi, margin: "4px auto 16px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+          <BrandAvatar size={44} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em" }}>
+              {t("Fanvue · Забота", "Fanvue Care")}
+            </div>
+            <div style={{ fontSize: 12.5, color: C.soft, marginTop: 2 }}>
+              {t("Команда поддержки · 24/7", "Support team · 24/7")}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+          <Stat label={t("Ответ", "Reply")} value="2–10 мин" />
+          <Stat label={t("Часы", "Hours")} value="24/7" />
+          <Stat label={t("Язык", "Language")} value="RU / EN" />
+        </div>
+
+        <div style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 8px" }}>
+          {t("Частые вопросы", "FAQ")}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {faq.map((f, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  background: "transparent",
+                  border: "none",
+                  color: C.text,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                {f.q}
+                <motion.span animate={{ rotate: open === i ? 180 : 0 }} style={{ display: "inline-flex", color: C.soft }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {open === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div style={{ padding: "0 14px 14px", fontSize: 13.5, color: C.soft, lineHeight: 1.5 }}>{f.a}</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+
+        <a
+          href={`https://t.me/${CONFIG.supportUsername}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginTop: 18,
+            padding: "13px 16px",
+            borderRadius: 14,
+            background: "linear-gradient(135deg, rgba(55,187,254,0.14), rgba(55,187,254,0.06))",
+            border: "1px solid rgba(55,187,254,0.32)",
+            color: "#7cd1ff",
+            fontSize: 14,
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          {t("Связаться в Telegram", "Open in Telegram")} ↗
+        </a>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        padding: "10px 8px",
+        background: "rgba(255,255,255,0.03)",
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        textAlign: "center",
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, letterSpacing: "-0.01em" }}>{value}</div>
+      <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+    </div>
   );
 }
