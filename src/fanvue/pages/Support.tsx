@@ -5,16 +5,39 @@ import { useStore } from "../store";
 import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Fanvue Concierge — premium minimal support
+   Reference language: Linear support · Arc help · Apple Card concierge
+   Rules of the system:
+   • Pure black canvas, no panels-on-panels, no gradients, no glow.
+   • One single accent — neon green — used surgically (status dot, send,
+     user bubble border, primary CTA). Never on backgrounds.
+   • All metadata, timestamps, labels, IDs in JetBrains Mono uppercase.
+     All running text in Inter. One display line in Space Grotesk.
+   • Hairline 1px borders only (rgba white 6–10%). No shadows.
+   • Asymmetric bubble geometry: snipped corner toward sender.
+   • Quick replies render as command-row items with arrow glyph,
+     not as colored pills.
+────────────────────────────────────────────────────────────────────────── */
+
 const ease = [0.16, 1, 0.3, 1] as const;
-const GREEN = "var(--fv-green, #39ff63)";
-const GREEN_2 = "var(--fv-green-2, #22e84f)";
-const BLACK = "var(--fv-black, #030303)";
-const PANEL = "var(--fv-panel, #101111)";
-const PANEL_2 = "var(--fv-panel-2, #171918)";
-const TEXT = "var(--t-primary, #fff)";
-const SOFT = "var(--t-secondary, rgba(255,255,255,0.72))";
-const MUTED = "var(--t-muted, rgba(255,255,255,0.48))";
-const MONO = "var(--font-mono, ui-sans-serif, system-ui, sans-serif)";
+
+const C = {
+  bg: "#030303",
+  surface: "rgba(255,255,255,0.025)",
+  border: "rgba(255,255,255,0.08)",
+  borderStrong: "rgba(255,255,255,0.14)",
+  text: "#ffffff",
+  soft: "rgba(255,255,255,0.62)",
+  muted: "rgba(255,255,255,0.36)",
+  faint: "rgba(255,255,255,0.18)",
+  green: "#39ff63",
+  greenSoft: "rgba(57,255,99,0.10)",
+  greenLine: "rgba(57,255,99,0.32)",
+};
+
+const FONT_DISPLAY = 'var(--font-display, "Space Grotesk", Inter, system-ui, sans-serif)';
+const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
 type SupportMessage = {
   id: number | string;
@@ -27,7 +50,7 @@ function formatTime(iso: string, lang: string) {
   return new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: lang !== "ru",
+    hour12: false,
   });
 }
 
@@ -42,7 +65,9 @@ function formatDay(iso: string, lang: string) {
     a.getDate() === b.getDate();
   if (same(d, today)) return lang === "ru" ? "Сегодня" : "Today";
   if (same(d, yest)) return lang === "ru" ? "Вчера" : "Yesterday";
-  return d.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "long" });
+  return d
+    .toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "long" })
+    .toLowerCase();
 }
 
 export default function Support() {
@@ -124,11 +149,20 @@ export default function Support() {
   };
 
   const quickReplies = [
-    t("Где заказ?", "Where is my order?"),
+    t("Где мой заказ", "Where is my order"),
     t("Проблема с оплатой", "Payment issue"),
     t("Срок выдачи", "Delivery time"),
-    t("Нужен оператор", "Need operator"),
+    t("Связать с оператором", "Talk to operator"),
   ];
+
+  // Stable ticket id for the session (premium "real product" detail)
+  const ticketId = useMemo(() => {
+    const seed = (user?.uid ?? Date.now()) + "";
+    const num = Math.abs(
+      Array.from(seed).reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7),
+    ) % 9000 + 1000;
+    return `FV-${num}`;
+  }, [user?.uid]);
 
   const groups = useMemo(() => {
     const out: Array<
@@ -174,30 +208,17 @@ export default function Support() {
         inset: 0,
         display: "flex",
         flexDirection: "column",
-        padding: "10px 10px 0",
-        paddingTop: "max(10px, env(safe-area-inset-top))",
+        paddingTop: "max(0px, env(safe-area-inset-top))",
         paddingBottom: kbHeight > 0 ? kbHeight : 0,
         transition: "padding-bottom 100ms ease",
         overflow: "hidden",
-        background: BLACK,
-        color: TEXT,
+        background: C.bg,
+        color: C.text,
       }}
     >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: [
-            "radial-gradient(88% 34% at 50% -8%, rgba(57,255,99,0.13), transparent 66%)",
-            "linear-gradient(180deg, rgba(57,255,99,0.028), transparent 32%)",
-          ].join(","),
-        }}
-      />
-
       <Header
         typing={typing}
+        ticketId={ticketId}
         t={t}
         onBack={() => {
           haptic("light");
@@ -208,16 +229,15 @@ export default function Support() {
       <main
         style={{
           position: "relative",
-          zIndex: 1,
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
-          padding: "12px 0 8px",
+          padding: "20px 18px 12px",
           display: "flex",
           flexDirection: "column",
-          gap: 10,
+          gap: 18,
         }}
       >
         {messages.length === 0 && (
@@ -234,10 +254,10 @@ export default function Support() {
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
-            return <MessageGroup key={g.key} group={g} lang={lang} lastUserId={lastUserId} />;
+            return <MessageGroup key={g.key} group={g} lang={lang} t={t} lastUserId={lastUserId} />;
           })}
 
-          {typing && <TypingIndicator key="typing" />}
+          {typing && <TypingIndicator key="typing" t={t} />}
         </AnimatePresence>
         <div ref={bottomRef} />
       </main>
@@ -253,347 +273,308 @@ export default function Support() {
         haptic={haptic}
         taRef={taRef}
         t={t}
+        hasMessages={messages.length > 0}
       />
     </div>
   );
 }
 
+/* ── Header ─────────────────────────────────────────────────────────── */
+
 function Header({
   typing,
+  ticketId,
   t,
   onBack,
 }: {
   typing: boolean;
+  ticketId: string;
   t: (ru: string, en: string) => string;
   onBack: () => void;
 }) {
   return (
     <motion.header
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.34, ease }}
-      style={{
-        position: "relative",
-        zIndex: 3,
-        flexShrink: 0,
-        overflow: "hidden",
-        borderRadius: 22,
-        border: "1px solid rgba(57,255,99,0.18)",
-        background: "linear-gradient(145deg, rgba(16,17,17,0.98), rgba(5,18,9,0.96))",
-        boxShadow: "0 18px 44px -30px rgba(0,0,0,0.96), inset 0 1px 0 rgba(255,255,255,0.06)",
-      }}
+      transition={{ duration: 0.28, ease }}
+      style={{ flexShrink: 0, background: C.bg, borderBottom: `1px solid ${C.border}` }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px" }}>
+      {/* Row 1: back · monogram · name+status · ticket id */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px 12px" }}>
         <motion.button
           onClick={onBack}
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: 0.9 }}
           aria-label={t("Назад", "Back")}
           style={{
-            width: 40,
-            height: 40,
+            width: 32,
+            height: 32,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            border: "1px solid rgba(255,255,255,0.13)",
-            borderRadius: 14,
-            background: "rgba(255,255,255,0.045)",
-            color: TEXT,
+            borderRadius: 999,
+            border: `1px solid ${C.border}`,
+            background: "transparent",
+            color: C.text,
             cursor: "pointer",
           }}
         >
           <svg
-            width="18"
-            height="18"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.45"
+            strokeWidth="2.4"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
+            <path d="M15 18l-6-6 6-6" />
           </svg>
         </motion.button>
 
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 999,
+            border: `1px solid ${C.borderStrong}`,
+            display: "grid",
+            placeItems: "center",
+            color: C.text,
+            fontFamily: FONT_DISPLAY,
+            fontSize: 14,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            flexShrink: 0,
+          }}
+        >
+          F
+        </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
+          <div
+            style={{
+              fontFamily: FONT_DISPLAY,
+              color: C.text,
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {t("Fanvue Консьерж", "Fanvue Concierge")}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              marginTop: 4,
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              color: C.muted,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            <motion.span
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: 10,
-                background: GREEN,
-                color: BLACK,
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 950,
-                fontSize: 17,
-                lineHeight: 1,
+                width: 5,
+                height: 5,
+                borderRadius: 999,
+                background: C.green,
+                boxShadow: `0 0 8px ${C.greenLine}`,
+                flexShrink: 0,
               }}
-            >
-              F
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-display, Inter, system-ui)",
-                  color: TEXT,
-                  fontSize: 18,
-                  fontWeight: 950,
-                  lineHeight: 1,
-                  letterSpacing: "0.09em",
-                  textTransform: "uppercase",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {t("Поддержка", "Support")}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}>
-                <motion.span
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 999,
-                    background: GREEN,
-                    boxShadow: "0 0 0 4px rgba(57,255,99,0.10), 0 0 16px rgba(57,255,99,0.72)",
-                  }}
-                  animate={{ opacity: [0.55, 1, 0.55] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span style={{ color: typing ? GREEN : SOFT, fontSize: 11, fontWeight: 850 }}>
-                  {typing
-                    ? t("оператор печатает", "operator typing")
-                    : t("7 онлайн · ответ до 30м", "7 online · reply < 30m")}
-                </span>
-              </div>
-            </div>
+              animate={{ opacity: [0.55, 1, 0.55] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span style={{ color: typing ? C.green : C.muted }}>
+              {typing ? t("печатает…", "typing…") : t("онлайн · ответ ~2 мин", "online · reply ~2m")}
+            </span>
           </div>
         </div>
 
         <div
           style={{
-            display: "grid",
-            placeItems: "center",
-            minWidth: 42,
-            height: 40,
-            borderRadius: 14,
-            background: GREEN,
-            color: BLACK,
-            fontFamily: MONO,
-            fontSize: 10.5,
-            fontWeight: 950,
-            boxShadow:
-              "0 14px 30px -18px rgba(57,255,99,0.76), inset 0 1px 0 rgba(255,255,255,0.32)",
+            fontFamily: FONT_MONO,
+            fontSize: 9.5,
+            color: C.muted,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            textAlign: "right",
+            lineHeight: 1.3,
           }}
         >
-          24/7
+          <div style={{ color: C.soft, fontWeight: 600 }}>{ticketId}</div>
+          <div style={{ marginTop: 2 }}>{t("открыт", "open")}</div>
         </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <HeaderMetric value="FAST" label={t("Быстрая выдача", "Fast delivery")} />
-        <HeaderMetric value="SAFE" label={t("Защита сделки", "Order protected")} />
       </div>
     </motion.header>
   );
 }
 
-function HeaderMetric({ value, label }: { value: string; label: string }) {
+/* ── Day separator ──────────────────────────────────────────────────── */
+
+function DaySeparator({ label }: { label: string }) {
   return (
-    <div
-      style={{
-        minHeight: 38,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        color: SOFT,
-        borderRight: value === "FAST" ? "1px solid rgba(255,255,255,0.07)" : "none",
-        background: "rgba(0,0,0,0.16)",
-      }}
-    >
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+      <div style={{ flex: 1, height: 1, background: C.border }} />
       <span
         style={{
-          fontFamily: MONO,
-          fontSize: 9,
-          fontWeight: 950,
-          color: GREEN,
-          letterSpacing: "0.08em",
-        }}
-      >
-        {value}
-      </span>
-      <span
-        style={{
-          fontSize: 11.5,
-          fontWeight: 850,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          fontFamily: FONT_MONO,
+          fontSize: 9.5,
+          fontWeight: 500,
+          color: C.muted,
+          textTransform: "lowercase",
+          letterSpacing: "0.16em",
         }}
       >
         {label}
       </span>
+      <div style={{ flex: 1, height: 1, background: C.border }} />
     </div>
   );
 }
 
-function DaySeparator({ label }: { label: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
-      <div
-        style={{
-          flex: 1,
-          height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(57,255,99,0.18))",
-        }}
-      />
-      <span
-        style={{
-          fontFamily: MONO,
-          fontSize: 9,
-          fontWeight: 900,
-          color: MUTED,
-          textTransform: "uppercase",
-          letterSpacing: "0.13em",
-          padding: "4px 8px",
-          borderRadius: 999,
-          background: "rgba(255,255,255,0.035)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        {label}
-      </span>
-      <div
-        style={{
-          flex: 1,
-          height: 1,
-          background: "linear-gradient(90deg, rgba(57,255,99,0.18), transparent)",
-        }}
-      />
-    </div>
-  );
-}
+/* ── Message group ──────────────────────────────────────────────────── */
 
 function MessageGroup({
   group,
   lang,
+  t,
   lastUserId,
 }: {
   group: { sender: "user" | "admin"; items: SupportMessage[] };
   lang: string;
+  t: (ru: string, en: string) => string;
   lastUserId: number | string | null;
 }) {
   const isUser = group.sender === "user";
+  const last = group.items[group.items.length - 1];
+  const time = formatTime(last.created, lang);
+  const showCheck = isUser && group.items.some((m) => m.id === lastUserId);
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.24, ease }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.26, ease }}
       style={{
         display: "flex",
-        justifyContent: isUser ? "flex-end" : "flex-start",
-        padding: "0 1px",
+        flexDirection: "column",
+        alignItems: isUser ? "flex-end" : "flex-start",
+        gap: 6,
       }}
     >
+      {/* Tiny meta row above bubble — name on operator side, time on user */}
       <div
         style={{
-          width: isUser ? "84%" : "88%",
-          borderRadius: isUser ? "18px 18px 6px 18px" : "6px 18px 18px 18px",
-          overflow: "hidden",
-          border: isUser ? "1px solid rgba(57,255,99,0.38)" : "1px solid rgba(255,255,255,0.09)",
-          background: isUser
-            ? "linear-gradient(135deg, rgba(57,255,99,0.18), rgba(57,255,99,0.08))"
-            : "linear-gradient(145deg, rgba(255,255,255,0.078), rgba(255,255,255,0.032))",
-          boxShadow: "0 14px 30px -24px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.05)",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontFamily: FONT_MONO,
+          fontSize: 9.5,
+          color: C.muted,
+          textTransform: "uppercase",
+          letterSpacing: "0.12em",
+          padding: "0 4px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-            padding: "8px 12px",
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
-            background: "rgba(0,0,0,0.16)",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: MONO,
-              fontSize: 9,
-              fontWeight: 950,
-              color: isUser ? GREEN : MUTED,
-              letterSpacing: "0.14em",
-            }}
-          >
-            {isUser ? "ВЫ" : "ОПЕРАТОР"}
-          </span>
-          <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 850, color: MUTED }}>
-            {formatTime(group.items[group.items.length - 1].created, lang)}
-            {isUser && group.items.some((m) => m.id === lastUserId) ? " ✓" : ""}
-          </span>
-        </div>
+        {isUser ? (
+          <>
+            <span>{time}</span>
+            {showCheck && <span style={{ color: C.green }}>delivered</span>}
+          </>
+        ) : (
+          <>
+            <span style={{ color: C.soft }}>{t("Оператор", "Operator")}</span>
+            <span>·</span>
+            <span>{time}</span>
+          </>
+        )}
+      </div>
 
-        <div style={{ display: "grid", gap: 7, padding: "11px 12px 12px" }}>
-          {group.items.map((msg) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: "86%" }}>
+        {group.items.map((msg, idx) => {
+          const isFirst = idx === 0;
+          const isLast = idx === group.items.length - 1;
+          // Asymmetric snip toward the sender side
+          const radius = isUser
+            ? `18px ${isFirst ? "6px" : "18px"} ${isLast ? "18px" : "6px"} 18px`
+            : `${isFirst ? "6px" : "18px"} 18px 18px ${isLast ? "18px" : "6px"}`;
+
+          return (
             <div
               key={msg.id}
               style={{
-                color: isUser ? TEXT : "rgba(255,255,255,0.9)",
+                padding: "12px 14px",
+                borderRadius: radius,
+                background: isUser ? "transparent" : C.surface,
+                border: `1px solid ${isUser ? C.greenLine : C.border}`,
+                color: isUser ? C.text : "rgba(255,255,255,0.92)",
+                fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
                 fontSize: 14.5,
-                lineHeight: 1.42,
-                fontWeight: isUser ? 850 : 650,
-                letterSpacing: 0,
-                textAlign: isUser ? "right" : "left",
+                lineHeight: 1.5,
+                fontWeight: 450,
+                letterSpacing: "-0.005em",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
               }}
             >
               {msg.text}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </motion.section>
   );
 }
 
-function TypingIndicator() {
+/* ── Typing indicator ───────────────────────────────────────────────── */
+
+function TypingIndicator({ t }: { t: (ru: string, en: string) => string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.22 }}
-      style={{ display: "flex", justifyContent: "flex-start", padding: "0 1px" }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
     >
       <div
         style={{
-          padding: "11px 15px",
-          borderRadius: "6px 18px 18px 18px",
-          background: "linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.032))",
-          border: "1px solid rgba(255,255,255,0.09)",
-          color: GREEN,
+          fontFamily: FONT_MONO,
+          fontSize: 9.5,
+          color: C.muted,
+          textTransform: "uppercase",
+          letterSpacing: "0.12em",
+          padding: "0 4px",
         }}
       >
-        <TypingDots size={5} />
+        {t("Оператор печатает", "Operator typing")}
+      </div>
+      <div
+        style={{
+          padding: "12px 16px",
+          borderRadius: "6px 18px 18px 18px",
+          background: C.surface,
+          border: `1px solid ${C.border}`,
+          color: C.green,
+        }}
+      >
+        <TypingDots />
       </div>
     </motion.div>
   );
 }
+
+/* ── Composer ───────────────────────────────────────────────────────── */
 
 function Composer({
   focused,
@@ -606,6 +587,7 @@ function Composer({
   haptic,
   taRef,
   t,
+  hasMessages,
 }: {
   focused: boolean;
   text: string;
@@ -615,176 +597,191 @@ function Composer({
   quickReplies: string[];
   send: (value: string) => void;
   haptic: (type?: "light" | "medium" | "heavy" | "success" | "error" | "warning") => void;
-  taRef: RefObject<HTMLTextAreaElement>;
+  taRef: RefObject<HTMLTextAreaElement | null>;
   t: (ru: string, en: string) => string;
+  hasMessages: boolean;
 }) {
+  const canSend = text.trim().length > 0;
+
   return (
     <footer
       style={{
-        position: "relative",
-        zIndex: 3,
         flexShrink: 0,
+        background: C.bg,
+        borderTop: `1px solid ${C.border}`,
         paddingBottom: "max(10px, env(safe-area-inset-bottom))",
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease }}
-        style={{
-          borderRadius: 26,
-          background: `linear-gradient(180deg, ${PANEL_2}, ${PANEL})`,
-          border: "1px solid rgba(255,255,255,0.11)",
-          boxShadow: "0 -20px 54px -32px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06)",
-          padding: 8,
-          overflow: "hidden",
-        }}
-      >
+      {/* Quick replies — only when chat already has messages, mono "→" style */}
+      {hasMessages && (
         <div
           style={{
             display: "flex",
-            gap: 7,
+            gap: 6,
             overflowX: "auto",
-            padding: "2px 2px 8px",
+            padding: "10px 14px 4px",
             scrollbarWidth: "none",
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {quickReplies.map((q, i) => (
-            <motion.button
+          {quickReplies.map((q) => (
+            <button
               key={q}
               type="button"
               onClick={() => {
                 haptic("light");
                 send(q);
               }}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, ease, delay: i * 0.025 }}
-              whileTap={{ scale: 0.96 }}
               style={{
                 flex: "0 0 auto",
-                minHeight: 34,
-                maxWidth: i === 1 ? 154 : 132,
-                padding: "0 12px",
+                height: 28,
+                padding: "0 10px",
                 borderRadius: 999,
-                border:
-                  i === 0 ? "1px solid rgba(57,255,99,0.48)" : "1px solid rgba(255,255,255,0.10)",
-                background: i === 0 ? "rgba(57,255,99,0.13)" : "rgba(255,255,255,0.045)",
-                color: i === 0 ? GREEN : SOFT,
-                fontSize: 11.5,
-                fontWeight: 850,
+                border: `1px solid ${C.border}`,
+                background: "transparent",
+                color: C.soft,
+                fontFamily: FONT_MONO,
+                fontSize: 10.5,
+                fontWeight: 500,
+                letterSpacing: "0.02em",
+                textTransform: "lowercase",
                 cursor: "pointer",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              {q}
-            </motion.button>
+              <span style={{ color: C.green }}>→</span>
+              {q.toLowerCase()}
+            </button>
           ))}
         </div>
+      )}
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-          <motion.div
-            animate={{
-              borderColor: focused ? "rgba(57,255,99,0.52)" : "rgba(255,255,255,0.10)",
-              boxShadow: focused ? "0 0 0 4px rgba(57,255,99,0.07)" : "0 0 0 0 rgba(57,255,99,0)",
+      {/* Input row — flat, hairline only */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 10,
+          padding: "10px 14px 6px",
+        }}
+      >
+        <motion.div
+          animate={{
+            borderColor: focused ? C.greenLine : C.border,
+          }}
+          transition={{ duration: 0.16 }}
+          style={{
+            flex: 1,
+            minHeight: 44,
+            background: "transparent",
+            border: `1px solid ${C.border}`,
+            borderRadius: 14,
+            padding: "0 14px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <textarea
+            ref={taRef}
+            placeholder={t("Сообщение для консьержа…", "Message the concierge…")}
+            value={text}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onChange={(e) => {
+              setText(e.target.value);
+              const el = e.target as HTMLTextAreaElement;
+              el.style.height = "auto";
+              el.style.height = Math.min(el.scrollHeight, 108) + "px";
             }}
-            transition={{ duration: 0.16 }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            rows={1}
             style={{
               flex: 1,
-              minHeight: 48,
-              background: "rgba(0,0,0,0.34)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              borderRadius: 18,
-              padding: "0 14px",
-              display: "flex",
-              alignItems: "center",
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              resize: "none",
+              color: C.text,
+              fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+              fontSize: 14.5,
+              fontWeight: 450,
+              lineHeight: 1.45,
+              padding: "12px 0",
+              maxHeight: 108,
+              letterSpacing: "-0.005em",
             }}
-          >
-            <textarea
-              ref={taRef}
-              placeholder={t("Напишите сообщение…", "Write a message…")}
-              value={text}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              onChange={(e) => {
-                setText(e.target.value);
-                const el = e.target as HTMLTextAreaElement;
-                el.style.height = "auto";
-                el.style.height = Math.min(el.scrollHeight, 108) + "px";
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              rows={1}
-              style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                resize: "none",
-                color: TEXT,
-                fontFamily: "inherit",
-                fontSize: 14.5,
-                lineHeight: 1.4,
-                padding: "13px 0",
-                maxHeight: 108,
-              }}
-            />
-          </motion.div>
+          />
+        </motion.div>
 
-          <motion.button
-            onClick={handleSend}
-            disabled={!text.trim()}
-            whileTap={{ scale: 0.88 }}
-            animate={{ scale: text.trim() ? 1 : 0.94, opacity: text.trim() ? 1 : 0.66 }}
-            transition={{ type: "spring", stiffness: 340, damping: 24 }}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 17,
-              flexShrink: 0,
-              background: text.trim()
-                ? `linear-gradient(135deg, ${GREEN}, ${GREEN_2})`
-                : "rgba(255,255,255,0.055)",
-              border: text.trim()
-                ? "1px solid rgba(57,255,99,0.55)"
-                : "1px solid rgba(255,255,255,0.10)",
-              color: text.trim() ? BLACK : MUTED,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: text.trim() ? "pointer" : "default",
-              boxShadow: text.trim()
-                ? "0 14px 32px -14px rgba(57,255,99,0.78), inset 0 1px 0 rgba(255,255,255,0.35)"
-                : "none",
-            }}
-            aria-label="Send"
+        <motion.button
+          onClick={handleSend}
+          disabled={!canSend}
+          whileTap={{ scale: 0.92 }}
+          animate={{
+            backgroundColor: canSend ? C.green : "transparent",
+            borderColor: canSend ? C.green : C.border,
+            color: canSend ? C.bg : C.muted,
+          }}
+          transition={{ duration: 0.14 }}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            flexShrink: 0,
+            border: `1px solid ${C.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: canSend ? "pointer" : "default",
+          }}
+          aria-label="Send"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="19"
-              height="19"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.55"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M22 2 11 13" />
-              <path d="m22 2-7 20-4-9-9-4 20-7Z" />
-            </svg>
-          </motion.button>
-        </div>
-      </motion.div>
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+        </motion.button>
+      </div>
+
+      {/* Footer hint — premium "real product" detail */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 18px 4px",
+          fontFamily: FONT_MONO,
+          fontSize: 9,
+          color: C.faint,
+          textTransform: "uppercase",
+          letterSpacing: "0.14em",
+        }}
+      >
+        <span>↵ {t("отправить", "send")}</span>
+        <span>{t("шифрование e2e", "end-to-end encrypted")}</span>
+      </div>
     </footer>
   );
 }
+
+/* ── Empty state ────────────────────────────────────────────────────── */
 
 function EmptyChat({
   t,
@@ -797,58 +794,132 @@ function EmptyChat({
 }) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 16, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease }}
-      style={{ margin: "auto 0", display: "grid", gap: 12, padding: "0 2px" }}
+      style={{
+        margin: "auto 0",
+        display: "flex",
+        flexDirection: "column",
+        gap: 28,
+      }}
     >
-      <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: 24,
-          padding: 16,
-          background: `linear-gradient(145deg, ${PANEL_2}, rgba(5,19,9,0.98))`,
-          border: "1px solid rgba(57,255,99,0.18)",
-          boxShadow: "0 22px 48px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06)",
-        }}
-      >
-        <div style={{ color: TEXT, fontSize: 20, fontWeight: 950, lineHeight: 1.02 }}>
-          {t("Чем помочь?", "How can we help?")}
+      {/* Editorial heading block */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: C.green,
+            textTransform: "uppercase",
+            letterSpacing: "0.18em",
+            fontWeight: 600,
+          }}
+        >
+          {t("Поддержка · 24/7", "Support · 24/7")}
         </div>
-        <div style={{ color: SOFT, fontSize: 13, lineHeight: 1.35, marginTop: 8, fontWeight: 650 }}>
+        <h1
+          style={{
+            margin: 0,
+            fontFamily: FONT_DISPLAY,
+            fontSize: 34,
+            lineHeight: 1.02,
+            letterSpacing: "-0.035em",
+            fontWeight: 600,
+            color: C.text,
+          }}
+        >
+          {t("Чем мы можем\nпомочь сегодня?", "How can we\nhelp today?")}
+        </h1>
+        <p
+          style={{
+            margin: 0,
+            color: C.soft,
+            fontSize: 14,
+            lineHeight: 1.5,
+            fontWeight: 450,
+            maxWidth: 320,
+            letterSpacing: "-0.005em",
+          }}
+        >
           {t(
-            "Выберите быстрый вопрос или напишите вручную.",
-            "Pick a quick question or write manually.",
+            "Реальный человек ответит обычно за 2 минуты. Опишите вопрос или выберите ниже.",
+            "A real human usually replies within 2 minutes. Describe your issue or pick a topic below.",
           )}
-        </div>
+        </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {quickReplies.slice(0, 4).map((q, i) => (
+      {/* Command-row quick replies — Linear/Arc style */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          borderTop: `1px solid ${C.border}`,
+        }}
+      >
+        {quickReplies.map((q, i) => (
           <motion.button
             key={q}
             onClick={() => onPick(q)}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.26, ease, delay: 0.1 + i * 0.035 }}
-            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.28, ease, delay: 0.08 + i * 0.05 }}
+            whileTap={{ scale: 0.995, backgroundColor: "rgba(57,255,99,0.04)" }}
             style={{
-              minHeight: 48,
-              padding: "10px 11px",
-              borderRadius: 16,
-              border:
-                i === 0 ? "1px solid rgba(57,255,99,0.42)" : "1px solid rgba(255,255,255,0.09)",
-              background: i === 0 ? "rgba(57,255,99,0.12)" : "rgba(255,255,255,0.045)",
-              color: i === 0 ? GREEN : TEXT,
-              fontSize: 12.5,
-              fontWeight: 850,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "16px 2px",
+              borderBottom: `1px solid ${C.border}`,
+              background: "transparent",
+              color: C.text,
               cursor: "pointer",
               textAlign: "left",
-              lineHeight: 1.15,
             }}
           >
-            {q}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+              <span
+                style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
+                  color: C.muted,
+                  letterSpacing: "0.12em",
+                  width: 22,
+                  flexShrink: 0,
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+                  fontSize: 15,
+                  fontWeight: 500,
+                  letterSpacing: "-0.01em",
+                  color: C.text,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {q}
+              </span>
+            </div>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={C.muted}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ flexShrink: 0 }}
+            >
+              <path d="M7 17L17 7" />
+              <path d="M8 7h9v9" />
+            </svg>
           </motion.button>
         ))}
       </div>
@@ -856,20 +927,22 @@ function EmptyChat({
   );
 }
 
-function TypingDots({ size = 4 }: { size?: number }) {
+/* ── Typing dots ────────────────────────────────────────────────────── */
+
+function TypingDots() {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: Math.max(2, size - 2) }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
           style={{
-            width: size,
-            height: size,
+            width: 4,
+            height: 4,
             borderRadius: "50%",
             background: "currentColor",
             display: "inline-block",
           }}
-          animate={{ opacity: [0.32, 1, 0.32], y: [0, -2, 0] }}
+          animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
           transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: "easeInOut" }}
         />
       ))}
