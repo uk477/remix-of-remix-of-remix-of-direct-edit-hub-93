@@ -5,39 +5,26 @@ import { useStore } from "../store";
 import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Fanvue Concierge — premium minimal support
-   Reference language: Linear support · Arc help · Apple Card concierge
-   Rules of the system:
-   • Pure black canvas, no panels-on-panels, no gradients, no glow.
-   • One single accent — neon green — used surgically (status dot, send,
-     user bubble border, primary CTA). Never on backgrounds.
-   • All metadata, timestamps, labels, IDs in JetBrains Mono uppercase.
-     All running text in Inter. One display line in Space Grotesk.
-   • Hairline 1px borders only (rgba white 6–10%). No shadows.
-   • Asymmetric bubble geometry: snipped corner toward sender.
-   • Quick replies render as command-row items with arrow glyph,
-     not as colored pills.
-────────────────────────────────────────────────────────────────────────── */
+/* Fanvue Support — premium messenger feel.
+   Reference: iMessage / Telegram / Intercom Chat.
+   Philosophy: zero pretension. No ticket IDs, no mono-decoration,
+   no "concierge"/"e2e" labels. Quality of bubble, avatar, motion. */
 
-const ease = [0.16, 1, 0.3, 1] as const;
+const ease = [0.22, 1, 0.36, 1] as const;
 
 const C = {
-  bg: "#030303",
-  surface: "rgba(255,255,255,0.025)",
-  border: "rgba(255,255,255,0.08)",
-  borderStrong: "rgba(255,255,255,0.14)",
-  text: "#ffffff",
-  soft: "rgba(255,255,255,0.62)",
-  muted: "rgba(255,255,255,0.36)",
-  faint: "rgba(255,255,255,0.18)",
+  bg: "#0a0a0b",
+  surface: "#161618",
+  surfaceHi: "#1d1d20",
+  border: "rgba(255,255,255,0.07)",
+  text: "#f5f5f7",
+  soft: "rgba(245,245,247,0.66)",
+  muted: "rgba(245,245,247,0.42)",
+  faint: "rgba(245,245,247,0.22)",
   green: "#39ff63",
-  greenSoft: "rgba(57,255,99,0.10)",
-  greenLine: "rgba(57,255,99,0.32)",
+  greenInk: "#062a10",
+  greenBubble: "linear-gradient(180deg, #3dff66 0%, #28e052 100%)",
 };
-
-const FONT_DISPLAY = 'var(--font-display, "Space Grotesk", Inter, system-ui, sans-serif)';
-const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
 type SupportMessage = {
   id: number | string;
@@ -46,7 +33,7 @@ type SupportMessage = {
   created: string;
 };
 
-function formatTime(iso: string, lang: string) {
+function fmtTime(iso: string, lang: string) {
   return new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -54,7 +41,7 @@ function formatTime(iso: string, lang: string) {
   });
 }
 
-function formatDay(iso: string, lang: string) {
+function fmtDay(iso: string, lang: string) {
   const d = new Date(iso);
   const today = new Date();
   const yest = new Date();
@@ -65,9 +52,7 @@ function formatDay(iso: string, lang: string) {
     a.getDate() === b.getDate();
   if (same(d, today)) return lang === "ru" ? "Сегодня" : "Today";
   if (same(d, yest)) return lang === "ru" ? "Вчера" : "Yesterday";
-  return d
-    .toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "long" })
-    .toLowerCase();
+  return d.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "long" });
 }
 
 export default function Support() {
@@ -149,20 +134,11 @@ export default function Support() {
   };
 
   const quickReplies = [
-    t("Где мой заказ", "Where is my order"),
+    t("Где мой заказ?", "Where is my order?"),
     t("Проблема с оплатой", "Payment issue"),
     t("Срок выдачи", "Delivery time"),
     t("Связать с оператором", "Talk to operator"),
   ];
-
-  // Stable ticket id for the session (premium "real product" detail)
-  const ticketId = useMemo(() => {
-    const seed = (user?.uid ?? Date.now()) + "";
-    const num = Math.abs(
-      Array.from(seed).reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7),
-    ) % 9000 + 1000;
-    return `FV-${num}`;
-  }, [user?.uid]);
 
   const groups = useMemo(() => {
     const out: Array<
@@ -176,11 +152,10 @@ export default function Support() {
       sender: "user" | "admin";
       items: SupportMessage[];
     } | null = null;
-
     messages.forEach((m) => {
       const day = new Date(m.created).toDateString();
       if (day !== lastDay) {
-        out.push({ type: "day", key: "d-" + day, label: formatDay(m.created, lang) });
+        out.push({ type: "day", key: "d-" + day, label: fmtDay(m.created, lang) });
         lastDay = day;
         cur = null;
       }
@@ -190,7 +165,6 @@ export default function Support() {
       }
       cur.items.push(m);
     });
-
     return out;
   }, [messages, lang]);
 
@@ -218,7 +192,6 @@ export default function Support() {
     >
       <Header
         typing={typing}
-        ticketId={ticketId}
         t={t}
         onBack={() => {
           haptic("light");
@@ -234,10 +207,10 @@ export default function Support() {
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
-          padding: "20px 18px 12px",
+          padding: "16px 14px 8px",
           display: "flex",
           flexDirection: "column",
-          gap: 18,
+          gap: 4,
         }}
       >
         {messages.length === 0 && (
@@ -254,10 +227,9 @@ export default function Support() {
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
-            return <MessageGroup key={g.key} group={g} lang={lang} t={t} lastUserId={lastUserId} />;
+            return <MessageGroup key={g.key} group={g} lang={lang} lastUserId={lastUserId} />;
           })}
-
-          {typing && <TypingIndicator key="typing" t={t} />}
+          {typing && <TypingBubble key="typing" />}
         </AnimatePresence>
         <div ref={bottomRef} />
       </main>
@@ -268,313 +240,361 @@ export default function Support() {
         setText={setText}
         setFocused={setFocused}
         handleSend={handleSend}
-        quickReplies={quickReplies}
-        send={send}
         haptic={haptic}
         taRef={taRef}
         t={t}
-        hasMessages={messages.length > 0}
       />
     </div>
   );
 }
 
-/* ── Header ─────────────────────────────────────────────────────────── */
+/* ── Header ─────────────────────────────────────────────────────── */
 
 function Header({
   typing,
-  ticketId,
   t,
   onBack,
 }: {
   typing: boolean;
-  ticketId: string;
   t: (ru: string, en: string) => string;
   onBack: () => void;
 }) {
   return (
     <motion.header
-      initial={{ opacity: 0, y: -6 }}
+      initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease }}
-      style={{ flexShrink: 0, background: C.bg, borderBottom: `1px solid ${C.border}` }}
+      transition={{ duration: 0.24, ease }}
+      style={{
+        flexShrink: 0,
+        background: "rgba(10,10,11,0.85)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        borderBottom: `1px solid ${C.border}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 12px 10px 8px",
+      }}
     >
-      {/* Row 1: back · monogram · name+status · ticket id */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px 12px" }}>
-        <motion.button
-          onClick={onBack}
-          whileTap={{ scale: 0.9 }}
-          aria-label={t("Назад", "Back")}
-          style={{
-            width: 32,
-            height: 32,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            borderRadius: 999,
-            border: `1px solid ${C.border}`,
-            background: "transparent",
-            color: C.text,
-            cursor: "pointer",
-          }}
+      <motion.button
+        onClick={onBack}
+        whileTap={{ scale: 0.88 }}
+        aria-label={t("Назад", "Back")}
+        style={{
+          width: 36,
+          height: 36,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          borderRadius: 999,
+          border: "none",
+          background: "transparent",
+          color: C.text,
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </motion.button>
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </motion.button>
 
+      {/* Avatar with online ring */}
+      <div style={{ position: "relative", flexShrink: 0 }}>
         <div
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 999,
-            border: `1px solid ${C.borderStrong}`,
+            width: 38,
+            height: 38,
+            borderRadius: "50%",
+            background: `radial-gradient(circle at 30% 25%, #2a2a2e 0%, #131316 100%)`,
+            border: `1px solid ${C.border}`,
             display: "grid",
             placeItems: "center",
             color: C.text,
-            fontFamily: FONT_DISPLAY,
-            fontSize: 14,
+            fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
+            fontSize: 15,
             fontWeight: 700,
             letterSpacing: "-0.02em",
-            flexShrink: 0,
           }}
         >
           F
         </div>
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            right: -1,
+            bottom: -1,
+            width: 11,
+            height: 11,
+            borderRadius: "50%",
+            background: C.green,
+            border: `2px solid ${C.bg}`,
+            boxShadow: "0 0 8px rgba(57,255,99,0.6)",
+          }}
+        />
+      </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontFamily: FONT_DISPLAY,
-              color: C.text,
-              fontSize: 16,
-              fontWeight: 600,
-              letterSpacing: "-0.02em",
-              lineHeight: 1.1,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {t("Fanvue Консьерж", "Fanvue Concierge")}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              marginTop: 4,
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: C.muted,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            <motion.span
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: 999,
-                background: C.green,
-                boxShadow: `0 0 8px ${C.greenLine}`,
-                flexShrink: 0,
-              }}
-              animate={{ opacity: [0.55, 1, 0.55] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <span style={{ color: typing ? C.green : C.muted }}>
-              {typing ? t("печатает…", "typing…") : t("онлайн · ответ ~2 мин", "online · reply ~2m")}
-            </span>
-          </div>
-        </div>
-
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontFamily: FONT_MONO,
-            fontSize: 9.5,
-            color: C.muted,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            textAlign: "right",
-            lineHeight: 1.3,
+            color: C.text,
+            fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+            fontSize: 15.5,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            lineHeight: 1.15,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
-          <div style={{ color: C.soft, fontWeight: 600 }}>{ticketId}</div>
-          <div style={{ marginTop: 2 }}>{t("открыт", "open")}</div>
+          {t("Поддержка Fanvue", "Fanvue Support")}
         </div>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={typing ? "t" : "o"}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18 }}
+            style={{
+              marginTop: 2,
+              fontSize: 12,
+              fontWeight: 450,
+              color: typing ? C.green : C.soft,
+              lineHeight: 1.2,
+              letterSpacing: "-0.005em",
+            }}
+          >
+            {typing ? t("печатает…", "typing…") : t("в сети", "online")}
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      <motion.button
+        whileTap={{ scale: 0.92 }}
+        aria-label={t("Информация", "Info")}
+        style={{
+          width: 36,
+          height: 36,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          borderRadius: 999,
+          border: "none",
+          background: "transparent",
+          color: C.soft,
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v4M12 16h.01" />
+        </svg>
+      </motion.button>
     </motion.header>
   );
 }
 
-/* ── Day separator ──────────────────────────────────────────────────── */
+/* ── Day pill ───────────────────────────────────────────────────── */
 
 function DaySeparator({ label }: { label: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-      <div style={{ flex: 1, height: 1, background: C.border }} />
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        padding: "12px 0 8px",
+      }}
+    >
       <span
         style={{
-          fontFamily: FONT_MONO,
-          fontSize: 9.5,
+          fontSize: 11.5,
           fontWeight: 500,
           color: C.muted,
-          textTransform: "lowercase",
-          letterSpacing: "0.16em",
+          padding: "5px 12px",
+          borderRadius: 999,
+          background: C.surface,
+          letterSpacing: "-0.005em",
         }}
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: 1, background: C.border }} />
     </div>
   );
 }
 
-/* ── Message group ──────────────────────────────────────────────────── */
+/* ── Message group ──────────────────────────────────────────────── */
 
 function MessageGroup({
   group,
   lang,
-  t,
   lastUserId,
 }: {
   group: { sender: "user" | "admin"; items: SupportMessage[] };
   lang: string;
-  t: (ru: string, en: string) => string;
   lastUserId: number | string | null;
 }) {
   const isUser = group.sender === "user";
-  const last = group.items[group.items.length - 1];
-  const time = formatTime(last.created, lang);
-  const showCheck = isUser && group.items.some((m) => m.id === lastUserId);
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.26, ease }}
+      transition={{ duration: 0.28, ease }}
       style={{
         display: "flex",
         flexDirection: "column",
         alignItems: isUser ? "flex-end" : "flex-start",
-        gap: 6,
+        gap: 2,
+        marginTop: 8,
+        marginBottom: 2,
       }}
     >
-      {/* Tiny meta row above bubble — name on operator side, time on user */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          fontFamily: FONT_MONO,
-          fontSize: 9.5,
-          color: C.muted,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-          padding: "0 4px",
-        }}
-      >
-        {isUser ? (
-          <>
-            <span>{time}</span>
-            {showCheck && <span style={{ color: C.green }}>delivered</span>}
-          </>
-        ) : (
-          <>
-            <span style={{ color: C.soft }}>{t("Оператор", "Operator")}</span>
-            <span>·</span>
-            <span>{time}</span>
-          </>
-        )}
-      </div>
+      {group.items.map((msg, idx) => {
+        const isLast = idx === group.items.length - 1;
+        const time = fmtTime(msg.created, lang);
+        const showTail = isLast;
+        const showCheck = isUser && msg.id === lastUserId;
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: "86%" }}>
-        {group.items.map((msg, idx) => {
-          const isFirst = idx === 0;
-          const isLast = idx === group.items.length - 1;
-          // Asymmetric snip toward the sender side
-          const radius = isUser
-            ? `18px ${isFirst ? "6px" : "18px"} ${isLast ? "18px" : "6px"} 18px`
-            : `${isFirst ? "6px" : "18px"} 18px 18px ${isLast ? "18px" : "6px"}`;
+        // iMessage-style tight stacking with tail only on last bubble
+        const radiusUser = showTail ? "22px 22px 6px 22px" : "22px 22px 22px 22px";
+        const radiusAdmin = showTail ? "22px 22px 22px 6px" : "22px 22px 22px 22px";
 
-          return (
-            <div
-              key={msg.id}
+        return (
+          <div
+            key={msg.id}
+            style={{
+              maxWidth: "78%",
+              position: "relative",
+              padding: "9px 14px 9px 14px",
+              borderRadius: isUser ? radiusUser : radiusAdmin,
+              background: isUser ? C.greenBubble : C.surface,
+              color: isUser ? C.greenInk : C.text,
+              fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+              fontSize: 15,
+              lineHeight: 1.35,
+              fontWeight: isUser ? 550 : 450,
+              letterSpacing: "-0.005em",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              boxShadow: isUser
+                ? "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -16px rgba(57,255,99,0.5)"
+                : "0 1px 2px rgba(0,0,0,0.3)",
+            }}
+          >
+            <span>{msg.text}</span>
+            {/* Inline timestamp + check, hugging bottom-right inside the bubble */}
+            <span
               style={{
-                padding: "12px 14px",
-                borderRadius: radius,
-                background: isUser ? "transparent" : C.surface,
-                border: `1px solid ${isUser ? C.greenLine : C.border}`,
-                color: isUser ? C.text : "rgba(255,255,255,0.92)",
-                fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-                fontSize: 14.5,
-                lineHeight: 1.5,
-                fontWeight: 450,
-                letterSpacing: "-0.005em",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 3,
+                marginLeft: 8,
+                fontSize: 10,
+                fontWeight: 500,
+                color: isUser ? "rgba(6,42,16,0.62)" : C.muted,
+                verticalAlign: "baseline",
+                whiteSpace: "nowrap",
+                position: "relative",
+                top: 2,
+                letterSpacing: 0,
               }}
             >
-              {msg.text}
-            </div>
-          );
-        })}
-      </div>
+              {time}
+              {showCheck && (
+                <svg
+                  width="13"
+                  height="9"
+                  viewBox="0 0 13 9"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ marginLeft: 1 }}
+                >
+                  <path d="M1 4.5l3 3L8 2" />
+                  <path d="M5 7.5L8.5 4 12 0.5" />
+                </svg>
+              )}
+            </span>
+          </div>
+        );
+      })}
     </motion.section>
   );
 }
 
-/* ── Typing indicator ───────────────────────────────────────────────── */
+/* ── Typing bubble ──────────────────────────────────────────────── */
 
-function TypingIndicator({ t }: { t: (ru: string, en: string) => string }) {
+function TypingBubble() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, y: 6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.2 }}
-      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      style={{
+        alignSelf: "flex-start",
+        marginTop: 8,
+        padding: "12px 14px",
+        borderRadius: "22px 22px 22px 6px",
+        background: C.surface,
+        color: C.soft,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
+      }}
     >
-      <div
-        style={{
-          fontFamily: FONT_MONO,
-          fontSize: 9.5,
-          color: C.muted,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-          padding: "0 4px",
-        }}
-      >
-        {t("Оператор печатает", "Operator typing")}
-      </div>
-      <div
-        style={{
-          padding: "12px 16px",
-          borderRadius: "6px 18px 18px 18px",
-          background: C.surface,
-          border: `1px solid ${C.border}`,
-          color: C.green,
-        }}
-      >
-        <TypingDots />
-      </div>
+      <TypingDots />
     </motion.div>
   );
 }
 
-/* ── Composer ───────────────────────────────────────────────────────── */
+function TypingDots() {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "currentColor",
+            display: "inline-block",
+          }}
+          animate={{ opacity: [0.32, 1, 0.32], y: [0, -3, 0] }}
+          transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: "easeInOut" }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/* ── Composer ───────────────────────────────────────────────────── */
 
 function Composer({
   focused,
@@ -582,24 +602,18 @@ function Composer({
   setText,
   setFocused,
   handleSend,
-  quickReplies,
-  send,
   haptic,
   taRef,
   t,
-  hasMessages,
 }: {
   focused: boolean;
   text: string;
   setText: (value: string) => void;
   setFocused: (value: boolean) => void;
   handleSend: () => void;
-  quickReplies: string[];
-  send: (value: string) => void;
   haptic: (type?: "light" | "medium" | "heavy" | "success" | "error" | "warning") => void;
   taRef: RefObject<HTMLTextAreaElement | null>;
   t: (ru: string, en: string) => string;
-  hasMessages: boolean;
 }) {
   const canSend = text.trim().length > 0;
 
@@ -607,86 +621,76 @@ function Composer({
     <footer
       style={{
         flexShrink: 0,
-        background: C.bg,
+        background: "rgba(10,10,11,0.92)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
         borderTop: `1px solid ${C.border}`,
-        paddingBottom: "max(10px, env(safe-area-inset-bottom))",
+        paddingBottom: "max(8px, env(safe-area-inset-bottom))",
       }}
     >
-      {/* Quick replies — only when chat already has messages, mono "→" style */}
-      {hasMessages && (
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            overflowX: "auto",
-            padding: "10px 14px 4px",
-            scrollbarWidth: "none",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {quickReplies.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => {
-                haptic("light");
-                send(q);
-              }}
-              style={{
-                flex: "0 0 auto",
-                height: 28,
-                padding: "0 10px",
-                borderRadius: 999,
-                border: `1px solid ${C.border}`,
-                background: "transparent",
-                color: C.soft,
-                fontFamily: FONT_MONO,
-                fontSize: 10.5,
-                fontWeight: 500,
-                letterSpacing: "0.02em",
-                textTransform: "lowercase",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <span style={{ color: C.green }}>→</span>
-              {q.toLowerCase()}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Input row — flat, hairline only */}
       <div
         style={{
           display: "flex",
           alignItems: "flex-end",
-          gap: 10,
-          padding: "10px 14px 6px",
+          gap: 8,
+          padding: "10px 12px",
         }}
       >
+        {/* Plus / attach — placeholder for premium feel */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          onClick={() => haptic("light")}
+          aria-label={t("Добавить", "Attach")}
+          style={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 999,
+            border: "none",
+            background: "transparent",
+            color: C.soft,
+            cursor: "pointer",
+            padding: 0,
+            marginBottom: 2,
+          }}
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v8M8 12h8" />
+          </svg>
+        </motion.button>
+
         <motion.div
           animate={{
-            borderColor: focused ? C.greenLine : C.border,
+            borderColor: focused ? "rgba(57,255,99,0.45)" : C.border,
           }}
           transition={{ duration: 0.16 }}
           style={{
             flex: 1,
-            minHeight: 44,
-            background: "transparent",
+            minHeight: 38,
+            background: C.surface,
             border: `1px solid ${C.border}`,
-            borderRadius: 14,
-            padding: "0 14px",
+            borderRadius: 22,
+            padding: "0 6px 0 14px",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
           }}
         >
           <textarea
             ref={taRef}
-            placeholder={t("Сообщение для консьержа…", "Message the concierge…")}
+            placeholder={t("Сообщение", "Message")}
             value={text}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -694,7 +698,7 @@ function Composer({
               setText(e.target.value);
               const el = e.target as HTMLTextAreaElement;
               el.style.height = "auto";
-              el.style.height = Math.min(el.scrollHeight, 108) + "px";
+              el.style.height = Math.min(el.scrollHeight, 120) + "px";
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -711,77 +715,65 @@ function Composer({
               resize: "none",
               color: C.text,
               fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-              fontSize: 14.5,
+              fontSize: 15,
               fontWeight: 450,
-              lineHeight: 1.45,
-              padding: "12px 0",
-              maxHeight: 108,
+              lineHeight: 1.4,
+              padding: "9px 0",
+              maxHeight: 120,
               letterSpacing: "-0.005em",
             }}
           />
+          <AnimatePresence initial={false}>
+            {canSend && (
+              <motion.button
+                key="send"
+                onClick={handleSend}
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.4, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                whileTap={{ scale: 0.88 }}
+                style={{
+                  width: 30,
+                  height: 30,
+                  flexShrink: 0,
+                  margin: "0 0 4px 4px",
+                  borderRadius: "50%",
+                  border: "none",
+                  background: C.green,
+                  color: C.greenInk,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  padding: 0,
+                  boxShadow: "0 4px 14px -4px rgba(57,255,99,0.6)",
+                }}
+                aria-label="Send"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 19V5" />
+                  <path d="M5 12l7-7 7 7" />
+                </svg>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
-
-        <motion.button
-          onClick={handleSend}
-          disabled={!canSend}
-          whileTap={{ scale: 0.92 }}
-          animate={{
-            backgroundColor: canSend ? C.green : "transparent",
-            borderColor: canSend ? C.green : C.border,
-            color: canSend ? C.bg : C.muted,
-          }}
-          transition={{ duration: 0.14 }}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 14,
-            flexShrink: 0,
-            border: `1px solid ${C.border}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: canSend ? "pointer" : "default",
-          }}
-          aria-label="Send"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14" />
-            <path d="M13 6l6 6-6 6" />
-          </svg>
-        </motion.button>
-      </div>
-
-      {/* Footer hint — premium "real product" detail */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 18px 4px",
-          fontFamily: FONT_MONO,
-          fontSize: 9,
-          color: C.faint,
-          textTransform: "uppercase",
-          letterSpacing: "0.14em",
-        }}
-      >
-        <span>↵ {t("отправить", "send")}</span>
-        <span>{t("шифрование e2e", "end-to-end encrypted")}</span>
       </div>
     </footer>
   );
 }
 
-/* ── Empty state ────────────────────────────────────────────────────── */
+/* ── Empty state ────────────────────────────────────────────────── */
 
 function EmptyChat({
   t,
@@ -794,121 +786,129 @@ function EmptyChat({
 }) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease }}
       style={{
         margin: "auto 0",
         display: "flex",
         flexDirection: "column",
-        gap: 28,
+        alignItems: "center",
+        gap: 24,
+        padding: "20px 8px",
       }}
     >
-      {/* Editorial heading block */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 30% 25%, #2a2a2e 0%, #131316 100%)`,
+          border: `1px solid ${C.border}`,
+          display: "grid",
+          placeItems: "center",
+          color: C.text,
+          fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
+          fontSize: 26,
+          fontWeight: 700,
+          letterSpacing: "-0.03em",
+          position: "relative",
+        }}
+      >
+        F
+        <span
           style={{
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            color: C.green,
-            textTransform: "uppercase",
-            letterSpacing: "0.18em",
-            fontWeight: 600,
+            position: "absolute",
+            right: 2,
+            bottom: 2,
+            width: 14,
+            height: 14,
+            borderRadius: "50%",
+            background: C.green,
+            border: `3px solid ${C.bg}`,
+            boxShadow: "0 0 12px rgba(57,255,99,0.6)",
           }}
-        >
-          {t("Поддержка · 24/7", "Support · 24/7")}
-        </div>
+        />
+      </div>
+
+      <div style={{ textAlign: "center", maxWidth: 300 }}>
         <h1
           style={{
             margin: 0,
-            fontFamily: FONT_DISPLAY,
-            fontSize: 34,
-            lineHeight: 1.02,
-            letterSpacing: "-0.035em",
+            fontFamily: 'var(--font-display, "Space Grotesk", Inter, sans-serif)',
+            fontSize: 22,
+            lineHeight: 1.2,
+            letterSpacing: "-0.025em",
             fontWeight: 600,
             color: C.text,
           }}
         >
-          {t("Чем мы можем\nпомочь сегодня?", "How can we\nhelp today?")}
+          {t("Поддержка Fanvue", "Fanvue Support")}
         </h1>
         <p
           style={{
-            margin: 0,
+            margin: "8px 0 0",
             color: C.soft,
             fontSize: 14,
-            lineHeight: 1.5,
+            lineHeight: 1.45,
             fontWeight: 450,
-            maxWidth: 320,
             letterSpacing: "-0.005em",
           }}
         >
           {t(
-            "Реальный человек ответит обычно за 2 минуты. Опишите вопрос или выберите ниже.",
-            "A real human usually replies within 2 minutes. Describe your issue or pick a topic below.",
+            "Мы здесь и готовы помочь. Обычно отвечаем за пару минут.",
+            "We're here and ready to help. Usually reply within a few minutes.",
           )}
         </p>
       </div>
 
-      {/* Command-row quick replies — Linear/Arc style */}
       <div
         style={{
+          width: "100%",
           display: "flex",
           flexDirection: "column",
-          borderTop: `1px solid ${C.border}`,
+          gap: 8,
+          maxWidth: 340,
         }}
       >
         {quickReplies.map((q, i) => (
           <motion.button
             key={q}
             onClick={() => onPick(q)}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.28, ease, delay: 0.08 + i * 0.05 }}
-            whileTap={{ scale: 0.995, backgroundColor: "rgba(57,255,99,0.04)" }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease, delay: 0.12 + i * 0.05 }}
+            whileTap={{ scale: 0.985 }}
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 12,
-              padding: "16px 2px",
-              borderBottom: `1px solid ${C.border}`,
-              background: "transparent",
+              gap: 10,
+              padding: "13px 16px",
+              borderRadius: 14,
+              border: `1px solid ${C.border}`,
+              background: C.surface,
               color: C.text,
+              fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
+              fontSize: 14.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
               cursor: "pointer",
               textAlign: "left",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 10,
-                  color: C.muted,
-                  letterSpacing: "0.12em",
-                  width: 22,
-                  flexShrink: 0,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-                  fontSize: 15,
-                  fontWeight: 500,
-                  letterSpacing: "-0.01em",
-                  color: C.text,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {q}
-              </span>
-            </div>
+            <span
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {q}
+            </span>
             <svg
-              width="14"
-              height="14"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke={C.muted}
@@ -917,35 +917,11 @@ function EmptyChat({
               strokeLinejoin="round"
               style={{ flexShrink: 0 }}
             >
-              <path d="M7 17L17 7" />
-              <path d="M8 7h9v9" />
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </motion.button>
         ))}
       </div>
     </motion.section>
-  );
-}
-
-/* ── Typing dots ────────────────────────────────────────────────────── */
-
-function TypingDots() {
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          style={{
-            width: 4,
-            height: 4,
-            borderRadius: "50%",
-            background: "currentColor",
-            display: "inline-block",
-          }}
-          animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-          transition={{ duration: 1.05, repeat: Infinity, delay: i * 0.14, ease: "easeInOut" }}
-        />
-      ))}
-    </span>
   );
 }
