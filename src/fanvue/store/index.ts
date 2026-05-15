@@ -77,11 +77,8 @@ const MOCK_ORDERS: Order[] = [
   },
 ]
 
-const MOCK_SUPPORT: SupportMessage[] = [
-  { id: 1, sender: 'admin', text: 'Здравствуйте! Чем могу помочь?', created: '2024-03-01T09:00:00Z' },
-  { id: 2, sender: 'user', text: 'Как долго занимает ручная доставка?', created: '2024-03-01T09:05:00Z' },
-  { id: 3, sender: 'admin', text: 'Ручная доставка занимает от 1 до 24 часов. В среднем — около 2 часов.', created: '2024-03-01T09:08:00Z' },
-]
+// Empty by default — bot triage greeting will be shown
+const MOCK_SUPPORT: SupportMessage[] = []
 
 const MOCK_LOGS: PaymentLog[] = [
   { id: 1, ts: '2024-04-22T14:22:00Z', uid: 7891011, username: 'alex_m', kind: 'buy', amount: 25.99, network: 'trc20', status: 'success', tx_hash: '0xa1b2c3...', product: 'Fanvue Pro Account' },
