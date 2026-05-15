@@ -330,6 +330,87 @@ export const useStore = create<AppStore>()(
 
       clearSupportUnread: () => set({ supportUnread: 0 }),
 
+      updateSupportMessage: (id, updates) =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) => (m.id === id ? { ...m, ...updates } : m)),
+        })),
+
+      deleteSupportMessage: (id, mode) =>
+        set((s) => ({
+          supportMessages:
+            mode === 'all'
+              ? s.supportMessages.filter((m) => m.id !== id)
+              : s.supportMessages.map((m) => (m.id === id ? { ...m, deleted_for: 'user' } : m)),
+        })),
+
+      markUserMessagesReadByAdmin: () =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            m.sender === 'user' && !m.read_by_admin ? { ...m, read_by_admin: true } : m,
+          ),
+        })),
+
+      markAdminMessagesReadByUser: () =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            (m.sender === 'admin' || m.sender === 'bot') && !m.read_by_user ? { ...m, read_by_user: true } : m,
+          ),
+          supportUnread: 0,
+        })),
+
+      setUserTyping: (v) => set({ userTyping: v }),
+      setAdminTyping: (v) => set({ adminTyping: v }),
+      setAdminPresence: (p) => set((s) => ({ adminPresence: { ...s.adminPresence, ...p } })),
+
+      openSupportTicket: (category, summary) => {
+        const id = 'FV-' + Math.floor(1000 + Math.random() * 9000)
+        const ticket: SupportTicket = {
+          id, category, status: 'open',
+          opened: new Date().toISOString(),
+          summary,
+        }
+        set((s) => ({
+          supportTickets: [ticket, ...s.supportTickets],
+          supportMessages: [
+            ...s.supportMessages,
+            {
+              id: Date.now(),
+              sender: 'bot',
+              kind: 'system',
+              text: `ticket_opened:${id}`,
+              created: new Date().toISOString(),
+              ticket_id: id,
+            },
+          ],
+        }))
+        return ticket
+      },
+
+      closeSupportTicket: (id, reason) =>
+        set((s) => ({
+          supportTickets: s.supportTickets.map((t) =>
+            t.id === id ? { ...t, status: 'closed', closed: new Date().toISOString() } : t,
+          ),
+          supportMessages: [
+            ...s.supportMessages,
+            {
+              id: Date.now(),
+              sender: 'bot',
+              kind: 'system',
+              text: `ticket_closed:${id}${reason ? ':' + reason : ''}`,
+              created: new Date().toISOString(),
+              ticket_id: id,
+            },
+          ],
+        })),
+
+      resetSupportSession: () =>
+        set((s) => ({
+          supportTickets: s.supportTickets.map((t) =>
+            t.status !== 'closed' ? { ...t, status: 'closed', closed: new Date().toISOString() } : t,
+          ),
+        })),
+
       updateBalance: (delta) =>
         set((s) => ({
           user: s.user ? { ...s.user, balance: Math.max(0, s.user.balance + delta) } : null,
