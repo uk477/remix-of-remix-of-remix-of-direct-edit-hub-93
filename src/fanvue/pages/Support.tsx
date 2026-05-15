@@ -254,6 +254,10 @@ export default function Support() {
         ru: "Подключаю оператора. Опишите вопрос подробно — оператор ответит в ближайшее время.",
         en: "Connecting an operator. Describe your question in detail — they'll reply shortly.",
       },
+      other: {
+        ru: "Опишите ваш вопрос подробно — мы постараемся помочь.",
+        en: "Describe your question in detail — we'll do our best.",
+      },
     };
     setTimeout(() => {
       addSupportMessage({
