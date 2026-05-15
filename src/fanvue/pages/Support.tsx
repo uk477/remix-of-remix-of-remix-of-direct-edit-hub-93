@@ -429,12 +429,13 @@ export default function Support() {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
             if (g.type === "system")
               return (
-                <SystemMessage
+              <SystemMessage
                   key={g.key}
                   msg={g.msg}
                   lang={lang}
                   t={t}
                   tickets={tickets}
+                  activeTicket={activeTicket}
                   onPickCategory={handlePickCategory}
                 />
               );
