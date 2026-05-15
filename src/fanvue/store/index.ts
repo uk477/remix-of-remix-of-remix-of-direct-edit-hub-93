@@ -657,6 +657,7 @@ export const useStore = create<AppStore>()(
         refWithdrawals: s.refWithdrawals,
         refDailyLog: s.refDailyLog,
         supportMessages: s.supportMessages,
+        supportTickets: s.supportTickets,
         orders: s.orders,
         supportForwardedOrders: s.supportForwardedOrders,
         pinnedProductIds: s.pinnedProductIds,
