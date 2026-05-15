@@ -5,6 +5,7 @@ import { api } from './api'
 import type {
   Lang, User, Category, Product, Order, SupportMessage, CartItem, CryptoOption,
   CryptoNetwork, PaymentLog, Broadcast, PaymentNotification, RefReward, RefWithdrawal,
+  SupportTicket, SupportTicketCategory, AdminPresence,
 } from './types'
 
 export const CRYPTO_OPTIONS: CryptoOption[] = [
