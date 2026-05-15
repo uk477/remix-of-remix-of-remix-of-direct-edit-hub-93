@@ -615,7 +615,7 @@ export const useStore = create<AppStore>()(
       }),
     }),
     {
-      name: 'fanvue-app-v6',
+      name: 'fanvue-app-v7',
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
