@@ -108,6 +108,10 @@ interface AppStore {
   products: Product[]
   orders: Order[]
   supportMessages: SupportMessage[]
+  supportTickets: SupportTicket[]
+  adminPresence: AdminPresence
+  userTyping: boolean
+  adminTyping: boolean
   cart: CartItem | null
   isLoading: boolean
 
