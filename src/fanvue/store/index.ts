@@ -140,6 +140,16 @@ interface AppStore {
   setCart: (cart: CartItem | null) => void
   addOrder: (order: Order) => void
   addSupportMessage: (msg: SupportMessage) => void
+  updateSupportMessage: (id: number, updates: Partial<SupportMessage>) => void
+  deleteSupportMessage: (id: number, mode: 'user' | 'all') => void
+  markUserMessagesReadByAdmin: () => void
+  markAdminMessagesReadByUser: () => void
+  setUserTyping: (v: boolean) => void
+  setAdminTyping: (v: boolean) => void
+  setAdminPresence: (p: Partial<AdminPresence>) => void
+  openSupportTicket: (category: SupportTicketCategory, summary?: string) => SupportTicket
+  closeSupportTicket: (id: string, reason?: string) => void
+  resetSupportSession: () => void
   clearSupportUnread: () => void
   updateBalance: (delta: number) => void
   addNotification: (n: Omit<PaymentNotification, 'read' | 'createdAt'>) => void
