@@ -197,6 +197,10 @@ export const useStore = create<AppStore>()(
       products: MOCK_PRODUCTS,
       orders: MOCK_ORDERS,
       supportMessages: MOCK_SUPPORT,
+      supportTickets: [],
+      adminPresence: { online: true, lastSeen: new Date().toISOString() },
+      userTyping: false,
+      adminTyping: false,
       cart: null,
       isLoading: true,
 
