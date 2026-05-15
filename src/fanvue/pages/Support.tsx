@@ -597,7 +597,7 @@ function Composer({
   quickReplies: string[];
   send: (value: string) => void;
   haptic: (type?: "light" | "medium" | "heavy" | "success" | "error" | "warning") => void;
-  taRef: RefObject<HTMLTextAreaElement>;
+  taRef: RefObject<HTMLTextAreaElement | null>;
   t: (ru: string, en: string) => string;
   hasMessages: boolean;
 }) {
