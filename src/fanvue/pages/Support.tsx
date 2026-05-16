@@ -1644,12 +1644,10 @@ function Bubble({
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
   };
 
-  // Telegram-style: tight corner on sender side between grouped messages,
-  // tail (small radius) on the last bubble's sender-side bottom corner.
-  const R = 16;
-  const S = 4;
-  const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? S : S}px ${R}px`;
-  const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? S : S}px`;
+  const R = 28;
+  const S = 7;
+  const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? R : S}px ${R}px`;
+  const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? R : S}px`;
 
 
   const bg = isUser ? C.greenBubble : isBot ? "rgba(57,255,99,0.06)" : C.surface;
@@ -1670,21 +1668,19 @@ function Bubble({
       }}
       style={{
         maxWidth: "82%",
-        padding: msg.attachments && msg.attachments.length > 0 ? "6px 6px 8px" : "7px 12px",
+        padding: msg.attachments && msg.attachments.length > 0 ? "7px 7px 9px" : "10px 14px 10px 18px",
         borderRadius: isUser ? radiusUser : radiusOther,
         background: bg,
         color,
         border,
         fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-        fontSize: 15,
-        lineHeight: 1.35,
-        fontWeight: isUser ? 550 : 450,
-        letterSpacing: "-0.005em",
+        fontSize: 22,
+        lineHeight: 1.12,
+        fontWeight: isUser ? 700 : 500,
+        letterSpacing: 0,
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
-        boxShadow: isUser
-          ? "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -16px rgba(57,255,99,0.5)"
-          : "0 1px 2px rgba(0,0,0,0.3)",
+        boxShadow: "none",
         position: "relative",
         opacity: wasDeletedForUser ? 0.6 : 1,
         userSelect: "none",
