@@ -3450,24 +3450,43 @@ body::after { display: none; }
   width: 100%;
 }
 .shop-hero-bal-main {
+  position: relative;
   flex: 1 1 auto;
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  padding: 10px 14px 12px;
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, rgba(57,255,99,0.10) 0%, rgba(255,255,255,0.022) 70%);
-  border: 1px solid rgba(57,255,99,0.16);
+  padding: 10px 16px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: none;
   text-align: left;
-  transition: border-color 200ms;
+  overflow: hidden;
+  box-shadow: inset 0 1px 1px rgba(57,255,99,0.15);
+}
+.shop-hero-bal-main::before {
+  content: "";
+  position: absolute;
+  top: -16px; left: -16px;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(57,255,99,0.10);
+  filter: blur(22px);
+  pointer-events: none;
 }
 .shop-hero-bal-eye {
+  position: relative; z-index: 1;
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--fv-soft); line-height: 1;
 }
 .shop-hero-bal-num {
+  position: relative; z-index: 1;
   font-size: 30px; font-weight: 950; line-height: 1; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--fv-text);
   display: inline-flex; align-items: baseline; gap: 3px;
+  background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
   background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
