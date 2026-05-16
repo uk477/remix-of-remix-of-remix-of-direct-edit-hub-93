@@ -127,6 +127,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [amount, setAmount] = useState('')
   const [network, setNetwork] = useState<CryptoNetwork | null>(null)
   const [address, setAddress] = useState('')
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const [copied, setCopied] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
