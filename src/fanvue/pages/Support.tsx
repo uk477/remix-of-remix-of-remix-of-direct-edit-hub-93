@@ -1751,6 +1751,7 @@ function Composer({
   replyTo,
   cancelReply,
   t,
+  disabled,
 }: {
   focused: boolean;
   text: string;
@@ -1766,8 +1767,9 @@ function Composer({
   replyTo: SupportMessage | null;
   cancelReply: () => void;
   t: (ru: string, en: string) => string;
+  disabled?: boolean;
 }) {
-  const canSend = text.trim().length > 0 || pendingFiles.length > 0;
+  const canSend = !disabled && (text.trim().length > 0 || pendingFiles.length > 0);
 
   return (
     <footer
