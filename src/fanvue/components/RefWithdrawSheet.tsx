@@ -176,10 +176,14 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function updateSwipe(clientX: number) {
+  function getSwipeValue(clientX: number) {
     const rect = trackRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const nextX = Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
+    if (!rect) return swipeX
+    return Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
+  }
+
+  function updateSwipe(clientX: number) {
+    const nextX = getSwipeValue(clientX)
     setSwipeX(nextX)
   }
 
@@ -207,7 +211,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     dragPointerId.current = null
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     setIsSwiping(false)
-    if (swipeX >= maxX * 0.78) {
+    const finalX = getSwipeValue(e.clientX)
+    if (finalX >= maxX * 0.78) {
       setSwipeX(maxX)
       handleSubmit()
     } else {
