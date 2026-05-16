@@ -466,17 +466,17 @@ function getFlowNode(key: string): FlowNode | null {
   if (key.startsWith("resolve:")) {
     const cat = key.split(":")[1] as SupportTicketCategory;
     return {
-      q: { ru: "Помогло?", en: "Did this help?" },
+      q: { ru: "Это решило вопрос?", en: "Did this solve it?" },
       options: [
         {
           id: "ok",
-          label: { ru: "Да, спасибо 🙏", en: "Yes, thanks 🙏" },
+          label: { ru: "Да, разобрался(ась)", en: "Yes, all clear" },
           action: {
             kind: "tip",
             category: cat,
             tip: {
-              ru: "Рад был помочь! Если появится новый вопрос — выберите тему ниже.",
-              en: "Glad to help! If something else comes up — pick a topic below.",
+              ru: "Отлично! Если появится новый вопрос — выберите тему ниже.",
+              en: "Great! If something else comes up — pick a topic below.",
             },
           },
         },
@@ -496,6 +496,23 @@ function getFlowNode(key: string): FlowNode | null {
     };
   }
   return null;
+}
+
+// Reverse parent lookup for non-root flow nodes
+const FLOW_PARENT: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [parentKey, node] of Object.entries(FLOWS)) {
+    for (const opt of node.options) {
+      if (opt.action.kind === "next") map[opt.action.next] = parentKey;
+    }
+  }
+  return map;
+})();
+
+function getFlowParent(key: string): string | null {
+  if (key.startsWith("resolve:")) return null; // no back after tip
+  if (key.endsWith(":root")) return "__triage__"; // back to category picker
+  return FLOW_PARENT[key] ?? null;
 }
 
 export default function Support() {
