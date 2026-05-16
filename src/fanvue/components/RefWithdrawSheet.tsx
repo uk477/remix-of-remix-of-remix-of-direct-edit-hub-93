@@ -744,28 +744,11 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         cursor: isSwiping ? 'grabbing' : 'grab',
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 42px rgba(0,0,0,0.35)',
                       }}
+                      onPointerDown={handleSwipePointerDown}
+                      onPointerMove={handleSwipePointerMove}
+                      onPointerUp={handleSwipePointerEnd}
+                      onPointerCancel={handleSwipePointerEnd}
                     >
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={Math.round(swipeProgress * 100)}
-                        aria-label={lang === 'ru' ? 'Подтвердить вывод свайпом' : 'Confirm withdrawal by swiping'}
-                        onChange={handleSwipeInput}
-                        onPointerDown={handleSwipeStart}
-                        onPointerUp={handleSwipeEnd}
-                        onPointerCancel={handleSwipeEnd}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          zIndex: 5,
-                          width: '100%',
-                          height: '100%',
-                          opacity: 0,
-                          cursor: isSwiping ? 'grabbing' : 'grab',
-                          touchAction: 'none',
-                        }}
-                      />
                       {/* progress fill */}
                       <div
                         style={{
