@@ -83,24 +83,24 @@ function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string
     return many;
   };
 
-  if (diffMin < 1) return ru ? "был только что" : "last seen just now";
+  if (diffMin < 1) return ru ? "был(а) только что" : "last seen just now";
   if (diffMin < 60) {
     return ru
-      ? `был ${diffMin} ${plural(diffMin, "минуту", "минуты", "минут")} назад`
+      ? `был(а) ${diffMin} ${plural(diffMin, "минуту", "минуты", "минут")} назад`
       : `last seen ${diffMin} ${diffMin === 1 ? "minute" : "minutes"} ago`;
   }
   if (diffH < 24) {
     return ru
-      ? `был ${diffH} ${plural(diffH, "час", "часа", "часов")} назад`
+      ? `был(а) ${diffH} ${plural(diffH, "час", "часа", "часов")} назад`
       : `last seen ${diffH} ${diffH === 1 ? "hour" : "hours"} ago`;
   }
   if (diffDays < 7) {
     return ru
-      ? `был ${diffDays} ${plural(diffDays, "день", "дня", "дней")} назад`
+      ? `был(а) ${diffDays} ${plural(diffDays, "день", "дня", "дней")} назад`
       : `last seen ${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
   }
   return ru
-    ? `был ${lastD.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`
+    ? `был(а) ${lastD.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`
     : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
 }
 
