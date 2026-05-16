@@ -6454,8 +6454,6 @@ body::after { display: none; }
   .home-topup-bg { animation: none; }
 }
 
-/* Soften balance card to square corners so it pairs visually */
-.shop-hero-bal-main { border-radius: 4px; }
 .home-topup, .shop-hero-bal { min-height: 64px; }
 
 /* ═══════════════════════════════════════════════════════════
