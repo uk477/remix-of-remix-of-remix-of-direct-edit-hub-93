@@ -2472,6 +2472,18 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 34 }}
         onClick={(e) => e.stopPropagation()}
+        drag="y"
+        dragDirectionLock
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.6 }}
+        dragMomentum={false}
+        onDragEnd={(_, info) => {
+          const sheetH = (info.point.y && (info.point.y - info.offset.y)) || window.innerHeight * 0.88;
+          const target = Math.max(window.innerHeight * 0.88, 320);
+          if (info.offset.y > target * 0.1 || info.velocity.y > 500) {
+            onClose();
+          }
+        }}
         style={{
           width: "100%",
           maxWidth: 480,
@@ -2484,9 +2496,10 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
           padding: "10px 18px max(24px, env(safe-area-inset-bottom))",
           border: `1px solid ${C.borderHi}`,
           boxShadow: "0 -20px 60px rgba(0,0,0,0.5)",
+          touchAction: "pan-y",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.18)", margin: "4px auto 18px" }} />
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.18)", margin: "4px auto 18px", cursor: "grab" }} />
 
         {/* Header */}
         <motion.div
