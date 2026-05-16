@@ -2029,7 +2029,7 @@ function Composer({
         <input
           ref={cameraInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           capture="environment"
           style={{ display: "none" }}
           onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
@@ -2078,7 +2078,19 @@ function Composer({
                   ].map((opt) => (
                     <button
                       key={opt.k}
-                      onClick={() => { haptic("light"); setAttachOpen(false); opt.ref.current?.click(); }}
+                      onClick={() => {
+                        haptic("light");
+                        setAttachOpen(false);
+                        const el = opt.ref.current;
+                        if (!el) return;
+                        // На некоторых WebView (Telegram, in-app) capture срабатывает только если выставить его прямо перед кликом
+                        if (opt.k === "camera") {
+                          el.setAttribute("capture", "environment");
+                        } else {
+                          el.removeAttribute("capture");
+                        }
+                        el.click();
+                      }}
                       style={{
                         display: "flex", alignItems: "center", gap: 12, width: "100%",
                         padding: "11px 12px", background: "transparent", border: "none",
@@ -2112,6 +2124,7 @@ function Composer({
             padding: "0 6px 0 14px",
             display: "flex",
             alignItems: "flex-end",
+            overflow: "hidden",
           }}
         >
           <textarea
