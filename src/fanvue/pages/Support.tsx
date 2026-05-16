@@ -460,6 +460,7 @@ export default function Support() {
   const markAdminMessagesReadByUser = useStore((s) => s.markAdminMessagesReadByUser);
   const setUserTyping = useStore((s) => s.setUserTyping);
   const openSupportTicket = useStore((s) => s.openSupportTicket);
+  const closeSupportTicket = useStore((s) => s.closeSupportTicket);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
 
