@@ -1644,12 +1644,10 @@ function Bubble({
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
   };
 
-  // Telegram-style: tight corner on sender side between grouped messages,
-  // tail (small radius) on the last bubble's sender-side bottom corner.
-  const R = 16;
-  const S = 4;
-  const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? S : S}px ${R}px`;
-  const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? S : S}px`;
+  const R = 28;
+  const S = 7;
+  const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? R : S}px ${R}px`;
+  const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? R : S}px`;
 
 
   const bg = isUser ? C.greenBubble : isBot ? "rgba(57,255,99,0.06)" : C.surface;
@@ -1670,21 +1668,19 @@ function Bubble({
       }}
       style={{
         maxWidth: "82%",
-        padding: msg.attachments && msg.attachments.length > 0 ? "6px 6px 8px" : "7px 12px",
+        padding: msg.attachments && msg.attachments.length > 0 ? "7px 7px 9px" : "10px 14px 10px 18px",
         borderRadius: isUser ? radiusUser : radiusOther,
         background: bg,
         color,
         border,
         fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-        fontSize: 15,
-        lineHeight: 1.35,
-        fontWeight: isUser ? 550 : 450,
-        letterSpacing: "-0.005em",
+        fontSize: 22,
+        lineHeight: 1.12,
+        fontWeight: isUser ? 700 : 500,
+        letterSpacing: 0,
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
-        boxShadow: isUser
-          ? "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -16px rgba(57,255,99,0.5)"
-          : "0 1px 2px rgba(0,0,0,0.3)",
+        boxShadow: "none",
         position: "relative",
         opacity: wasDeletedForUser ? 0.6 : 1,
         userSelect: "none",
@@ -1781,16 +1777,16 @@ function Bubble({
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 3,
-          marginLeft: msg.text ? 8 : 0,
+          gap: 4,
+          marginLeft: msg.text ? 10 : 0,
           padding: msg.attachments && msg.attachments.length > 0 && !msg.text ? "0 10px 0 0" : 0,
-          fontSize: 10,
+          fontSize: 17,
           fontWeight: 500,
-          color: isUser ? "rgba(6,42,16,0.62)" : C.muted,
+          color: isUser ? "rgba(6,42,16,0.58)" : C.muted,
           verticalAlign: "baseline",
           whiteSpace: "nowrap",
           position: "relative",
-          top: 2,
+          top: 1,
           float: msg.text ? "right" : "none",
         }}
       >
@@ -1804,21 +1800,19 @@ function Bubble({
 }
 
 function ReadCheck({ read }: { read: boolean }) {
-  // Single tick: ~12×9. Double tick: ~17×9 (two ticks offset).
   if (!read) {
     return (
-      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor"
-        strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
-        <path d="M1 4.8 L4.2 7.8 L11 1.2" />
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor"
+        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
+        <path d="M2 7.6 L6.2 11.4 L16 2.2" />
       </svg>
     );
   }
   return (
-    <svg width="17" height="9" viewBox="0 0 17 9" fill="none" stroke="currentColor"
-      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
-      <path d="M1 4.8 L4.2 7.8 L11 1.2" />
-      <path d="M6.2 7.8 L10 1.2" opacity="0" />
-      <path d="M6.5 4.8 L9.7 7.8 L16 1.2" />
+    <svg width="25" height="14" viewBox="0 0 25 14" fill="none" stroke="currentColor"
+      strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
+      <path d="M2 7.6 L6.2 11.4 L16 2.2" />
+      <path d="M9 7.6 L13.2 11.4 L23 2.2" />
     </svg>
   );
 }
