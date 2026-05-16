@@ -417,7 +417,7 @@ export default function AdminSupport() {
               )}
 
               {/* Messages */}
-              <div ref={listRef} className="chat-list" style={{ flex: 1, paddingBottom: 16 }}>
+              <div ref={listRef} className="chat-list" style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 16 }}>
                 <AnimatePresence initial={false}>
                   {visibleMessages.map((m, i) => {
                     const right = m.sender === 'admin'
