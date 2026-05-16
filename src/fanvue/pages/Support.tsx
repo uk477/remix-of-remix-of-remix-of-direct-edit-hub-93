@@ -2029,7 +2029,7 @@ function Composer({
         <input
           ref={cameraInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           capture="environment"
           style={{ display: "none" }}
           onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
