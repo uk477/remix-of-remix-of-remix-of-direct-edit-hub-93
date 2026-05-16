@@ -167,7 +167,9 @@ export default function Profile() {
 
         {/* Loyalty & Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <Tile delay={0.1} className="col-span-2 p-5 relative overflow-hidden bg-gradient-to-br from-[#121214] to-[#0a0a0c]!">
+          <Tile delay={0.1} className="col-span-2 p-5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#39FF63]/[0.05] via-transparent to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex justify-between items-start mb-5">
               <div>
                 <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest mb-1">
