@@ -1271,7 +1271,8 @@ function SystemMessage({
   onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
 }) {
   if (msg.text === "triage_prompt") {
-    const locked = !isLastMessage;
+    if (!isLastMessage) return null;
+    const locked = false;
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
