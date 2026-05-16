@@ -36,6 +36,7 @@ export interface RefWithdrawal {
   createdAt: string
   completedAt?: string
   txid?: string
+  rejectReason?: string
 }
 
 export interface Category {

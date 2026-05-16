@@ -32,6 +32,8 @@ function formatDate(iso: string) {
 
 function TxidInput({ id }: { id: string }) {
   const [tx, setTx] = useState('')
+  const [reason, setReason] = useState('')
+  const [showReason, setShowReason] = useState(false)
   const completeRefWithdrawal = useStore((s) => s.completeRefWithdrawal)
   const updateRefWithdrawal = useStore((s) => s.updateRefWithdrawal)
   const lang = useStore((s) => s.lang)
@@ -76,15 +78,55 @@ function TxidInput({ id }: { id: string }) {
         <motion.button
           className="btn btn-ghost btn-sm"
           style={{ flex: 1, fontSize: 12, color: '#ff5050' }}
-          onClick={() => {
-            updateRefWithdrawal(id, { status: 'rejected', completedAt: new Date().toISOString() })
-            tgNotify('❌ Заявка на вывод отклонена\n\nЕсли есть вопросы — обратитесь в поддержку.')
-          }}
+          onClick={() => setShowReason((v) => !v)}
           whileTap={{ scale: 0.97 }}
         >
           {lang === 'ru' ? '✕ Отклонить' : '✕ Reject'}
         </motion.button>
       </div>
+
+      {showReason && (
+        <div className="col gap-2" style={{ marginTop: 4 }}>
+          <textarea
+            className="input"
+            style={{ fontSize: 12, minHeight: 60, resize: 'vertical' }}
+            placeholder={lang === 'ru' ? 'Причина отклонения (увидит пользователь)' : 'Reject reason (user will see)'}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          <motion.button
+            className="btn btn-sm"
+            style={{ fontSize: 12, background: '#ff5050', color: '#fff' }}
+            disabled={!reason.trim()}
+            onClick={() => {
+              const trimmed = reason.trim()
+              if (!trimmed) return
+              const w = useStore.getState().refWithdrawals.find((x) => x.id === id)
+              updateRefWithdrawal(id, {
+                status: 'rejected',
+                completedAt: new Date().toISOString(),
+                rejectReason: trimmed,
+              })
+              tgNotify(
+                [
+                  '❌ Заявка на вывод отклонена',
+                  w ? `🆔 ${w.id}` : '',
+                  w ? `💵 $${w.amount.toFixed(2)}` : '',
+                  '',
+                  `📝 Причина: ${trimmed}`,
+                ]
+                  .filter(Boolean)
+                  .join('\n'),
+              )
+              setShowReason(false)
+              setReason('')
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            {lang === 'ru' ? 'Подтвердить отклонение' : 'Confirm reject'}
+          </motion.button>
+        </div>
+      )}
     </div>
   )
 }
