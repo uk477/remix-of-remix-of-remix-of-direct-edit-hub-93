@@ -2163,11 +2163,14 @@ function MessageActionSheet({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease }}
       onClick={onClose}
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.5)",
+        background: "rgba(0,0,0,0.55)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
         zIndex: 50,
         display: "flex",
         alignItems: "flex-end",
@@ -2175,61 +2178,97 @@ function MessageActionSheet({
       }}
     >
       <motion.div
-        initial={{ y: 200 }}
-        animate={{ y: 0 }}
-        exit={{ y: 200 }}
-        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+        initial={{ y: 40, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 40, opacity: 0, scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 380, damping: 34 }}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 480,
-          background: C.surfaceHi,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
-          padding: "10px 8px max(20px, env(safe-area-inset-bottom))",
-          border: `1px solid ${C.border}`,
+          margin: "0 8px max(10px, env(safe-area-inset-bottom))",
+          background: "linear-gradient(180deg, rgba(30,32,36,0.96), rgba(22,24,28,0.96))",
+          borderRadius: 20,
+          padding: 6,
+          border: `1px solid ${C.borderHi}`,
+          boxShadow: "0 24px 60px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset",
+          overflow: "hidden",
         }}
       >
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: C.borderHi, margin: "4px auto 12px" }} />
-
+        {/* Preview */}
         <div
           style={{
-            padding: "10px 14px",
-            margin: "0 8px 8px",
-            background: "rgba(255,255,255,0.03)",
-            borderRadius: 12,
-            fontSize: 13,
-            color: C.soft,
-            maxHeight: 80,
-            overflow: "hidden",
+            padding: "12px 14px",
+            margin: "2px 2px 6px",
+            background: "rgba(255,255,255,0.035)",
+            borderRadius: 14,
+            border: `1px solid ${C.border}`,
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 10,
           }}
         >
-          <div style={{ fontSize: 11, color: C.muted, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-            {fmtTime(msg.created, lang)}
+          <div style={{ width: 3, alignSelf: "stretch", borderRadius: 2, background: isOwn ? C.green : C.soft, opacity: 0.7 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, color: C.muted, marginBottom: 3, fontWeight: 600, letterSpacing: "0.02em" }}>
+              {isOwn ? t("Вы", "You") : t("Fanvue · Забота", "Fanvue · Care")} · {fmtTime(msg.created, lang)}
+            </div>
+            <div
+              style={{
+                fontSize: 13.5,
+                color: C.text,
+                lineHeight: 1.35,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {msg.text || t("Вложение", "Attachment")}
+            </div>
           </div>
-          {msg.text || t("📎 вложение", "📎 attachment")}
         </div>
 
-        <ActionRow icon="↪" label={t("Ответить", "Reply")} onClick={onReply} />
+        <ActionRow
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 17 4 12 9 7" />
+              <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+            </svg>
+          }
+          label={t("Ответить", "Reply")}
+          onClick={onReply}
+        />
 
-        {isOwn && (
-          <ActionRow
-            icon="🗑"
-            label={t("Удалить у себя", "Delete for me")}
-            onClick={() => onDelete("user")}
-            danger
-          />
-        )}
-        {!isOwn && (
-          <ActionRow
-            icon="🙈"
-            label={t("Скрыть у себя", "Hide for me")}
-            onClick={() => onDelete("user")}
-            danger
-          />
-        )}
+        <div style={{ height: 1, background: C.border, margin: "2px 14px" }} />
 
-        <ActionRow icon="✖" label={t("Отмена", "Cancel")} onClick={onClose} />
+        <ActionRow
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          }
+          label={isOwn ? t("Удалить у всех", "Delete for everyone") : t("Скрыть у себя", "Hide for me")}
+          onClick={() => onDelete("user")}
+          danger
+        />
+
+        <div style={{ height: 1, background: C.border, margin: "2px 14px" }} />
+
+        <ActionRow
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          }
+          label={t("Отмена", "Cancel")}
+          onClick={onClose}
+          muted
+        />
       </motion.div>
     </motion.div>
   );
@@ -2240,34 +2279,38 @@ function ActionRow({
   label,
   onClick,
   danger,
+  muted,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   danger?: boolean;
+  muted?: boolean;
 }) {
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.985, background: "rgba(255,255,255,0.04)" }}
       style={{
-        width: "calc(100% - 16px)",
-        margin: "0 8px 4px",
-        padding: "14px 16px",
+        width: "100%",
+        padding: "13px 16px",
         background: "transparent",
         border: "none",
-        borderRadius: 12,
+        borderRadius: 14,
         display: "flex",
         alignItems: "center",
         gap: 14,
-        color: danger ? C.danger : C.text,
+        color: danger ? C.danger : muted ? C.soft : C.text,
         fontSize: 15,
         fontWeight: 500,
+        letterSpacing: "-0.005em",
         textAlign: "left",
         cursor: "pointer",
       }}
     >
-      <span style={{ fontSize: 18, width: 22, textAlign: "center" }}>{icon}</span>
+      <span style={{ width: 22, height: 22, display: "inline-flex", alignItems: "center", justifyContent: "center", opacity: 0.95 }}>
+        {icon}
+      </span>
       {label}
     </motion.button>
   );
