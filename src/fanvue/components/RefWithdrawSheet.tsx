@@ -959,6 +959,9 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                   ...(w.txid
                     ? [{ label: 'TX HASH', value: w.txid, copyKey: 'tx', mono: true, accent: true }]
                     : []),
+                  ...(w.status === 'rejected' && w.rejectReason
+                    ? [{ label: lang === 'ru' ? 'Причина отклонения' : 'Reject reason', value: w.rejectReason }]
+                    : []),
                 ]
                 return (
                   <>
