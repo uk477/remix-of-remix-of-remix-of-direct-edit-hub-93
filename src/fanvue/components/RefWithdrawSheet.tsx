@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
