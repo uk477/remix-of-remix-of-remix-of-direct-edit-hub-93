@@ -98,7 +98,7 @@ export default function Profile() {
       transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       onClick={onClick}
-      className={`bg-white/[0.04] border border-white/10 rounded-3xl backdrop-blur-sm ${onClick ? 'cursor-pointer active:bg-white/[0.07]' : ''} ${className}`}
+      className={`bg-white/[0.05] border border-white/[0.08] rounded-3xl backdrop-blur-sm ${onClick ? 'cursor-pointer active:bg-white/[0.08]' : ''} ${className}`}
     >
       {children}
     </motion.div>
