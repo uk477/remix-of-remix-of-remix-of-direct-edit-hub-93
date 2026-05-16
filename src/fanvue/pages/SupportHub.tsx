@@ -229,7 +229,7 @@ export default function SupportHub() {
                   overflow: 'hidden',
                   boxShadow: 'inset 0 0 14px rgba(94,234,212,0.25), 0 10px 30px -10px rgba(94,234,212,0.6)',
                 }}>
-                  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                  <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
                     <defs>
                       <linearGradient id="hub-lc-a" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stopColor="#a8fff0" />
