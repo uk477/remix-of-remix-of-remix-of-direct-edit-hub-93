@@ -840,7 +840,7 @@ export default function Support() {
           if (!activeTicket) return;
           haptic("medium");
           const ok = window.confirm(
-            t("Закрыть текущую заявку?", "Close the current ticket?"),
+            t("Завершить заявку? Если вопрос ещё актуален — оставьте её открытой.", "Mark this ticket as resolved? If you still need help, keep it open."),
           );
           if (!ok) return;
           closeSupportTicket(activeTicket.id);
