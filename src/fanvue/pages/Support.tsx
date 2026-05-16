@@ -466,17 +466,17 @@ function getFlowNode(key: string): FlowNode | null {
   if (key.startsWith("resolve:")) {
     const cat = key.split(":")[1] as SupportTicketCategory;
     return {
-      q: { ru: "Помогло?", en: "Did this help?" },
+      q: { ru: "Это решило вопрос?", en: "Did this solve it?" },
       options: [
         {
           id: "ok",
-          label: { ru: "Да, спасибо 🙏", en: "Yes, thanks 🙏" },
+          label: { ru: "Да, разобрался(ась)", en: "Yes, all clear" },
           action: {
             kind: "tip",
             category: cat,
             tip: {
-              ru: "Рад был помочь! Если появится новый вопрос — выберите тему ниже.",
-              en: "Glad to help! If something else comes up — pick a topic below.",
+              ru: "Отлично! Если появится новый вопрос — выберите тему ниже.",
+              en: "Great! If something else comes up — pick a topic below.",
             },
           },
         },
@@ -496,6 +496,23 @@ function getFlowNode(key: string): FlowNode | null {
     };
   }
   return null;
+}
+
+// Reverse parent lookup for non-root flow nodes
+const FLOW_PARENT: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [parentKey, node] of Object.entries(FLOWS)) {
+    for (const opt of node.options) {
+      if (opt.action.kind === "next") map[opt.action.next] = parentKey;
+    }
+  }
+  return map;
+})();
+
+function getFlowParent(key: string): string | null {
+  if (key.startsWith("resolve:")) return null; // no back after tip
+  if (key.endsWith(":root")) return "__triage__"; // back to category picker
+  return FLOW_PARENT[key] ?? null;
 }
 
 export default function Support() {
@@ -752,6 +769,25 @@ export default function Support() {
     }
   };
 
+  const handleFlowBack = (currentKey: string) => {
+    const parent = getFlowParent(currentKey);
+    if (!parent) return;
+    haptic("light");
+    if (parent === "__triage__") {
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "system",
+        text: "triage_prompt",
+        created: new Date().toISOString(),
+      });
+    } else {
+      const node = getFlowNode(parent);
+      if (!node) return;
+      postBot(t(node.q.ru, node.q.en), undefined, 0);
+      postFlowNode(parent, 150);
+    }
+  };
 
 
   const sendMessage = () => {
@@ -931,6 +967,7 @@ export default function Support() {
                   isLastMessage={g.msg.id === messages[messages.length - 1]?.id}
                   onPickCategory={handlePickCategory}
                   onFlowAnswer={handleFlowAnswer}
+                  onFlowBack={handleFlowBack}
                 />
               );
             return (
@@ -1261,6 +1298,7 @@ function SystemMessage({
   isLastMessage,
   onPickCategory,
   onFlowAnswer,
+  onFlowBack,
 }: {
   msg: SupportMessage;
   lang: string;
@@ -1269,6 +1307,7 @@ function SystemMessage({
   isLastMessage: boolean;
   onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
   onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
+  onFlowBack: (currentKey: string) => void;
 }) {
   if (msg.text === "triage_prompt") {
     if (!isLastMessage) return null;
@@ -1340,7 +1379,8 @@ function SystemMessage({
     const flowKey = msg.text.slice(5);
     const node = getFlowNode(flowKey);
     if (!node) return null;
-    const locked = !isLastMessage;
+    if (!isLastMessage) return null; // stale flow — hide
+    const parent = getFlowParent(flowKey);
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -1357,24 +1397,23 @@ function SystemMessage({
         {node.options.map((opt, i) => (
           <motion.button
             key={opt.id}
-            onClick={() => !locked && onFlowAnswer(flowKey, opt)}
-            disabled={locked}
+            onClick={() => onFlowAnswer(flowKey, opt)}
             initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 * i, duration: 0.22, ease }}
-            whileTap={locked ? undefined : { scale: 0.98 }}
+            whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
               maxWidth: "82%",
               padding: "10px 14px",
               borderRadius: 18,
               border: `1px solid ${C.green}55`,
-              background: locked ? "transparent" : `${C.green}12`,
-              color: locked ? C.soft : C.green,
+              background: `${C.green}12`,
+              color: C.green,
               fontSize: 13.5,
               fontWeight: 500,
               letterSpacing: "-0.005em",
-              cursor: locked ? "default" : "pointer",
+              cursor: "pointer",
               textAlign: "right",
               lineHeight: 1.3,
             }}
@@ -1382,6 +1421,35 @@ function SystemMessage({
             {t(opt.label.ru, opt.label.en)}
           </motion.button>
         ))}
+        {parent && (
+          <motion.button
+            onClick={() => onFlowBack(flowKey)}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 0.85, y: 0 }}
+            transition={{ delay: 0.05 * node.options.length, duration: 0.22, ease }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              alignSelf: "flex-end",
+              padding: "8px 12px",
+              borderRadius: 16,
+              border: `1px solid ${C.border}`,
+              background: "transparent",
+              color: C.soft,
+              fontSize: 12.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            {t("Назад", "Back")}
+          </motion.button>
+        )}
       </motion.div>
     );
   }
