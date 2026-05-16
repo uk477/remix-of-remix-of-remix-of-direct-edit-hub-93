@@ -3738,6 +3738,8 @@ body::after { display: none; }
   object-fit: cover;
   object-position: center;
 }
+/* Image asset for lot 01 already has the "01 — лот" badge baked in — hide our overlay to avoid a duplicate */
+.shop-lot--a .shop-lot-num { display: none; }
 .shop-lot--a::before {
   content: ''; position: absolute; inset: 0;
   border-radius: inherit; padding: 1px;
