@@ -349,11 +349,11 @@ export default function SupportHub() {
                 {/* Flight trail */}
                 <svg
                   aria-hidden
-                  width="70" height="20" viewBox="0 0 70 20"
-                  style={{ position: 'absolute', left: -22, top: '50%', marginTop: -10, opacity: 0.55, pointerEvents: 'none' }}
+                  width="44" height="20" viewBox="0 0 44 20"
+                  style={{ position: 'absolute', left: -6, top: '50%', marginTop: -10, opacity: 0.5, pointerEvents: 'none' }}
                 >
                   <motion.path
-                    d="M2 10 Q 18 2 35 10 T 68 10"
+                    d="M2 10 Q 14 3 24 10 T 42 10"
                     fill="none" stroke="#37BBFE" strokeWidth="1.1" strokeDasharray="3 5" strokeLinecap="round"
                     animate={{ strokeDashoffset: [0, -16] }}
                     transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
