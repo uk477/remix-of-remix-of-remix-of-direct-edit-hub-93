@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type CSSProperties, type ChangeEvent, type PointerEvent } from 'react'
+import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
@@ -181,27 +181,37 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function setSwipeProgress(progress: number) {
-    const nextProgress = Math.min(Math.max(progress, 0), 1)
-    swipeProgressRef.current = nextProgress
-    setSwipeX(maxX * nextProgress)
+  const pointerStartRef = useRef<{ id: number; startX: number; startOffset: number } | null>(null)
+
+  function applySwipeX(nextX: number) {
+    const clamped = Math.min(Math.max(nextX, 0), maxX)
+    swipeProgressRef.current = maxX > 0 ? clamped / maxX : 0
+    setSwipeX(clamped)
   }
 
-  function handleSwipeInput(e: ChangeEvent<HTMLInputElement>) {
+  function handleSwipePointerDown(e: PointerEvent<HTMLDivElement>) {
     e.stopPropagation()
-    setSwipeProgress(Number(e.currentTarget.value) / 100)
-  }
-
-  function handleSwipeStart(e: PointerEvent<HTMLInputElement>) {
-    e.stopPropagation()
+    e.preventDefault()
+    ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+    pointerStartRef.current = { id: e.pointerId, startX: e.clientX, startOffset: swipeX }
     setIsSwiping(true)
   }
 
-  function handleSwipeEnd(e: PointerEvent<HTMLInputElement>) {
+  function handleSwipePointerMove(e: PointerEvent<HTMLDivElement>) {
+    const start = pointerStartRef.current
+    if (!start || start.id !== e.pointerId) return
     e.stopPropagation()
+    applySwipeX(start.startOffset + (e.clientX - start.startX))
+  }
+
+  function handleSwipePointerEnd(e: PointerEvent<HTMLDivElement>) {
+    const start = pointerStartRef.current
+    if (!start || start.id !== e.pointerId) return
+    e.stopPropagation()
+    try { (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId) } catch {}
+    pointerStartRef.current = null
     setIsSwiping(false)
-    const finalProgress = Number(e.currentTarget.value) / 100
-    if (finalProgress >= 0.62) {
+    if (swipeProgressRef.current >= 0.62) {
       swipeProgressRef.current = 1
       setSwipeX(maxX)
       handleSubmit()
@@ -734,28 +744,11 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         cursor: isSwiping ? 'grabbing' : 'grab',
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 42px rgba(0,0,0,0.35)',
                       }}
+                      onPointerDown={handleSwipePointerDown}
+                      onPointerMove={handleSwipePointerMove}
+                      onPointerUp={handleSwipePointerEnd}
+                      onPointerCancel={handleSwipePointerEnd}
                     >
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={Math.round(swipeProgress * 100)}
-                        aria-label={lang === 'ru' ? 'Подтвердить вывод свайпом' : 'Confirm withdrawal by swiping'}
-                        onChange={handleSwipeInput}
-                        onPointerDown={handleSwipeStart}
-                        onPointerUp={handleSwipeEnd}
-                        onPointerCancel={handleSwipeEnd}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          zIndex: 5,
-                          width: '100%',
-                          height: '100%',
-                          opacity: 0,
-                          cursor: isSwiping ? 'grabbing' : 'grab',
-                          touchAction: 'none',
-                        }}
-                      />
                       {/* progress fill */}
                       <div
                         style={{
