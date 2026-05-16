@@ -1219,7 +1219,7 @@ function Header({
             textOverflow: "ellipsis",
           }}
         >
-          {t("Fanvue · Забота", "Fanvue Care")}
+          {t("Поддержка Fanvue", "Fanvue Support")}
         </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
