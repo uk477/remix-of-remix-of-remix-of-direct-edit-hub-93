@@ -2460,18 +2460,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
           transition={{ delay: 0.05 }}
           style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}
         >
-          <div style={{ position: "relative" }}>
-            <BrandAvatar size={52} />
-            <motion.span
-              animate={isWorking ? { scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] } : {}}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-              style={{
-                position: "absolute", inset: -3, borderRadius: "50%",
-                border: `2px solid ${isWorking ? "#39ff63" : "transparent"}`,
-                pointerEvents: "none",
-              }}
-            />
-          </div>
+          <LiveChatLogo size={56} active={isWorking} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.01em" }}>
               {t("Поддержка Fanvue", "Fanvue Support")}
