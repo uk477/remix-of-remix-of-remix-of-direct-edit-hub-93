@@ -3749,28 +3749,11 @@ body::after { display: none; }
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
 }
-.shop-lot--b {
-  grid-template-columns: 1fr;
-  min-height: 0;
-  aspect-ratio: 1280 / 1920;
-  background: #000;
-  border-color: rgba(57,255,99,0.28);
-}
-.shop-lot--b .shop-lot-media {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-}
+.shop-lot--b .shop-lot-media { background: #000; }
 .shop-lot--b .shop-lot-media img {
-  width: 100%; height: 100%;
   object-fit: contain;
   object-position: center;
-  background: #000;
 }
-/* Image asset has all info baked in — hide DOM overlays */
-.shop-lot--b .shop-lot-num,
-.shop-lot--b .shop-lot-shade,
-.shop-lot--b .shop-lot-tags,
-.shop-lot--b .shop-lot-body { display: none !important; }
 .shop-lot--b::before {
   content: ''; position: absolute; inset: 0;
   border-radius: inherit; padding: 1px;
