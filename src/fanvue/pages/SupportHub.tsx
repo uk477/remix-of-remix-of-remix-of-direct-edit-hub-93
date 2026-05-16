@@ -188,16 +188,18 @@ export default function SupportHub() {
             }}
           >
             {/* Recommended ribbon */}
-            <div style={{
-              position: 'absolute', top: 14, right: 14,
-              padding: '4px 9px', borderRadius: 999,
-              background: 'rgba(94,234,212,0.14)',
-              border: '1px solid rgba(94,234,212,0.4)',
-              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-              fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: '#5eead4', fontWeight: 700,
-            }}>
-              {t('Рекомендуем', 'Recommended')}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <span style={{
+                display: 'inline-block',
+                padding: '4px 9px', borderRadius: 999,
+                background: 'rgba(94,234,212,0.14)',
+                border: '1px solid rgba(94,234,212,0.4)',
+                fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase',
+                color: '#5eead4', fontWeight: 700,
+              }}>
+                {t('Рекомендуем', 'Recommended')}
+              </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
