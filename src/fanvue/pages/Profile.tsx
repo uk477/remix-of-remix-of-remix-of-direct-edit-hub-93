@@ -238,7 +238,7 @@ export default function Profile() {
           </div>
           <div style={{ position: 'relative' }}>
             <div style={eyebrow}>
-              {lang === 'ru' ? 'Баланс' : 'Balance'}
+              {lang === 'ru' ? 'Ваш баланс' : 'Your Balance'}
             </div>
             <div
               style={{
