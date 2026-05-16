@@ -89,18 +89,62 @@ function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string
     : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
 }
 
+type CategoryIconKey = "card" | "package" | "user" | "chat";
+
+const CategoryIcon = ({ icon, size = 18 }: { icon: CategoryIconKey; size?: number }) => {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  if (icon === "card")
+    return (
+      <svg {...common}>
+        <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" />
+        <path d="M2.5 10h19" />
+        <path d="M6 15h3" />
+      </svg>
+    );
+  if (icon === "package")
+    return (
+      <svg {...common}>
+        <path d="M21 8.2v7.6a1.6 1.6 0 0 1-.86 1.42l-7 3.66a1.6 1.6 0 0 1-1.48 0l-7-3.66A1.6 1.6 0 0 1 3.8 15.8V8.2a1.6 1.6 0 0 1 .86-1.42l7-3.66a1.6 1.6 0 0 1 1.48 0l7 3.66A1.6 1.6 0 0 1 21 8.2Z" />
+        <path d="M3.8 7.4 12 11.7l8.2-4.3" />
+        <path d="M12 21V11.7" />
+        <path d="M7.6 5.2l8.4 4.4" />
+      </svg>
+    );
+  if (icon === "user")
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="8.5" r="3.6" />
+        <path d="M4.6 20c.9-3.7 4-6 7.4-6s6.5 2.3 7.4 6" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <path d="M20.5 12.2c0 4.2-3.8 7.6-8.5 7.6-1.2 0-2.4-.2-3.4-.6l-4.6 1.3 1.4-4.2A7.4 7.4 0 0 1 3.5 12.2c0-4.2 3.8-7.6 8.5-7.6s8.5 3.4 8.5 7.6Z" />
+    </svg>
+  );
+};
+
 const CATEGORIES: Array<{
   id: SupportTicketCategory;
-  emoji: string;
+  icon: CategoryIconKey;
   ru: string;
   en: string;
   subRu: string;
   subEn: string;
 }> = [
-  { id: "payment", emoji: "💳", ru: "Платёж", en: "Payment", subRu: "оплата, зачисление, возврат", subEn: "checkout, credit, refund" },
-  { id: "delivery", emoji: "📦", ru: "Доставка", en: "Delivery", subRu: "статус и сроки заказа", subEn: "order status & ETA" },
-  { id: "account", emoji: "👤", ru: "Аккаунт", en: "Account", subRu: "вход, профиль, верификация", subEn: "login, profile, KYC" },
-  { id: "operator", emoji: "💬", ru: "Оператор", en: "Operator", subRu: "написать человеку напрямую", subEn: "talk to a human" },
+  { id: "payment", icon: "card", ru: "Платёж", en: "Payment", subRu: "оплата, зачисление, возврат", subEn: "checkout, credit, refund" },
+  { id: "delivery", icon: "package", ru: "Доставка", en: "Delivery", subRu: "статус и сроки заказа", subEn: "order status & ETA" },
+  { id: "account", icon: "user", ru: "Аккаунт", en: "Account", subRu: "вход, профиль, верификация", subEn: "login, profile, KYC" },
+  { id: "operator", icon: "chat", ru: "Оператор", en: "Operator", subRu: "написать человеку напрямую", subEn: "talk to a human" },
 ];
 
 /* ── Guided diagnostic flow ─────────────────────────────────────── */
