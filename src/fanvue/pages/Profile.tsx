@@ -202,6 +202,7 @@ export default function Profile() {
               </div>
               <p className="text-[10px] text-white/40 italic">{tier.perk}</p>
             </div>
+            </div>
           </Tile>
 
           <Tile delay={0.14} className="p-4">
