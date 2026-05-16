@@ -89,11 +89,18 @@ function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string
     : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
 }
 
-const CATEGORIES: Array<{ id: SupportTicketCategory; emoji: string; ru: string; en: string }> = [
-  { id: "payment", emoji: "💳", ru: "Проблема с платежом", en: "Payment issue" },
-  { id: "delivery", emoji: "📦", ru: "Вопрос о доставке", en: "Delivery question" },
-  { id: "account", emoji: "👤", ru: "Аккаунт/верификация", en: "Account / verification" },
-  { id: "operator", emoji: "💬", ru: "Связь с оператором", en: "Talk to operator" },
+const CATEGORIES: Array<{
+  id: SupportTicketCategory;
+  emoji: string;
+  ru: string;
+  en: string;
+  subRu: string;
+  subEn: string;
+}> = [
+  { id: "payment", emoji: "💳", ru: "Платёж", en: "Payment", subRu: "оплата, зачисление, возврат", subEn: "checkout, credit, refund" },
+  { id: "delivery", emoji: "📦", ru: "Доставка", en: "Delivery", subRu: "статус и сроки заказа", subEn: "order status & ETA" },
+  { id: "account", emoji: "👤", ru: "Аккаунт", en: "Account", subRu: "вход, профиль, верификация", subEn: "login, profile, KYC" },
+  { id: "operator", emoji: "💬", ru: "Оператор", en: "Operator", subRu: "написать человеку напрямую", subEn: "talk to a human" },
 ];
 
 /* ── Guided diagnostic flow ─────────────────────────────────────── */
@@ -460,6 +467,7 @@ export default function Support() {
   const markAdminMessagesReadByUser = useStore((s) => s.markAdminMessagesReadByUser);
   const setUserTyping = useStore((s) => s.setUserTyping);
   const openSupportTicket = useStore((s) => s.openSupportTicket);
+  const closeSupportTicket = useStore((s) => s.closeSupportTicket);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
 
@@ -816,6 +824,19 @@ export default function Support() {
         adminTyping={adminTyping}
         lang={lang}
         t={t}
+        hasActiveTicket={!!activeTicket}
+        onCloseTicket={() => {
+          if (!activeTicket) return;
+          haptic("medium");
+          const ok = window.confirm(
+            t("Закрыть текущую заявку?", "Close the current ticket?"),
+          );
+          if (!ok) return;
+          closeSupportTicket(activeTicket.id);
+          tgNotify(
+            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+          );
+        }}
         onBack={() => {
           haptic("light");
           if (window.history.length > 1) navigate(-1);
@@ -979,6 +1000,8 @@ function Header({
   adminTyping,
   lang,
   t,
+  hasActiveTicket,
+  onCloseTicket,
   onBack,
   onInfo,
 }: {
@@ -986,6 +1009,8 @@ function Header({
   adminTyping: boolean;
   lang: string;
   t: (ru: string, en: string) => string;
+  hasActiveTicket: boolean;
+  onCloseTicket: () => void;
   onBack: () => void;
   onInfo: () => void;
 }) {
@@ -1078,6 +1103,36 @@ function Header({
         </AnimatePresence>
       </div>
 
+      {hasActiveTicket && (
+        <motion.button
+          onClick={onCloseTicket}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            height: 30,
+            padding: "0 11px",
+            borderRadius: 999,
+            border: `1px solid rgba(255,90,95,0.32)`,
+            background: "rgba(255,90,95,0.10)",
+            color: "#ff8b8e",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "-0.005em",
+            cursor: "pointer",
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          {t("Закрыть", "Close")}
+        </motion.button>
+      )}
+
       <motion.button onClick={onInfo} whileTap={{ scale: 0.92 }} aria-label={t("Информация", "Info")} style={iconBtn(C.soft)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
@@ -1158,7 +1213,7 @@ function SystemMessage({
           margin: "10px 0 6px",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: 8,
+          gap: 10,
         }}
       >
         {CATEGORIES.map((c, i) => (
@@ -1167,28 +1222,45 @@ function SystemMessage({
             onClick={() => !locked && onPickCategory(c)}
             disabled={locked}
             initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: locked ? 0.35 : 1, y: 0 }}
+            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
             transition={{ delay: 0.06 * i, duration: 0.24, ease }}
             whileTap={locked ? undefined : { scale: 0.97 }}
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "12px 12px",
-              borderRadius: 14,
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 8,
+              padding: "13px 13px 12px",
+              borderRadius: 16,
               border: `1px solid ${C.border}`,
-              background: C.surface,
+              background: `linear-gradient(180deg, ${C.surfaceHi} 0%, ${C.surface} 100%)`,
               color: C.text,
-              fontSize: 13.5,
-              fontWeight: 500,
-              letterSpacing: "-0.005em",
               cursor: locked ? "default" : "pointer",
               textAlign: "left",
               lineHeight: 1.25,
+              minHeight: 86,
             }}
           >
-            <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
-            <span>{t(c.ru, c.en)}</span>
+            <span
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                display: "grid",
+                placeItems: "center",
+                background: "rgba(57,255,99,0.10)",
+                border: "1px solid rgba(57,255,99,0.20)",
+                fontSize: 16,
+              }}
+            >
+              {c.emoji}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>
+              {t(c.ru, c.en)}
+            </span>
+            <span style={{ fontSize: 11.5, fontWeight: 450, color: C.muted, letterSpacing: "-0.005em" }}>
+              {t(c.subRu, c.subEn)}
+            </span>
           </motion.button>
         ))}
       </motion.div>
@@ -1244,18 +1316,12 @@ function SystemMessage({
     );
   }
   if (msg.text.startsWith("ticket_opened:")) {
-    const id = msg.text.split(":")[1];
-    const tk = tickets.find((x) => x.id === id);
-    return (
-      <SysPill
-        text={t(`Заявка ${id} · открыта`, `Ticket ${id} · opened`)}
-        sub={tk ? CATEGORIES.find((c) => c.id === tk.category)?.[lang === "ru" ? "ru" : "en"] : undefined}
-      />
-    );
+    // Hidden — opened tickets are implicit; closing is handled via header button.
+    void tickets;
+    return null;
   }
   if (msg.text.startsWith("ticket_closed:")) {
-    const id = msg.text.split(":")[1];
-    return <SysPill text={t(`Заявка ${id} · закрыта`, `Ticket ${id} · closed`)} accent />;
+    return <SysPill text={t("Заявка закрыта", "Ticket closed")} accent />;
   }
   return null;
 }
