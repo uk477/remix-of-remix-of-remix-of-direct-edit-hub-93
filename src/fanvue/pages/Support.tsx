@@ -2179,48 +2179,38 @@ function Composer({
           />
         </motion.div>
 
-        <AnimatePresence initial={false}>
-          {canSend && (
-            <motion.div
-              key="send-wrap"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 38, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 32 }}
-              style={{ height: 38, flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "flex-end" }}
-            >
-              <motion.button
-                onClick={handleSend}
-                initial={{ scale: 0.4 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.4 }}
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                whileTap={{ scale: 0.88 }}
-                style={{
-                  width: 38,
-                  height: 38,
-                  flexShrink: 0,
-                  borderRadius: "50%",
-                  border: "none",
-                  background: C.green,
-                  color: C.greenInk,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                  boxShadow: "0 4px 14px -4px rgba(57,255,99,0.6)",
-                }}
-                aria-label="Send"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19V5" />
-                  <path d="M5 12l7-7 7 7" />
-                </svg>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.button
+          onClick={handleSend}
+          disabled={!canSend}
+          animate={{
+            scale: canSend ? 1 : 0,
+            opacity: canSend ? 1 : 0,
+          }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          whileTap={canSend ? { scale: 0.88 } : undefined}
+          style={{
+            width: 38,
+            height: 38,
+            flexShrink: 0,
+            borderRadius: "50%",
+            border: "none",
+            background: C.green,
+            color: C.greenInk,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: canSend ? "pointer" : "default",
+            padding: 0,
+            boxShadow: "0 4px 14px -4px rgba(57,255,99,0.6)",
+            pointerEvents: canSend ? "auto" : "none",
+          }}
+          aria-label="Send"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 19V5" />
+            <path d="M5 12l7-7 7 7" />
+          </svg>
+        </motion.button>
       </div>
     </footer>
   );
