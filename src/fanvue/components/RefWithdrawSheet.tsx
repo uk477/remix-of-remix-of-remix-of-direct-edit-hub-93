@@ -329,11 +329,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     >
                       <div
                         style={{
-                          fontFamily: MONO,
-                          fontSize: 10,
-                          color: balance >= MIN_WITHDRAW ? GREEN : 'rgba(255,255,255,0.55)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.14em',
+                          fontFamily: BODY,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: balance >= MIN_WITHDRAW ? GREEN : '#fff',
                           marginBottom: 4,
                         }}
                       >
