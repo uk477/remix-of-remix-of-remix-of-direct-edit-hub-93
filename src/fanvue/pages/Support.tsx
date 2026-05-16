@@ -96,6 +96,357 @@ const CATEGORIES: Array<{ id: SupportTicketCategory; emoji: string; ru: string; 
   { id: "operator", emoji: "💬", ru: "Связь с оператором", en: "Talk to operator" },
 ];
 
+/* ── Guided diagnostic flow ─────────────────────────────────────── */
+
+type Bi = { ru: string; en: string };
+type FlowAction =
+  | { kind: "next"; next: string }
+  | { kind: "tip"; tip: Bi; category: SupportTicketCategory }
+  | { kind: "escalate"; category: SupportTicketCategory; prompt: Bi; summary?: string };
+type FlowOption = { id: string; label: Bi; action: FlowAction };
+type FlowNode = { q: Bi; options: FlowOption[] };
+
+const FLOWS: Record<string, FlowNode> = {
+  // ─── PAYMENT ───────────────────────────────────────────────────
+  "payment:root": {
+    q: {
+      ru: "Чтобы быстрее помочь — уточните, какая именно проблема с оплатой:",
+      en: "To help faster — what exactly is the payment issue?",
+    },
+    options: [
+      {
+        id: "not_credited",
+        label: { ru: "Оплатил, но баланс не зачислен", en: "Paid, but balance not credited" },
+        action: { kind: "next", next: "payment:when" },
+      },
+      {
+        id: "wrong_amount",
+        label: { ru: "Списали не ту сумму", en: "Wrong amount charged" },
+        action: {
+          kind: "escalate",
+          category: "payment",
+          summary: "Wrong amount",
+          prompt: {
+            ru: "Укажите дату, сумму, которую ожидали, и сумму, которая списалась. Прикрепите скриншот операции — мы проверим в течение часа.",
+            en: "Share the date, expected amount and actually charged amount. Attach a screenshot — we'll review within an hour.",
+          },
+        },
+      },
+      {
+        id: "failed",
+        label: { ru: "Платёж не проходит", en: "Payment fails" },
+        action: { kind: "next", next: "payment:fail_kind" },
+      },
+      {
+        id: "refund",
+        label: { ru: "Хочу вернуть средства", en: "I need a refund" },
+        action: {
+          kind: "escalate",
+          category: "payment",
+          summary: "Refund request",
+          prompt: {
+            ru: "Опишите ситуацию: дата, сумма, причина возврата. Оператор рассмотрит запрос и ответит.",
+            en: "Describe the situation: date, amount, reason for refund. An operator will review and reply.",
+          },
+        },
+      },
+    ],
+  },
+  "payment:when": {
+    q: { ru: "Сколько времени прошло после оплаты?", en: "How long ago did you pay?" },
+    options: [
+      {
+        id: "lt_15",
+        label: { ru: "Меньше 15 минут", en: "Less than 15 min" },
+        action: {
+          kind: "tip",
+          category: "payment",
+          tip: {
+            ru: "Криптотранзакции часто подтверждаются 10–30 минут — иногда дольше при загрузке сети. Баланс зачислится автоматически, как только сеть подтвердит платёж. Если через час всё ещё ничего — откроем заявку и проверим вручную.",
+            en: "Crypto confirmations usually take 10–30 minutes, sometimes longer during network load. Your balance updates automatically once the network confirms. If nothing appears within an hour — we'll open a ticket and verify manually.",
+          },
+        },
+      },
+      {
+        id: "mid",
+        label: { ru: "15–60 минут", en: "15–60 min" },
+        action: { kind: "next", next: "payment:net" },
+      },
+      {
+        id: "gt_1h",
+        label: { ru: "Больше часа", en: "More than an hour" },
+        action: {
+          kind: "escalate",
+          category: "payment",
+          summary: "Payment not credited >1h",
+          prompt: {
+            ru: "Пришлите, пожалуйста: TX hash транзакции, сеть и точную сумму. Проверим в блокчейне и зачислим вручную.",
+            en: "Please send: TX hash, network and exact amount. We'll check the blockchain and credit manually.",
+          },
+        },
+      },
+    ],
+  },
+  "payment:net": {
+    q: { ru: "В какой сети вы платили?", en: "Which network did you use?" },
+    options: [
+      {
+        id: "fast",
+        label: { ru: "TRC20 / BEP20 / Solana", en: "TRC20 / BEP20 / Solana" },
+        action: {
+          kind: "tip",
+          category: "payment",
+          tip: {
+            ru: "В этих сетях платежи обычно зачисляются за пару минут, но при перегрузке возможна задержка до 20–30 минут. Подождите ещё немного — если не зачислится, откроем заявку с TX hash.",
+            en: "These networks usually credit within minutes, but congestion can delay it 20–30 min. Wait a bit longer — if it doesn't credit, we'll open a ticket with the TX hash.",
+          },
+        },
+      },
+      {
+        id: "slow",
+        label: { ru: "ERC20 (ETH) / BTC", en: "ERC20 (ETH) / BTC" },
+        action: {
+          kind: "tip",
+          category: "payment",
+          tip: {
+            ru: "ETH и BTC при загрузке сети могут идти 30–60 минут, иногда дольше. Это нормально — баланс зачислится сам. Если через 1.5 часа всё ещё пусто, пришлёте TX hash — проверим.",
+            en: "ETH and BTC may take 30–60 min under load, sometimes longer. This is normal — your balance will update automatically. If it's still empty after 1.5h, send the TX hash and we'll check.",
+          },
+        },
+      },
+      {
+        id: "other",
+        label: { ru: "Другая сеть", en: "Other network" },
+        action: {
+          kind: "escalate",
+          category: "payment",
+          summary: "Other network payment stuck",
+          prompt: {
+            ru: "Уточните сеть, пришлите TX hash и сумму — проверим в блокчейне.",
+            en: "Specify the network, TX hash and amount — we'll verify on-chain.",
+          },
+        },
+      },
+    ],
+  },
+  "payment:fail_kind": {
+    q: { ru: "Что показывает ошибка?", en: "What does the error say?" },
+    options: [
+      {
+        id: "insufficient",
+        label: { ru: "Недостаточно средств / комиссии", en: "Insufficient funds / fee" },
+        action: {
+          kind: "tip",
+          category: "payment",
+          tip: {
+            ru: "Проверьте, хватает ли средств с учётом комиссии сети (особенно для ERC20 — нужен ETH на gas). Попробуйте сеть с меньшей комиссией (TRC20/BEP20). Если средств достаточно — откроем заявку.",
+            en: "Make sure you have enough including network fees (ERC20 needs ETH for gas). Try a cheaper network (TRC20/BEP20). If you have enough — we'll open a ticket.",
+          },
+        },
+      },
+      {
+        id: "network_err",
+        label: { ru: "Ошибка сети / кошелька", en: "Network / wallet error" },
+        action: {
+          kind: "tip",
+          category: "payment",
+          tip: {
+            ru: "Перезапустите кошелёк, проверьте подключение и попробуйте другую сеть. Если ошибка повторяется — пришлите скриншот, откроем заявку.",
+            en: "Restart your wallet, check the connection and try another network. If it persists — send a screenshot and we'll open a ticket.",
+          },
+        },
+      },
+      {
+        id: "other_err",
+        label: { ru: "Другая ошибка", en: "Other error" },
+        action: {
+          kind: "escalate",
+          category: "payment",
+          summary: "Payment fails (other)",
+          prompt: {
+            ru: "Пришлите текст ошибки или скриншот — разберёмся.",
+            en: "Send the error text or a screenshot — we'll figure it out.",
+          },
+        },
+      },
+    ],
+  },
+
+  // ─── DELIVERY ──────────────────────────────────────────────────
+  "delivery:root": {
+    q: { ru: "Что именно случилось с заказом?", en: "What's wrong with the order?" },
+    options: [
+      {
+        id: "not_received",
+        label: { ru: "Заказ оплачен, но не пришёл", en: "Paid but not delivered" },
+        action: { kind: "next", next: "delivery:when" },
+      },
+      {
+        id: "wrong_item",
+        label: { ru: "Пришло не то / не работает", en: "Wrong item / doesn't work" },
+        action: {
+          kind: "escalate",
+          category: "delivery",
+          summary: "Wrong / faulty item",
+          prompt: {
+            ru: "Укажите номер заказа и что именно не так. Прикрепите скриншот или фото — поможем заменить.",
+            en: "Share the order ID and what's wrong. Attach a screenshot or photo — we'll arrange a replacement.",
+          },
+        },
+      },
+      {
+        id: "howto",
+        label: { ru: "Не понимаю, как пользоваться", en: "Not sure how to use it" },
+        action: {
+          kind: "tip",
+          category: "delivery",
+          tip: {
+            ru: "Откройте «Мои заказы» → нажмите на нужный заказ — внутри есть инструкция, ключ и данные доступа. Если внутри ничего нет или непонятно — откроем заявку.",
+            en: "Open “My orders” → tap the order — instructions, keys and access info are inside. If it's empty or unclear — we'll open a ticket.",
+          },
+        },
+      },
+    ],
+  },
+  "delivery:when": {
+    q: { ru: "Как давно был оплачен заказ?", en: "How long ago was the order paid?" },
+    options: [
+      {
+        id: "lt_30",
+        label: { ru: "Меньше 30 минут", en: "Less than 30 min" },
+        action: {
+          kind: "tip",
+          category: "delivery",
+          tip: {
+            ru: "Авто-доставка обычно 1–10 минут, ручная — до 24 часов. Откройте «Мои заказы» и потяните вниз, чтобы обновить. Если статус «оплачен» висит дольше 30 минут — откроем заявку.",
+            en: "Auto-delivery usually 1–10 min, manual up to 24h. Open “My orders” and pull to refresh. If it's stuck on “paid” over 30 min — we'll open a ticket.",
+          },
+        },
+      },
+      {
+        id: "lt_24",
+        label: { ru: "30 мин – 24 часа", en: "30 min – 24h" },
+        action: {
+          kind: "escalate",
+          category: "delivery",
+          summary: "Delivery delayed",
+          prompt: {
+            ru: "Укажите номер заказа — проверим статус доставки прямо сейчас.",
+            en: "Share the order ID — we'll check the delivery status right now.",
+          },
+        },
+      },
+      {
+        id: "gt_24",
+        label: { ru: "Больше 24 часов", en: "More than 24h" },
+        action: {
+          kind: "escalate",
+          category: "delivery",
+          summary: "Delivery >24h",
+          prompt: {
+            ru: "Укажите номер заказа — разберёмся срочно и при необходимости вернём средства.",
+            en: "Share the order ID — we'll resolve it urgently and refund if needed.",
+          },
+        },
+      },
+    ],
+  },
+
+  // ─── ACCOUNT ───────────────────────────────────────────────────
+  "account:root": {
+    q: { ru: "С чем нужно помочь по аккаунту?", en: "What do you need help with?" },
+    options: [
+      {
+        id: "name",
+        label: { ru: "Изменить имя / юзернейм", en: "Change name / username" },
+        action: {
+          kind: "tip",
+          category: "account",
+          tip: {
+            ru: "Имя и @username берутся из вашего Telegram. Обновите их в Telegram → закройте и снова откройте приложение — данные подтянутся автоматически.",
+            en: "Your name and @username come from Telegram. Update them in Telegram → reopen the app — data will sync automatically.",
+          },
+        },
+      },
+      {
+        id: "verify",
+        label: { ru: "Проблема с верификацией", en: "Verification issue" },
+        action: {
+          kind: "escalate",
+          category: "account",
+          summary: "Verification problem",
+          prompt: {
+            ru: "Опишите, что показывает приложение, и приложите скриншот — поможем пройти верификацию.",
+            en: "Describe what the app shows and attach a screenshot — we'll help you verify.",
+          },
+        },
+      },
+      {
+        id: "balance",
+        label: { ru: "Не вижу баланс / историю", en: "Can't see balance / history" },
+        action: {
+          kind: "tip",
+          category: "account",
+          tip: {
+            ru: "Закройте приложение полностью и откройте заново — данные подгрузятся. Если пусто и после этого — откроем заявку, проверим аккаунт.",
+            en: "Fully close the app and open it again — data will reload. If still empty — we'll open a ticket and check your account.",
+          },
+        },
+      },
+      {
+        id: "ref",
+        label: { ru: "Реферальная программа", en: "Referral program" },
+        action: {
+          kind: "tip",
+          category: "account",
+          tip: {
+            ru: "Откройте «Рефералы» — вверху страницы подробная подсказка. Если после этого вопрос остался — откроем заявку.",
+            en: "Open “Referrals” — there's a detailed guide at the top. If a question remains — we'll open a ticket.",
+          },
+        },
+      },
+    ],
+  },
+};
+
+function getFlowNode(key: string): FlowNode | null {
+  if (FLOWS[key]) return FLOWS[key];
+  // Dynamic node: resolve:<category> → 2-button choice after a tip
+  if (key.startsWith("resolve:")) {
+    const cat = key.split(":")[1] as SupportTicketCategory;
+    return {
+      q: { ru: "Помогло?", en: "Did this help?" },
+      options: [
+        {
+          id: "ok",
+          label: { ru: "Да, спасибо 🙏", en: "Yes, thanks 🙏" },
+          action: {
+            kind: "tip",
+            category: cat,
+            tip: {
+              ru: "Рад был помочь! Если появится новый вопрос — выберите тему ниже.",
+              en: "Glad to help! If something else comes up — pick a topic below.",
+            },
+          },
+        },
+        {
+          id: "escalate",
+          label: { ru: "Нет, нужен оператор", en: "No, I need an operator" },
+          action: {
+            kind: "escalate",
+            category: cat,
+            prompt: {
+              ru: "Подключаю оператора. Опишите вопрос подробно и при необходимости прикрепите скриншот.",
+              en: "Connecting an operator. Describe the issue in detail and attach a screenshot if helpful.",
+            },
+          },
+        },
+      ],
+    };
+  }
+  return null;
+}
+
 export default function Support() {
   const navigate = useNavigate();
   const { haptic } = useTelegram();
@@ -232,47 +583,113 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id]);
 
-  const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
-    haptic("light");
-    // Open ticket
-    const ticket = openSupportTicket(cat.id);
-    // Bot follow-up
-    const followUp: Record<SupportTicketCategory, { ru: string; en: string }> = {
-      payment: {
-        ru: "Опишите, пожалуйста, проблему с платежом: дата, сумма, сеть. Можно прикрепить скриншот.",
-        en: "Please describe the payment issue: date, amount, network. Feel free to attach a screenshot.",
-      },
-      delivery: {
-        ru: "Укажите номер заказа (если есть) и что именно вас беспокоит. Если есть фото — прикрепите.",
-        en: "Share the order ID (if any) and what exactly is wrong. Attach a photo if helpful.",
-      },
-      account: {
-        ru: "Расскажите о ситуации с аккаунтом или верификацией. Скриншоты ускорят решение.",
-        en: "Tell us about your account or verification. Screenshots speed things up.",
-      },
-      operator: {
-        ru: "Подключаю оператора. Опишите вопрос подробно — оператор ответит в ближайшее время.",
-        en: "Connecting an operator. Describe your question in detail — they'll reply shortly.",
-      },
-      other: {
-        ru: "Опишите ваш вопрос подробно — мы постараемся помочь.",
-        en: "Describe your question in detail — we'll do our best.",
-      },
-    };
-    setTimeout(() => {
+  // Bot helpers
+  const postBot = useCallback(
+    (text: string, ticketId?: string, delay = 0) => {
+      window.setTimeout(() => {
+        addSupportMessage({
+          id: newId(),
+          sender: "bot",
+          kind: "text",
+          text,
+          created: new Date().toISOString(),
+          ticket_id: ticketId,
+        });
+      }, delay);
+    },
+    [addSupportMessage],
+  );
+
+  const postFlowNode = useCallback(
+    (flowKey: string, delay = 0) => {
+      window.setTimeout(() => {
+        addSupportMessage({
+          id: newId(),
+          sender: "bot",
+          kind: "system",
+          text: `flow:${flowKey}`,
+          created: new Date().toISOString(),
+        });
+      }, delay);
+    },
+    [addSupportMessage],
+  );
+
+  const postUserEcho = useCallback(
+    (label: string) => {
       addSupportMessage({
         id: newId(),
-        sender: "bot",
+        sender: "user",
         kind: "text",
-        text: t(followUp[cat.id].ru, followUp[cat.id].en),
+        text: label,
         created: new Date().toISOString(),
-        ticket_id: ticket.id,
+        read_by_admin: true,
       });
-    }, 250);
-    tgNotify(
-      `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
-    );
+    },
+    [addSupportMessage],
+  );
+
+  const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
+    haptic("light");
+
+    // Operator → straight to ticket (skip diagnostics)
+    if (cat.id === "operator") {
+      const ticket = openSupportTicket(cat.id);
+      postBot(
+        t(
+          "Подключаю оператора. Опишите вопрос подробно — ответим в ближайшее время.",
+          "Connecting an operator. Describe your question in detail — we'll reply shortly.",
+        ),
+        ticket.id,
+        250,
+      );
+      tgNotify(
+        `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+      );
+      return;
+    }
+
+    // Start guided diagnostic flow
+    const rootKey = `${cat.id}:root`;
+    const root = getFlowNode(rootKey);
+    if (!root) {
+      // Fallback — open ticket directly
+      const ticket = openSupportTicket(cat.id);
+      postBot(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id, 200);
+      return;
+    }
+    postBot(t(root.q.ru, root.q.en), undefined, 200);
+    postFlowNode(rootKey, 350);
   };
+
+  const handleFlowAnswer = (flowKey: string, opt: FlowOption) => {
+    haptic("light");
+    // Echo user's pick
+    postUserEcho(t(opt.label.ru, opt.label.en));
+
+    const a = opt.action;
+    if (a.kind === "next") {
+      const node = getFlowNode(a.next);
+      if (!node) return;
+      postBot(t(node.q.ru, node.q.en), undefined, 350);
+      postFlowNode(a.next, 500);
+    } else if (a.kind === "tip") {
+      postBot(t(a.tip.ru, a.tip.en), undefined, 350);
+      // Offer resolve / escalate, unless this was already a resolve node response
+      if (!flowKey.startsWith("resolve:")) {
+        postFlowNode(`resolve:${a.category}`, 600);
+      }
+    } else if (a.kind === "escalate") {
+      const ticket = openSupportTicket(a.category, a.summary);
+      postBot(t(a.prompt.ru, a.prompt.en), ticket.id, 400);
+      const catLabel = CATEGORIES.find((c) => c.id === a.category);
+      tgNotify(
+        `🆕 Новая заявка ${ticket.id}\n📂 ${catLabel?.ru ?? a.category}${a.summary ? " · " + a.summary : ""}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+      );
+    }
+  };
+
+
 
   const sendMessage = () => {
     const trimmed = text.trim();
@@ -435,8 +852,9 @@ export default function Support() {
                   lang={lang}
                   t={t}
                   tickets={tickets}
-                  activeTicket={activeTicket}
+                  isLastMessage={g.msg.id === messages[messages.length - 1]?.id}
                   onPickCategory={handlePickCategory}
+                  onFlowAnswer={handleFlowAnswer}
                 />
               );
             return (
@@ -716,19 +1134,20 @@ function SystemMessage({
   lang,
   t,
   tickets,
-  activeTicket,
+  isLastMessage,
   onPickCategory,
+  onFlowAnswer,
 }: {
   msg: SupportMessage;
   lang: string;
   t: (ru: string, en: string) => string;
   tickets: SupportTicket[];
-  activeTicket: SupportTicket | null;
+  isLastMessage: boolean;
   onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
+  onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
 }) {
   if (msg.text === "triage_prompt") {
-    const locked = !!activeTicket;
-    const pickedId = activeTicket?.category;
+    const locked = !isLastMessage;
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -742,40 +1161,85 @@ function SystemMessage({
           gap: 8,
         }}
       >
-        {CATEGORIES.map((c, i) => {
-          const isPicked = pickedId === c.id;
-          const dim = locked && !isPicked;
-          return (
-            <motion.button
-              key={c.id}
-              onClick={() => !locked && onPickCategory(c)}
-              disabled={locked}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: dim ? 0.35 : 1, y: 0 }}
-              transition={{ delay: 0.06 * i, duration: 0.24, ease }}
-              whileTap={locked ? undefined : { scale: 0.97 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "12px 12px",
-                borderRadius: 14,
-                border: `1px solid ${isPicked ? C.green : C.border}`,
-                background: isPicked ? `${C.green}14` : C.surface,
-                color: C.text,
-                fontSize: 13.5,
-                fontWeight: 500,
-                letterSpacing: "-0.005em",
-                cursor: locked ? "default" : "pointer",
-                textAlign: "left",
-                lineHeight: 1.25,
-              }}
-            >
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
-              <span>{t(c.ru, c.en)}</span>
-            </motion.button>
-          );
-        })}
+        {CATEGORIES.map((c, i) => (
+          <motion.button
+            key={c.id}
+            onClick={() => !locked && onPickCategory(c)}
+            disabled={locked}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: locked ? 0.35 : 1, y: 0 }}
+            transition={{ delay: 0.06 * i, duration: 0.24, ease }}
+            whileTap={locked ? undefined : { scale: 0.97 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "12px 12px",
+              borderRadius: 14,
+              border: `1px solid ${C.border}`,
+              background: C.surface,
+              color: C.text,
+              fontSize: 13.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: locked ? "default" : "pointer",
+              textAlign: "left",
+              lineHeight: 1.25,
+            }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
+            <span>{t(c.ru, c.en)}</span>
+          </motion.button>
+        ))}
+      </motion.div>
+    );
+  }
+  if (msg.text.startsWith("flow:")) {
+    const flowKey = msg.text.slice(5);
+    const node = getFlowNode(flowKey);
+    if (!node) return null;
+    const locked = !isLastMessage;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease }}
+        style={{
+          alignSelf: "stretch",
+          margin: "6px 0 6px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 7,
+        }}
+      >
+        {node.options.map((opt, i) => (
+          <motion.button
+            key={opt.id}
+            onClick={() => !locked && onFlowAnswer(flowKey, opt)}
+            disabled={locked}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
+            transition={{ delay: 0.05 * i, duration: 0.22, ease }}
+            whileTap={locked ? undefined : { scale: 0.98 }}
+            style={{
+              alignSelf: "flex-end",
+              maxWidth: "82%",
+              padding: "10px 14px",
+              borderRadius: 18,
+              border: `1px solid ${C.green}55`,
+              background: locked ? "transparent" : `${C.green}12`,
+              color: locked ? C.soft : C.green,
+              fontSize: 13.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: locked ? "default" : "pointer",
+              textAlign: "right",
+              lineHeight: 1.3,
+            }}
+          >
+            {t(opt.label.ru, opt.label.en)}
+          </motion.button>
+        ))}
       </motion.div>
     );
   }
