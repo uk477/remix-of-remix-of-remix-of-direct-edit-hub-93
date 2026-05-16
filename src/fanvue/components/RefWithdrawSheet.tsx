@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
+import { useState, useRef, useEffect, type CSSProperties, type ChangeEvent, type PointerEvent } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
@@ -133,14 +133,12 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
-  const dragPointerId = useRef<number | null>(null)
-  const swipeStartX = useRef(0)
-  const swipeStartOffset = useRef(0)
+  const swipeProgressRef = useRef(0)
   const [trackW, setTrackW] = useState(0)
   const [swipeX, setSwipeX] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
-  const thumbW = 56
-  const maxX = Math.max(trackW - thumbW - 4, 0)
+  const thumbW = 58
+  const maxX = Math.max(trackW - thumbW - 8, 0)
   const swipeProgress = maxX > 0 ? Math.min(swipeX / maxX, 1) : 0
 
   useEffect(() => {
@@ -150,6 +148,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       setNetwork(null)
       setAddress('')
       setSwipeX(0)
+      swipeProgressRef.current = 0
       setIsSwiping(false)
     }
   }, [open])
@@ -182,42 +181,32 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function updateSwipe(clientX: number) {
-    const nextX = Math.min(Math.max(swipeStartOffset.current + clientX - swipeStartX.current, 0), maxX)
-    setSwipeX(nextX)
-    return nextX
+  function setSwipeProgress(progress: number) {
+    const nextProgress = Math.min(Math.max(progress, 0), 1)
+    swipeProgressRef.current = nextProgress
+    setSwipeX(maxX * nextProgress)
   }
 
-  function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
-    if (!maxX) return
-    e.preventDefault()
+  function handleSwipeInput(e: ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
-    dragPointerId.current = e.pointerId
-    swipeStartX.current = e.clientX
-    swipeStartOffset.current = swipeX
-    e.currentTarget.setPointerCapture(e.pointerId)
+    setSwipeProgress(Number(e.currentTarget.value) / 100)
+  }
+
+  function handleSwipeStart(e: PointerEvent<HTMLInputElement>) {
+    e.stopPropagation()
     setIsSwiping(true)
   }
 
-  function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
-    if (dragPointerId.current !== e.pointerId) return
-    e.preventDefault()
+  function handleSwipeEnd(e: PointerEvent<HTMLInputElement>) {
     e.stopPropagation()
-    updateSwipe(e.clientX)
-  }
-
-  function handleSwipeEnd(e: PointerEvent<HTMLDivElement>) {
-    if (dragPointerId.current !== e.pointerId) return
-    e.preventDefault()
-    e.stopPropagation()
-    dragPointerId.current = null
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     setIsSwiping(false)
-    const finalX = updateSwipe(e.clientX)
-    if (finalX >= maxX * 0.65) {
+    const finalProgress = Number(e.currentTarget.value) / 100
+    if (finalProgress >= 0.62) {
+      swipeProgressRef.current = 1
       setSwipeX(maxX)
       handleSubmit()
     } else {
+      swipeProgressRef.current = 0
       setSwipeX(0)
     }
   }
@@ -730,16 +719,12 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     {/* Swipe to confirm */}
                     <div
                       ref={trackRef}
-                      onPointerDown={handleSwipeStart}
-                      onPointerMove={handleSwipeMove}
-                      onPointerUp={handleSwipeEnd}
-                      onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
-                        height: 60,
+                        height: 66,
                         borderRadius: 999,
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025))',
+                        border: '1px solid rgba(57,255,99,0.18)',
                         overflow: 'hidden',
                         marginBottom: 14,
                         userSelect: 'none',
@@ -747,8 +732,30 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         WebkitTouchCallout: 'none',
                         touchAction: 'none',
                         cursor: isSwiping ? 'grabbing' : 'grab',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 42px rgba(0,0,0,0.35)',
                       }}
                     >
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={Math.round(swipeProgress * 100)}
+                        aria-label={lang === 'ru' ? 'Подтвердить вывод свайпом' : 'Confirm withdrawal by swiping'}
+                        onChange={handleSwipeInput}
+                        onPointerDown={handleSwipeStart}
+                        onPointerUp={handleSwipeEnd}
+                        onPointerCancel={handleSwipeEnd}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          zIndex: 5,
+                          width: '100%',
+                          height: '100%',
+                          opacity: 0,
+                          cursor: isSwiping ? 'grabbing' : 'grab',
+                          touchAction: 'none',
+                        }}
+                      />
                       {/* progress fill */}
                       <div
                         style={{
@@ -756,9 +763,22 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           left: 0,
                           top: 0,
                           bottom: 0,
-                          width: `${56 + swipeProgress * Math.max(trackW - 56, 0)}px`,
-                          background: `linear-gradient(90deg, rgba(57,255,99,0.22), rgba(57,255,99,0.38))`,
+                          width: `${thumbW + 8 + swipeProgress * Math.max(trackW - thumbW - 8, 0)}px`,
+                          background: `linear-gradient(90deg, rgba(57,255,99,0.24), rgba(57,255,99,0.72))`,
                           transition: isSwiping ? 'none' : 'width 220ms cubic-bezier(.2,.8,.2,1)',
+                          boxShadow: swipeProgress > 0.08 ? '0 0 34px rgba(57,255,99,0.18)' : 'none',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 66,
+                          right: 22,
+                          top: '50%',
+                          height: 1,
+                          background: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.16) 0 8px, transparent 8px 16px)',
+                          transform: 'translateY(-50%)',
+                          opacity: 0.55,
                         }}
                       />
                       {/* label */}
@@ -772,20 +792,20 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           fontFamily: DISPLAY,
                           fontSize: 12,
                           fontWeight: 700,
-                          color: swipeProgress > 0.7 ? '#fff' : 'rgba(255,255,255,0.55)',
+                          color: swipeProgress > 0.62 ? INK : 'rgba(255,255,255,0.72)',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.28em',
+                          letterSpacing: '0.18em',
                           pointerEvents: 'none',
-                          paddingLeft: 64,
+                          paddingLeft: 74,
                           paddingRight: 24,
                           whiteSpace: 'nowrap',
-                          opacity: 1 - swipeProgress * 0.4,
+                          opacity: swipeProgress > 0.9 ? 0 : 1,
                           transition: 'color 160ms ease, opacity 160ms ease',
                         }}
                       >
-                        {swipeProgress > 0.7
+                        {swipeProgress > 0.62
                           ? (lang === 'ru' ? 'Отпустите' : 'Release')
-                          : (lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm')}
+                          : (lang === 'ru' ? 'Тяните вправо' : 'Slide right')}
                       </div>
                       {/* thumb */}
                       <div
@@ -793,10 +813,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           position: 'absolute',
                           left: 4,
                           top: 4,
-                          width: 52,
-                          height: 52,
+                          width: thumbW,
+                          height: 58,
                           borderRadius: '50%',
-                          background: GREEN,
+                          background: `linear-gradient(180deg, #7dff94, ${GREEN})`,
                           color: INK,
                           display: 'flex',
                           alignItems: 'center',
@@ -804,7 +824,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           pointerEvents: 'none',
                           transform: `translateX(${swipeX}px)`,
                           transition: isSwiping ? 'none' : 'transform 240ms cubic-bezier(.2,.8,.2,1)',
-                          boxShadow: '0 8px 24px rgba(57,255,99,0.35)',
+                          boxShadow: '0 10px 26px rgba(57,255,99,0.36), inset 0 1px 0 rgba(255,255,255,0.6)',
                         }}
                       >
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
