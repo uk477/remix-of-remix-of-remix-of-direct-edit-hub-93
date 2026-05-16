@@ -730,26 +730,31 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
-                        height: 60,
-                        borderRadius: 30,
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(57,255,99,0.3)',
+                        height: 64,
+                        borderRadius: 18,
+                        background: 'rgba(57,255,99,0.08)',
+                        border: '1px solid rgba(57,255,99,0.32)',
                         overflow: 'hidden',
                         marginBottom: 14,
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         WebkitTouchCallout: 'none',
                         touchAction: 'none',
-                        cursor: 'grab',
+                        cursor: isSwiping ? 'grabbing' : 'grab',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 14px 34px rgba(57,255,99,0.08)',
                       }}
                     >
                       <div
                         style={{
                           position: 'absolute',
-                          inset: 0,
-                          background: GREEN,
-                          opacity: 0.15 + swipeProgress * 0.85,
-                          borderRadius: 30,
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: `${Math.max(64, 64 + swipeProgress * Math.max(trackW - 64, 0))}px`,
+                          background: `linear-gradient(90deg, ${GREEN}, rgba(57,255,99,0.52))`,
+                          opacity: 0.18 + swipeProgress * 0.72,
+                          borderRadius: 18,
+                          transition: isSwiping ? 'none' : 'width 180ms ease, opacity 180ms ease',
                         }}
                       />
                       <div
