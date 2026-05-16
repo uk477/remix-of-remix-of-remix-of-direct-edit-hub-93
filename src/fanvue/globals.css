@@ -3513,6 +3513,9 @@ body::after { display: none; }
 .shop-hero-bal-decal-row .bar-sm { width: 4px; }
 .shop-hero-bal-decal-row .bar-md { width: 9px; }
 .shop-hero-bal-decal-row .bar-lg { width: 16px; }
+@media (max-width: 420px) {
+  .shop-hero-bal-decals { display: none; }
+}
 
 .shop-hero-topup {
   position: relative;
