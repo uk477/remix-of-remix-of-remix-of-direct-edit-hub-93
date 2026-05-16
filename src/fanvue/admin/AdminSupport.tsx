@@ -124,6 +124,27 @@ export default function AdminSupport() {
     return () => { clearTimeout(id); document.removeEventListener('click', close) }
   }, [actionMsg])
 
+  /* ── Реальное присутствие админа ──
+     online = true пока экран открыт и вкладка видима;
+     при уходе/скрытии — online=false и lastSeen=now (heartbeat каждые 25с). */
+  useEffect(() => {
+    const mark = (online: boolean) =>
+      setAdminPresence({ online, lastSeen: new Date().toISOString() })
+    const onVis = () => mark(document.visibilityState === 'visible')
+    onVis()
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', () => mark(true))
+    window.addEventListener('blur', () => mark(false))
+    const beat = window.setInterval(() => {
+      if (document.visibilityState === 'visible') mark(true)
+    }, 25_000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.clearInterval(beat)
+      mark(false)
+    }
+  }, [setAdminPresence])
+
   const chatUser = groups.find((g) => g.uid === openUid)
 
   const chatOrderId = (() => {
