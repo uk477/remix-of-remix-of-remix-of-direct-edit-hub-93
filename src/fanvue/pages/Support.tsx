@@ -967,6 +967,7 @@ export default function Support() {
                   isLastMessage={g.msg.id === messages[messages.length - 1]?.id}
                   onPickCategory={handlePickCategory}
                   onFlowAnswer={handleFlowAnswer}
+                  onFlowBack={handleFlowBack}
                 />
               );
             return (
