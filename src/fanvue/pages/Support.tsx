@@ -654,6 +654,17 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id, messages.length]);
 
+  // Tag for transient flow Q&A messages so we can wipe them as the user advances
+  const FLOW_TAG = "__flow";
+
+  const clearFlowMessages = useCallback(() => {
+    const ids = useStore
+      .getState()
+      .supportMessages.filter((m) => m.ticket_id === FLOW_TAG)
+      .map((m) => m.id);
+    ids.forEach((id) => deleteSupportMessage(id, "all"));
+  }, [deleteSupportMessage]);
+
   // Bot helpers
   const postBot = useCallback(
     (text: string, ticketId?: string, delay = 0) => {
@@ -680,6 +691,7 @@ export default function Support() {
           kind: "system",
           text: `flow:${flowKey}`,
           created: new Date().toISOString(),
+          ticket_id: FLOW_TAG,
         });
       }, delay);
     },
@@ -695,6 +707,7 @@ export default function Support() {
         text: label,
         created: new Date().toISOString(),
         read_by_admin: true,
+        ticket_id: FLOW_TAG,
       });
     },
     [addSupportMessage],
@@ -702,6 +715,7 @@ export default function Support() {
 
   const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
     haptic("light");
+    clearFlowMessages();
 
     // Operator → straight to ticket (skip diagnostics)
     if (cat.id === "operator") {
@@ -729,7 +743,7 @@ export default function Support() {
       postBot(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id, 200);
       return;
     }
-    postBot(t(root.q.ru, root.q.en), undefined, 200);
+    postBot(t(root.q.ru, root.q.en), FLOW_TAG, 200);
     postFlowNode(rootKey, 350);
   };
 
@@ -742,16 +756,20 @@ export default function Support() {
     if (a.kind === "next") {
       const node = getFlowNode(a.next);
       if (!node) return;
-      postBot(t(node.q.ru, node.q.en), undefined, 350);
+      // Wipe prior Q&A so chat stays clean; keep only the freshest step
+      window.setTimeout(() => clearFlowMessages(), 300);
+      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 350);
       postFlowNode(a.next, 500);
     } else if (a.kind === "tip") {
-      postBot(t(a.tip.ru, a.tip.en), undefined, 350);
+      window.setTimeout(() => clearFlowMessages(), 300);
+      postBot(t(a.tip.ru, a.tip.en), FLOW_TAG, 350);
       if (!flowKey.startsWith("resolve:")) {
         // First tip → ask "did it help?"
         postFlowNode(`resolve:${a.category}`, 600);
       } else {
-        // User confirmed "Yes, thanks" → offer a fresh topic picker
+        // User confirmed "Yes, all clear" → offer a fresh topic picker
         window.setTimeout(() => {
+          clearFlowMessages();
           addSupportMessage({
             id: newId(),
             sender: "bot",
@@ -763,6 +781,8 @@ export default function Support() {
       }
     } else if (a.kind === "escalate") {
       const ticket = openSupportTicket(a.category, a.summary);
+      // Clear all diagnostic clutter — only the ticket prompt remains
+      window.setTimeout(() => clearFlowMessages(), 300);
       postBot(t(a.prompt.ru, a.prompt.en), ticket.id, 400);
       const catLabel = CATEGORIES.find((c) => c.id === a.category);
       tgNotify(
@@ -775,6 +795,7 @@ export default function Support() {
     const parent = getFlowParent(currentKey);
     if (!parent) return;
     haptic("light");
+    clearFlowMessages();
     if (parent === "__triage__") {
       addSupportMessage({
         id: newId(),
@@ -786,7 +807,7 @@ export default function Support() {
     } else {
       const node = getFlowNode(parent);
       if (!node) return;
-      postBot(t(node.q.ru, node.q.en), undefined, 0);
+      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 0);
       postFlowNode(parent, 150);
     }
   };
