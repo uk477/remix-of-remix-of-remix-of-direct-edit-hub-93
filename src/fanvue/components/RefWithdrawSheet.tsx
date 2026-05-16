@@ -765,24 +765,30 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontFamily: DISPLAY,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
-                          color: 'rgba(255,255,255,0.6)',
+                          color: swipeProgress > 0.72 ? INK : 'rgba(255,255,255,0.68)',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.28em',
+                          letterSpacing: '0.22em',
                           pointerEvents: 'none',
+                          paddingLeft: 66,
+                          paddingRight: 16,
+                          whiteSpace: 'nowrap',
+                          transition: 'color 160ms ease',
                         }}
                       >
-                        {lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm'}
+                        {swipeProgress > 0.72
+                          ? (lang === 'ru' ? 'Отпустите' : 'Release')
+                          : (lang === 'ru' ? 'Проведите вправо' : 'Slide right')}
                       </div>
                       <div
                         style={{
                           position: 'absolute',
-                          left: 2,
-                          top: 2,
+                          left: 4,
+                          top: 4,
                           width: thumbW,
                           height: thumbW,
-                          borderRadius: '50%',
+                          borderRadius: 14,
                           background: '#fff',
                           color: INK,
                           display: 'flex',
@@ -790,14 +796,14 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           justifyContent: 'center',
                           fontSize: 22,
                           fontWeight: 700,
-                          cursor: 'grab',
-                          boxShadow: '0 4px 16px rgba(57,255,99,0.4)',
+                          cursor: isSwiping ? 'grabbing' : 'grab',
+                          boxShadow: isSwiping ? '0 10px 26px rgba(57,255,99,0.45)' : '0 6px 18px rgba(0,0,0,0.28)',
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
                           WebkitTouchCallout: 'none',
                           pointerEvents: 'none',
-                          transform: `translateX(${swipeX}px)`,
-                          transition: isSwiping ? 'none' : 'transform 180ms ease',
+                          transform: `translateX(${swipeX}px) scale(${isSwiping ? 1.03 : 1})`,
+                          transition: isSwiping ? 'none' : 'transform 180ms ease, box-shadow 180ms ease',
                         }}
                       >
                         →
