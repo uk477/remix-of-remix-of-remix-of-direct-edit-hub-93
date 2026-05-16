@@ -948,14 +948,7 @@ export default function Support() {
         onCloseTicket={() => {
           if (!activeTicket) return;
           haptic("medium");
-          const ok = window.confirm(
-            t("Завершить заявку? Если вопрос ещё актуален — оставьте её открытой.", "Mark this ticket as resolved? If you still need help, keep it open."),
-          );
-          if (!ok) return;
-          closeSupportTicket(activeTicket.id);
-          tgNotify(
-            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
-          );
+          setConfirmClose(true);
         }}
         onBack={() => {
           haptic("light");
