@@ -5,6 +5,7 @@ import { useStore } from "../store";
 import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
 import { CONFIG } from "../config";
+import ConfirmSheet from "../components/ConfirmSheet";
 import type {
   SupportMessage,
   SupportAttachment,
@@ -577,6 +578,7 @@ export default function Support() {
   const [replyTo, setReplyTo] = useState<SupportMessage | null>(null);
   const [actionMsg, setActionMsg] = useState<SupportMessage | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
   const [revealedDeleted, setRevealedDeleted] = useState<Set<number>>(new Set());
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -947,14 +949,7 @@ export default function Support() {
         onCloseTicket={() => {
           if (!activeTicket) return;
           haptic("medium");
-          const ok = window.confirm(
-            t("Завершить заявку? Если вопрос ещё актуален — оставьте её открытой.", "Mark this ticket as resolved? If you still need help, keep it open."),
-          );
-          if (!ok) return;
-          closeSupportTicket(activeTicket.id);
-          tgNotify(
-            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
-          );
+          setConfirmClose(true);
         }}
         onBack={() => {
           haptic("light");
@@ -1061,6 +1056,27 @@ export default function Support() {
       <AnimatePresence>
         {showInfo && <InfoSheet t={t} onClose={() => setShowInfo(false)} />}
       </AnimatePresence>
+
+      <ConfirmSheet
+        open={confirmClose}
+        title={t("Завершить заявку?", "Close this ticket?")}
+        message={t(
+          "Если вопрос ещё актуален — лучше оставить её открытой. Закрытую заявку нельзя продолжить, потребуется создать новую.",
+          "If your question is still relevant, keep it open. A closed ticket can't be reopened — you'll need to start a new one.",
+        )}
+        confirmLabel={t("Закрыть заявку", "Close ticket")}
+        cancelLabel={t("Отмена", "Cancel")}
+        danger
+        onCancel={() => setConfirmClose(false)}
+        onConfirm={() => {
+          setConfirmClose(false);
+          if (!activeTicket) return;
+          closeSupportTicket(activeTicket.id);
+          tgNotify(
+            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+          );
+        }}
+      />
     </div>
   );
 }
