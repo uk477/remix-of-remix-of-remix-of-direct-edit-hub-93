@@ -164,10 +164,18 @@ export default function Home() {
           transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
         >
           <div className="shop-hero-bal-main">
-            <span className="shop-hero-bal-eye">{lang === 'ru' ? 'Ваш баланс' : 'Your balance'}</span>
-            <span className="shop-hero-bal-num">
-              <i>$</i>{shownBal.toFixed(balDecimals)}
-            </span>
+            <span className="shop-hero-bal-rule" aria-hidden />
+            <div className="shop-hero-bal-text">
+              <span className="shop-hero-bal-eye">{lang === 'ru' ? 'Ваш баланс' : 'Your balance'}</span>
+              <span className="shop-hero-bal-num">
+                <i>$</i>{shownBal.toFixed(balDecimals)}
+              </span>
+            </div>
+            <div className="shop-hero-bal-decals" aria-hidden>
+              <div className="shop-hero-bal-decal-row"><span className="dot dot-on" /><span className="bar bar-lg" /></div>
+              <div className="shop-hero-bal-decal-row"><span className="bar bar-md" /><span className="bar bar-sm" /></div>
+              <div className="shop-hero-bal-decal-row"><span className="bar bar-md" /></div>
+            </div>
           </div>
           <motion.button
             className="home-topup"
