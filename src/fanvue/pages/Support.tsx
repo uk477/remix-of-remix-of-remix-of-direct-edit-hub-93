@@ -2160,6 +2160,7 @@ function Composer({
               }
             }}
             rows={1}
+            className="scrollbar-hide"
             style={{
               flex: 1,
               background: "transparent",
@@ -2175,6 +2176,9 @@ function Composer({
               maxHeight: 120,
               letterSpacing: "-0.005em",
               width: "100%",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              caretColor: C.green,
             }}
           />
         </motion.div>
