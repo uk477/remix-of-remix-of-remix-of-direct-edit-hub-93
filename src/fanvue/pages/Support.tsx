@@ -2112,6 +2112,7 @@ function Composer({
             padding: "0 6px 0 14px",
             display: "flex",
             alignItems: "flex-end",
+            overflow: "hidden",
           }}
         >
           <textarea
