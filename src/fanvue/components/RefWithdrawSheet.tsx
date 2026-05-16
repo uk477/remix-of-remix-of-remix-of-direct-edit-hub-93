@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, type CSSProperties } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
@@ -131,11 +131,13 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [copied, setCopied] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
-  const trackW = useRef(260)
+  const dragPointerId = useRef<number | null>(null)
+  const [trackW, setTrackW] = useState(0)
+  const [swipeX, setSwipeX] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
   const thumbW = 56
-  const maxX = trackW.current - thumbW - 4
-  const bgOpacity = useTransform(x, [0, maxX], [0.15, 1])
+  const maxX = Math.max(trackW - thumbW - 4, 0)
+  const swipeProgress = maxX > 0 ? Math.min(swipeX / maxX, 1) : 0
 
   useEffect(() => {
     if (open) {
@@ -143,13 +145,19 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       setAmount('')
       setNetwork(null)
       setAddress('')
-      x.set(0)
+      setSwipeX(0)
+      setIsSwiping(false)
     }
-  }, [open, x])
+  }, [open])
 
   useEffect(() => {
-    if (trackRef.current) trackW.current = trackRef.current.offsetWidth
-  })
+    if (!open || !trackRef.current) return
+    const measure = () => setTrackW(trackRef.current?.offsetWidth ?? 0)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(trackRef.current)
+    return () => observer.disconnect()
+  }, [open, step])
 
   if (!user) return null
   const balance = user.ref_balance
@@ -166,6 +174,50 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       `💸 Реферальный вывод\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
     )
     setStep('done')
+  }
+
+  function getSwipeValue(clientX: number) {
+    const rect = trackRef.current?.getBoundingClientRect()
+    if (!rect) return swipeX
+    return Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
+  }
+
+  function updateSwipe(clientX: number) {
+    const nextX = getSwipeValue(clientX)
+    setSwipeX(nextX)
+  }
+
+  function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
+    if (!maxX) return
+    e.preventDefault()
+    e.stopPropagation()
+    dragPointerId.current = e.pointerId
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setIsSwiping(true)
+    updateSwipe(e.clientX)
+  }
+
+  function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
+    if (dragPointerId.current !== e.pointerId) return
+    e.preventDefault()
+    e.stopPropagation()
+    updateSwipe(e.clientX)
+  }
+
+  function handleSwipeEnd(e: PointerEvent<HTMLDivElement>) {
+    if (dragPointerId.current !== e.pointerId) return
+    e.preventDefault()
+    e.stopPropagation()
+    dragPointerId.current = null
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+    setIsSwiping(false)
+    const finalX = getSwipeValue(e.clientX)
+    if (finalX >= maxX * 0.78) {
+      setSwipeX(maxX)
+      handleSubmit()
+    } else {
+      setSwipeX(0)
+    }
   }
 
   function formatDate(iso: string) {
@@ -671,6 +723,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     {/* Swipe to confirm */}
                     <div
                       ref={trackRef}
+                      onPointerDown={handleSwipeStart}
+                      onPointerMove={handleSwipeMove}
+                      onPointerUp={handleSwipeEnd}
+                      onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
                         height: 60,
@@ -682,14 +738,16 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         WebkitTouchCallout: 'none',
+                        touchAction: 'none',
+                        cursor: 'grab',
                       }}
                     >
-                      <motion.div
+                      <div
                         style={{
                           position: 'absolute',
                           inset: 0,
                           background: GREEN,
-                          opacity: bgOpacity,
+                          opacity: 0.15 + swipeProgress * 0.85,
                           borderRadius: 30,
                         }}
                       />
@@ -711,11 +769,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       >
                         {lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm'}
                       </div>
-                      <motion.div
-                        drag="x"
-                        dragConstraints={{ left: 2, right: maxX }}
-                        dragElastic={0}
-                        dragMomentum={false}
+                      <div
                         style={{
                           position: 'absolute',
                           left: 2,
@@ -735,21 +789,13 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
                           WebkitTouchCallout: 'none',
-                          x,
-                        }}
-                        onDragEnd={(_, info) => {
-                          if (
-                            info.point.x - (trackRef.current?.getBoundingClientRect().left ?? 0) >
-                            trackW.current * 0.75
-                          ) {
-                            handleSubmit()
-                          } else {
-                            x.set(0)
-                          }
+                          pointerEvents: 'none',
+                          transform: `translateX(${swipeX}px)`,
+                          transition: isSwiping ? 'none' : 'transform 180ms ease',
                         }}
                       >
                         →
-                      </motion.div>
+                      </div>
                     </div>
 
                     <button style={ghostBtn} onClick={() => setStep('address')}>
