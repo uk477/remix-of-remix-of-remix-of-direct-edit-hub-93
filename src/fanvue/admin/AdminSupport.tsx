@@ -355,7 +355,7 @@ export default function AdminSupport() {
           {!showProfile && openUid && chatUser && (
             <motion.div key="chat"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="col" style={{ minHeight: 'calc(100dvh - 70px - 48px - 32px)' }}
+              className="col" style={{ height: 'calc(100dvh - 70px - 48px - 32px)', minHeight: 0 }}
             >
               {/* Header */}
               <div className="row-between mb-3" style={{ paddingBottom: 10, borderBottom: `1px solid ${C.line}` }}>
@@ -417,7 +417,7 @@ export default function AdminSupport() {
               )}
 
               {/* Messages */}
-              <div ref={listRef} className="chat-list" style={{ flex: 1, paddingBottom: 16 }}>
+              <div ref={listRef} className="chat-list" style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 16 }}>
                 <AnimatePresence initial={false}>
                   {visibleMessages.map((m, i) => {
                     const right = m.sender === 'admin'
