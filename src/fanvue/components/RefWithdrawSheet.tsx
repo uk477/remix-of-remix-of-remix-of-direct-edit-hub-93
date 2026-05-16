@@ -127,6 +127,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [amount, setAmount] = useState('')
   const [network, setNetwork] = useState<CryptoNetwork | null>(null)
   const [address, setAddress] = useState('')
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const [copied, setCopied] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
@@ -329,11 +331,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     >
                       <div
                         style={{
-                          fontFamily: MONO,
-                          fontSize: 10,
-                          color: balance >= MIN_WITHDRAW ? GREEN : 'rgba(255,255,255,0.55)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.14em',
+                          fontFamily: BODY,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: balance >= MIN_WITHDRAW ? GREEN : '#fff',
                           marginBottom: 4,
                         }}
                       >
@@ -405,14 +406,27 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           {refWithdrawals.map((w) => (
-                            <div
+                            <button
                               key={w.id}
+                              onClick={() => {
+                                haptic('light')
+                                setDetailId(w.id)
+                              }}
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 12,
                                 padding: '12px 0',
                                 borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottomColor: 'rgba(255,255,255,0.06)',
+                                borderBottomStyle: 'solid',
+                                borderBottomWidth: 1,
+                                width: '100%',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                color: '#fff',
                               }}
                             >
                               <CryptoLogo network={w.network} size={28} showBadge />
@@ -439,7 +453,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                                 </div>
                               </div>
                               <StatusLabel status={w.status} lang={lang} />
-                            </div>
+                              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 18, marginLeft: 4 }}>›</span>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -857,6 +872,141 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Detail overlay */}
+            <AnimatePresence>
+              {detailId && (() => {
+                const w = refWithdrawals.find((x) => x.id === detailId)
+                if (!w) return null
+                const opt = CRYPTO_OPTIONS.find((o) => o.id === w.network)
+                const fullDate = (iso: string) =>
+                  new Date(iso).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })
+                const copy = (val: string, key: string) => {
+                  navigator.clipboard?.writeText(val)
+                  setCopied(key)
+                  haptic('light')
+                  setTimeout(() => setCopied((c) => (c === key ? null : c)), 1400)
+                }
+                const rows: Array<{ label: string; value: string; copyKey?: string; mono?: boolean; accent?: boolean }> = [
+                  { label: lang === 'ru' ? 'ID заявки' : 'Request ID', value: w.id, copyKey: 'id', mono: true },
+                  { label: lang === 'ru' ? 'Сумма' : 'Amount', value: `$${w.amount.toFixed(2)}`, accent: true },
+                  { label: lang === 'ru' ? 'Сеть' : 'Network', value: opt?.name ?? w.network.toUpperCase() },
+                  { label: lang === 'ru' ? 'Адрес' : 'Address', value: w.address, copyKey: 'addr', mono: true },
+                  { label: lang === 'ru' ? 'Создана' : 'Created', value: fullDate(w.createdAt), mono: true },
+                  ...(w.completedAt
+                    ? [{
+                        label:
+                          w.status === 'rejected'
+                            ? (lang === 'ru' ? 'Отклонена' : 'Rejected')
+                            : (lang === 'ru' ? 'Выполнена' : 'Completed'),
+                        value: fullDate(w.completedAt),
+                        mono: true,
+                      }]
+                    : []),
+                  ...(w.txid
+                    ? [{ label: 'TX HASH', value: w.txid, copyKey: 'tx', mono: true, accent: true }]
+                    : []),
+                ]
+                return (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setDetailId(null)}
+                      style={{
+                        position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+                        backdropFilter: 'blur(4px)', zIndex: 10,
+                      }}
+                    />
+                    <motion.div
+                      initial={{ y: 40, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 20, opacity: 0 }}
+                      transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                      style={{
+                        position: 'absolute', left: 16, right: 16, bottom: 16, zIndex: 11,
+                        background: INK, border: '1px solid rgba(57,255,99,0.25)',
+                        borderRadius: '16px 16px 16px 0', padding: '18px 18px 16px',
+                        maxHeight: '85%', overflowY: 'auto',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                          <span style={{ fontFamily: MONO, fontSize: 11, color: GREEN, fontWeight: 700 }}>/TX</span>
+                          <span style={{ fontFamily: DISPLAY, fontSize: 16, fontWeight: 700, fontStyle: 'italic' }}>
+                            {lang === 'ru' ? 'Детали вывода' : 'Withdrawal details'}
+                          </span>
+                        </div>
+                        <StatusLabel status={w.status} lang={lang} />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {rows.map((r, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: 'flex', flexDirection: 'column', gap: 4,
+                              padding: '12px 0',
+                              borderBottom: i < rows.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontFamily: MONO, fontSize: 9, color: 'rgba(255,255,255,0.45)',
+                                textTransform: 'uppercase', letterSpacing: '0.18em',
+                              }}
+                            >
+                              {r.label}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                              <span
+                                style={{
+                                  fontFamily: r.mono ? MONO : DISPLAY,
+                                  fontSize: r.mono ? 12 : 15,
+                                  fontWeight: 700,
+                                  color: r.accent ? GREEN : '#fff',
+                                  wordBreak: 'break-all',
+                                  flex: 1,
+                                  minWidth: 0,
+                                }}
+                              >
+                                {r.value}
+                              </span>
+                              {r.copyKey && (
+                                <button
+                                  onClick={() => copy(r.value, r.copyKey!)}
+                                  style={{
+                                    flexShrink: 0,
+                                    fontFamily: DISPLAY, fontSize: 9, fontWeight: 700,
+                                    textTransform: 'uppercase', letterSpacing: '0.18em',
+                                    color: copied === r.copyKey ? INK : GREEN,
+                                    background: copied === r.copyKey ? GREEN : 'rgba(57,255,99,0.1)',
+                                    border: '1px solid rgba(57,255,99,0.3)',
+                                    padding: '6px 10px', borderRadius: 999, cursor: 'pointer',
+                                  }}
+                                >
+                                  {copied === r.copyKey
+                                    ? (lang === 'ru' ? '✓' : '✓')
+                                    : (lang === 'ru' ? 'Копир.' : 'Copy')}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button style={{ ...primaryBtn(false), marginTop: 18 }} onClick={() => setDetailId(null)}>
+                        {lang === 'ru' ? 'Закрыть' : 'Close'}
+                      </button>
+                    </motion.div>
+                  </>
+                )
+              })()}
+            </AnimatePresence>
           </motion.div>
         </>
       )}
