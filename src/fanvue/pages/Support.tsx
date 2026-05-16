@@ -1485,7 +1485,7 @@ function SystemMessage({
     return null;
   }
   if (msg.text.startsWith("ticket_closed:")) {
-    return <SysPill text={t("Заявка закрыта", "Ticket closed")} accent />;
+    return <SysPill text={t("Заявка закрыта", "Ticket closed")} />;
   }
   return null;
 }
