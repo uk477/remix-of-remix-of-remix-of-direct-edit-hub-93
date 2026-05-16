@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
+import { useState, useRef, useEffect, type CSSProperties, type ChangeEvent, type PointerEvent } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
@@ -133,14 +133,12 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
-  const dragPointerId = useRef<number | null>(null)
-  const swipeStartX = useRef(0)
-  const swipeStartOffset = useRef(0)
+  const swipeProgressRef = useRef(0)
   const [trackW, setTrackW] = useState(0)
   const [swipeX, setSwipeX] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
-  const thumbW = 56
-  const maxX = Math.max(trackW - thumbW - 4, 0)
+  const thumbW = 58
+  const maxX = Math.max(trackW - thumbW - 8, 0)
   const swipeProgress = maxX > 0 ? Math.min(swipeX / maxX, 1) : 0
 
   useEffect(() => {
@@ -150,6 +148,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       setNetwork(null)
       setAddress('')
       setSwipeX(0)
+      swipeProgressRef.current = 0
       setIsSwiping(false)
     }
   }, [open])
@@ -182,42 +181,32 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function updateSwipe(clientX: number) {
-    const nextX = Math.min(Math.max(swipeStartOffset.current + clientX - swipeStartX.current, 0), maxX)
-    setSwipeX(nextX)
-    return nextX
+  function setSwipeProgress(progress: number) {
+    const nextProgress = Math.min(Math.max(progress, 0), 1)
+    swipeProgressRef.current = nextProgress
+    setSwipeX(maxX * nextProgress)
   }
 
-  function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
-    if (!maxX) return
-    e.preventDefault()
+  function handleSwipeInput(e: ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
-    dragPointerId.current = e.pointerId
-    swipeStartX.current = e.clientX
-    swipeStartOffset.current = swipeX
-    e.currentTarget.setPointerCapture(e.pointerId)
+    setSwipeProgress(Number(e.currentTarget.value) / 100)
+  }
+
+  function handleSwipeStart(e: PointerEvent<HTMLInputElement>) {
+    e.stopPropagation()
     setIsSwiping(true)
   }
 
-  function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
-    if (dragPointerId.current !== e.pointerId) return
-    e.preventDefault()
+  function handleSwipeEnd(e: PointerEvent<HTMLInputElement>) {
     e.stopPropagation()
-    updateSwipe(e.clientX)
-  }
-
-  function handleSwipeEnd(e: PointerEvent<HTMLDivElement>) {
-    if (dragPointerId.current !== e.pointerId) return
-    e.preventDefault()
-    e.stopPropagation()
-    dragPointerId.current = null
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     setIsSwiping(false)
-    const finalX = updateSwipe(e.clientX)
-    if (finalX >= maxX * 0.65) {
+    const finalProgress = Number(e.currentTarget.value) / 100
+    if (finalProgress >= 0.62) {
+      swipeProgressRef.current = 1
       setSwipeX(maxX)
       handleSubmit()
     } else {
+      swipeProgressRef.current = 0
       setSwipeX(0)
     }
   }
