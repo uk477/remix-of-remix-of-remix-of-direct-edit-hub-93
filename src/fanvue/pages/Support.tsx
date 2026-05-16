@@ -795,6 +795,7 @@ export default function Support() {
     const parent = getFlowParent(currentKey);
     if (!parent) return;
     haptic("light");
+    clearFlowMessages();
     if (parent === "__triage__") {
       addSupportMessage({
         id: newId(),
@@ -806,7 +807,7 @@ export default function Support() {
     } else {
       const node = getFlowNode(parent);
       if (!node) return;
-      postBot(t(node.q.ru, node.q.en), undefined, 0);
+      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 0);
       postFlowNode(parent, 150);
     }
   };
