@@ -1646,8 +1646,8 @@ function Bubble({
 
   // Telegram-style: tight corner on sender side between grouped messages,
   // tail (small radius) on the last bubble's sender-side bottom corner.
-  const R = 18;
-  const S = 6;
+  const R = 16;
+  const S = 4;
   const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? S : S}px ${R}px`;
   const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? S : S}px`;
 
