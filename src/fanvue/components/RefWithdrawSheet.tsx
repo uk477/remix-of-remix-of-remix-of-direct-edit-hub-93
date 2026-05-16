@@ -181,27 +181,37 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function setSwipeProgress(progress: number) {
-    const nextProgress = Math.min(Math.max(progress, 0), 1)
-    swipeProgressRef.current = nextProgress
-    setSwipeX(maxX * nextProgress)
+  const pointerStartRef = useRef<{ id: number; startX: number; startOffset: number } | null>(null)
+
+  function applySwipeX(nextX: number) {
+    const clamped = Math.min(Math.max(nextX, 0), maxX)
+    swipeProgressRef.current = maxX > 0 ? clamped / maxX : 0
+    setSwipeX(clamped)
   }
 
-  function handleSwipeInput(e: ChangeEvent<HTMLInputElement>) {
+  function handleSwipePointerDown(e: PointerEvent<HTMLDivElement>) {
     e.stopPropagation()
-    setSwipeProgress(Number(e.currentTarget.value) / 100)
-  }
-
-  function handleSwipeStart(e: PointerEvent<HTMLInputElement>) {
-    e.stopPropagation()
+    e.preventDefault()
+    ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+    pointerStartRef.current = { id: e.pointerId, startX: e.clientX, startOffset: swipeX }
     setIsSwiping(true)
   }
 
-  function handleSwipeEnd(e: PointerEvent<HTMLInputElement>) {
+  function handleSwipePointerMove(e: PointerEvent<HTMLDivElement>) {
+    const start = pointerStartRef.current
+    if (!start || start.id !== e.pointerId) return
     e.stopPropagation()
+    applySwipeX(start.startOffset + (e.clientX - start.startX))
+  }
+
+  function handleSwipePointerEnd(e: PointerEvent<HTMLDivElement>) {
+    const start = pointerStartRef.current
+    if (!start || start.id !== e.pointerId) return
+    e.stopPropagation()
+    try { (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId) } catch {}
+    pointerStartRef.current = null
     setIsSwiping(false)
-    const finalProgress = Number(e.currentTarget.value) / 100
-    if (finalProgress >= 0.62) {
+    if (swipeProgressRef.current >= 0.62) {
       swipeProgressRef.current = 1
       setSwipeX(maxX)
       handleSubmit()
