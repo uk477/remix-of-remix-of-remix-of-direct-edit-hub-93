@@ -1244,18 +1244,12 @@ function SystemMessage({
     );
   }
   if (msg.text.startsWith("ticket_opened:")) {
-    const id = msg.text.split(":")[1];
-    const tk = tickets.find((x) => x.id === id);
-    return (
-      <SysPill
-        text={t(`Заявка ${id} · открыта`, `Ticket ${id} · opened`)}
-        sub={tk ? CATEGORIES.find((c) => c.id === tk.category)?.[lang === "ru" ? "ru" : "en"] : undefined}
-      />
-    );
+    // Hidden — opened tickets are implicit; closing is handled via header button.
+    void tickets;
+    return null;
   }
   if (msg.text.startsWith("ticket_closed:")) {
-    const id = msg.text.split(":")[1];
-    return <SysPill text={t(`Заявка ${id} · закрыта`, `Ticket ${id} · closed`)} accent />;
+    return <SysPill text={t("Заявка закрыта", "Ticket closed")} accent />;
   }
   return null;
 }
