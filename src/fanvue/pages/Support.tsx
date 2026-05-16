@@ -1096,6 +1096,36 @@ function Header({
         </AnimatePresence>
       </div>
 
+      {hasActiveTicket && (
+        <motion.button
+          onClick={onCloseTicket}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            height: 30,
+            padding: "0 11px",
+            borderRadius: 999,
+            border: `1px solid rgba(255,90,95,0.32)`,
+            background: "rgba(255,90,95,0.10)",
+            color: "#ff8b8e",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "-0.005em",
+            cursor: "pointer",
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          {t("Закрыть", "Close")}
+        </motion.button>
+      )}
+
       <motion.button onClick={onInfo} whileTap={{ scale: 0.92 }} aria-label={t("Информация", "Info")} style={iconBtn(C.soft)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
