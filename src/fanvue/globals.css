@@ -3724,11 +3724,6 @@ body::after { display: none; }
 
 /* Variant accents — subtle differentiation */
 .shop-lot--a {
-  display: block;
-  width: min(100%, 320px);
-  min-height: 0;
-  aspect-ratio: 896 / 1200;
-  margin-inline: auto;
   background: linear-gradient(180deg, rgba(57,255,99,0.06), rgba(255,255,255,0.015));
 }
 .shop-lot--a::before {
@@ -3779,7 +3774,7 @@ body::after { display: none; }
 .shop-lot-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
   overflow: hidden;
   background: var(--fv-panel-2);
 }
@@ -3790,23 +3785,6 @@ body::after { display: none; }
   object-position: center;
   filter: saturate(1.05) contrast(1.05);
   will-change: transform;
-}
-.shop-lot--a .shop-lot-media img {
-  object-fit: contain;
-  object-position: center;
-  background: var(--fv-panel-2);
-  transform: none !important;
-}
-.shop-lot--a .shop-lot-media {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: inherit;
-}
-.shop-lot--a .shop-lot-num,
-.shop-lot--a .shop-lot-shade,
-.shop-lot--a .shop-lot-tags,
-.shop-lot--a .shop-lot-body {
-  display: none;
 }
 .shop-lot-shade {
   position: absolute; inset: 0; pointer-events: none;
