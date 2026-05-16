@@ -1681,20 +1681,21 @@ function Bubble({
 }
 
 function ReadCheck({ read }: { read: boolean }) {
+  // Single tick: ~12×9. Double tick: ~17×9 (two ticks offset).
+  if (!read) {
+    return (
+      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor"
+        strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
+        <path d="M1 4.8 L4.2 7.8 L11 1.2" />
+      </svg>
+    );
+  }
   return (
-    <svg
-      width={read ? 16 : 12}
-      height="9"
-      viewBox={read ? "0 0 16 9" : "0 0 12 9"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ marginLeft: 1 }}
-    >
-      <path d="M1 4.5l3 3L8 2" />
-      {read && <path d="M5 7.5L8.5 4 12 0.5" transform="translate(3 0)" />}
+    <svg width="17" height="9" viewBox="0 0 17 9" fill="none" stroke="currentColor"
+      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
+      <path d="M1 4.8 L4.2 7.8 L11 1.2" />
+      <path d="M6.2 7.8 L10 1.2" opacity="0" />
+      <path d="M6.5 4.8 L9.7 7.8 L16 1.2" />
     </svg>
   );
 }
