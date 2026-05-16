@@ -1021,6 +1021,46 @@ export default function Support() {
         <div ref={bottomRef} />
       </main>
 
+      {activeTicket && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "4px 14px 6px",
+          }}
+        >
+          <motion.button
+            onClick={() => { haptic("medium"); setConfirmClose(true); }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              height: 32,
+              padding: "0 14px",
+              borderRadius: 999,
+              border: `1px solid ${C.border}`,
+              background: "rgba(255,255,255,0.03)",
+              color: C.soft,
+              fontSize: 12.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            {t("Вопрос решён — завершить заявку", "Issue resolved — close ticket")}
+          </motion.button>
+        </motion.div>
+      )}
+
+
       <Composer
         focused={focused}
         text={text}
