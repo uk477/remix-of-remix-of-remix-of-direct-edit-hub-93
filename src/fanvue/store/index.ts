@@ -198,7 +198,7 @@ export const useStore = create<AppStore>()(
       orders: MOCK_ORDERS,
       supportMessages: MOCK_SUPPORT,
       supportTickets: [],
-      adminPresence: { online: true, lastSeen: new Date().toISOString() },
+      adminPresence: { online: false, lastSeen: new Date().toISOString() },
       userTyping: false,
       adminTyping: false,
       cart: null,
