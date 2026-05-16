@@ -35,11 +35,18 @@ export default function ReferralList({ open, onClose }: Props) {
       {open && (
         <>
           <motion.div
-            className="sheet-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 100,
+            }}
           />
           <motion.div
             className="sheet"
@@ -51,7 +58,18 @@ export default function ReferralList({ open, onClose }: Props) {
             dragConstraints={{ top: 0 }}
             dragElastic={0.1}
             onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
-            style={{ maxHeight: '85vh', overflowY: 'hidden', display: 'flex', flexDirection: 'column' }}
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 101,
+              maxHeight: '85vh',
+              overflowY: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4, flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--b-default)' }} />
