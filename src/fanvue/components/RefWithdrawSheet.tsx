@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
@@ -132,6 +132,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [createdId, setCreatedId] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
+  const dragControls = useDragControls()
   const dragPointerId = useRef<number | null>(null)
   const swipeStartX = useRef(0)
   const swipeStartOffset = useRef(0)
@@ -267,6 +268,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
             drag="y"
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0 }}
             dragElastic={{ top: 0, bottom: 0.3 }}
             onDragEnd={(_, info) => {
@@ -290,7 +293,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
             }}
           >
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'grab', touchAction: 'none' }}
+            >
               <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }} />
             </div>
 
@@ -730,10 +736,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
-                        height: 64,
-                        borderRadius: 18,
-                        background: 'rgba(57,255,99,0.08)',
-                        border: '1px solid rgba(57,255,99,0.32)',
+                        height: 60,
+                        borderRadius: 999,
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         overflow: 'hidden',
                         marginBottom: 14,
                         userSelect: 'none',
@@ -741,22 +747,21 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         WebkitTouchCallout: 'none',
                         touchAction: 'none',
                         cursor: isSwiping ? 'grabbing' : 'grab',
-                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 14px 34px rgba(57,255,99,0.08)',
                       }}
                     >
+                      {/* progress fill */}
                       <div
                         style={{
                           position: 'absolute',
                           left: 0,
                           top: 0,
                           bottom: 0,
-                          width: `${Math.max(64, 64 + swipeProgress * Math.max(trackW - 64, 0))}px`,
-                          background: `linear-gradient(90deg, ${GREEN}, rgba(57,255,99,0.52))`,
-                          opacity: 0.18 + swipeProgress * 0.72,
-                          borderRadius: 18,
-                          transition: isSwiping ? 'none' : 'width 180ms ease, opacity 180ms ease',
+                          width: `${56 + swipeProgress * Math.max(trackW - 56, 0)}px`,
+                          background: `linear-gradient(90deg, rgba(57,255,99,0.22), rgba(57,255,99,0.38))`,
+                          transition: isSwiping ? 'none' : 'width 220ms cubic-bezier(.2,.8,.2,1)',
                         }}
                       />
+                      {/* label */}
                       <div
                         style={{
                           position: 'absolute',
@@ -765,48 +770,46 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontFamily: DISPLAY,
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: 700,
-                          color: swipeProgress > 0.72 ? INK : 'rgba(255,255,255,0.68)',
+                          color: swipeProgress > 0.7 ? '#fff' : 'rgba(255,255,255,0.55)',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.22em',
+                          letterSpacing: '0.28em',
                           pointerEvents: 'none',
-                          paddingLeft: 66,
-                          paddingRight: 16,
+                          paddingLeft: 64,
+                          paddingRight: 24,
                           whiteSpace: 'nowrap',
-                          transition: 'color 160ms ease',
+                          opacity: 1 - swipeProgress * 0.4,
+                          transition: 'color 160ms ease, opacity 160ms ease',
                         }}
                       >
-                        {swipeProgress > 0.72
+                        {swipeProgress > 0.7
                           ? (lang === 'ru' ? 'Отпустите' : 'Release')
-                          : (lang === 'ru' ? 'Проведите вправо' : 'Slide right')}
+                          : (lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm')}
                       </div>
+                      {/* thumb */}
                       <div
                         style={{
                           position: 'absolute',
                           left: 4,
                           top: 4,
-                          width: thumbW,
-                          height: thumbW,
-                          borderRadius: 14,
-                          background: '#fff',
+                          width: 52,
+                          height: 52,
+                          borderRadius: '50%',
+                          background: GREEN,
                           color: INK,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: 22,
-                          fontWeight: 700,
-                          cursor: isSwiping ? 'grabbing' : 'grab',
-                          boxShadow: isSwiping ? '0 10px 26px rgba(57,255,99,0.45)' : '0 6px 18px rgba(0,0,0,0.28)',
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                          WebkitTouchCallout: 'none',
                           pointerEvents: 'none',
-                          transform: `translateX(${swipeX}px) scale(${isSwiping ? 1.03 : 1})`,
-                          transition: isSwiping ? 'none' : 'transform 180ms ease, box-shadow 180ms ease',
+                          transform: `translateX(${swipeX}px)`,
+                          transition: isSwiping ? 'none' : 'transform 240ms cubic-bezier(.2,.8,.2,1)',
+                          boxShadow: '0 8px 24px rgba(57,255,99,0.35)',
                         }}
                       >
-                        →
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
                       </div>
                     </div>
 
