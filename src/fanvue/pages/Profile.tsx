@@ -347,9 +347,7 @@ export default function Profile() {
                 cursor: 'pointer',
               }}
             >
-              {canWithdraw
-                ? (lang === 'ru' ? 'Вывести' : 'Withdraw')
-                : (lang === 'ru' ? `Min $10` : `Min $10`)}
+              {lang === 'ru' ? 'Вывести' : 'Withdraw'}
             </button>
           </div>
 
