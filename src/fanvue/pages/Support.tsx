@@ -515,6 +515,43 @@ function getFlowParent(key: string): string | null {
   return FLOW_PARENT[key] ?? null;
 }
 
+const FLOW_TAG = "__flow";
+
+const TRANSIENT_FLOW_TEXTS = new Set<string>([
+  "Чтобы написать в поддержку — выберите тему ниже, и мы откроем заявку.",
+  "To message support, pick a topic below and we'll open a ticket.",
+  "Опишите ваш вопрос подробно — мы постараемся помочь.",
+  "Describe your question in detail — we'll do our best.",
+  "Это решило вопрос?",
+  "Did this solve it?",
+  "Да, разобрался(ась)",
+  "Yes, all clear",
+  "Нет, нужен оператор",
+  "No, I need an operator",
+  "Отлично! Если появится новый вопрос — выберите тему ниже.",
+  "Great! If something else comes up — pick a topic below.",
+  "Подключаю оператора. Опишите вопрос подробно и при необходимости прикрепите скриншот.",
+  "Connecting an operator. Describe the issue in detail and attach a screenshot if helpful.",
+  ...CATEGORIES.flatMap((cat) => [cat.ru, cat.en]),
+  ...Object.values(FLOWS).flatMap((node) => [
+    node.q.ru,
+    node.q.en,
+    ...node.options.flatMap((opt) => [
+      opt.label.ru,
+      opt.label.en,
+      ...(opt.action.kind === "tip" ? [opt.action.tip.ru, opt.action.tip.en] : []),
+      ...(opt.action.kind === "escalate" ? [opt.action.prompt.ru, opt.action.prompt.en] : []),
+    ]),
+  ]),
+]);
+
+function isTransientFlowMessage(m: SupportMessage): boolean {
+  if (m.ticket_id === FLOW_TAG) return true;
+  if (m.kind === "system" && (m.text === "triage_prompt" || m.text.startsWith("flow:"))) return true;
+  if ((m.sender === "bot" || m.sender === "user") && TRANSIENT_FLOW_TEXTS.has(m.text)) return true;
+  return false;
+}
+
 export default function Support() {
   const navigate = useNavigate();
   const { haptic } = useTelegram();
@@ -654,15 +691,11 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id, messages.length]);
 
-  // Tag for transient flow Q&A messages so we can wipe them as the user advances
-  const FLOW_TAG = "__flow";
-
   const clearFlowMessages = useCallback(() => {
-    const ids = useStore
+    const staleFlowMessages = useStore
       .getState()
-      .supportMessages.filter((m) => m.ticket_id === FLOW_TAG)
-      .map((m) => m.id);
-    ids.forEach((id) => deleteSupportMessage(id, "all"));
+      .supportMessages.filter(isTransientFlowMessage);
+    staleFlowMessages.forEach((m) => deleteSupportMessage(m.id, "all"));
   }, [deleteSupportMessage]);
 
   // Bot helpers
