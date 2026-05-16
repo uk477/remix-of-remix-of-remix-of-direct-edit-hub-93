@@ -77,7 +77,7 @@ function TxidInput({ id }: { id: string }) {
           className="btn btn-ghost btn-sm"
           style={{ flex: 1, fontSize: 12, color: '#ff5050' }}
           onClick={() => {
-            updateRefWithdrawal(id, { status: 'rejected' })
+            updateRefWithdrawal(id, { status: 'rejected', completedAt: new Date().toISOString() })
             tgNotify('❌ Заявка на вывод отклонена\n\nЕсли есть вопросы — обратитесь в поддержку.')
           }}
           whileTap={{ scale: 0.97 }}
