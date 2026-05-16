@@ -1117,30 +1117,43 @@ function Header({
       {hasActiveTicket && (
         <motion.button
           onClick={onCloseTicket}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
+          whileTap={{ scale: 0.96 }}
+          initial={{ opacity: 0, y: -2 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -2 }}
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            height: 30,
-            padding: "0 11px",
+            height: 32,
+            padding: "0 12px 0 10px",
             borderRadius: 999,
-            border: `1px solid rgba(255,90,95,0.32)`,
-            background: "rgba(255,90,95,0.10)",
-            color: "#ff8b8e",
-            fontSize: 12,
+            border: `1px solid ${C.borderHi}`,
+            background: C.surface,
+            color: C.text,
+            fontSize: 12.5,
             fontWeight: 600,
             letterSpacing: "-0.005em",
             cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-          {t("Закрыть", "Close")}
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "rgba(57,255,99,0.16)",
+              display: "grid",
+              placeItems: "center",
+              color: C.green,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12l5 5L20 7" />
+            </svg>
+          </span>
+          {t("Завершить", "Resolve")}
         </motion.button>
       )}
 
