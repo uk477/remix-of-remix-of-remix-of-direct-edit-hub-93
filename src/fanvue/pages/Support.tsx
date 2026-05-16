@@ -560,7 +560,6 @@ export default function Support() {
   const presence = useStore((s) => s.adminPresence);
   const adminTyping = useStore((s) => s.adminTyping);
   const addSupportMessage = useStore((s) => s.addSupportMessage);
-  const updateSupportMessage = useStore((s) => s.updateSupportMessage);
   const deleteSupportMessage = useStore((s) => s.deleteSupportMessage);
   const markAdminMessagesReadByUser = useStore((s) => s.markAdminMessagesReadByUser);
   const setUserTyping = useStore((s) => s.setUserTyping);
@@ -597,7 +596,7 @@ export default function Support() {
   }, [markAdminMessagesReadByUser, messages.length]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, adminTyping]);
 
   // Real typing flag (debounced)
@@ -691,76 +690,58 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id, messages.length]);
 
-  const clearFlowMessages = useCallback(() => {
-    const staleFlowMessages = useStore
-      .getState()
-      .supportMessages.filter(isTransientFlowMessage);
-    staleFlowMessages.forEach((m) => deleteSupportMessage(m.id, "all"));
-  }, [deleteSupportMessage]);
+  const botMessage = (text: string, ticketId = FLOW_TAG): SupportMessage => ({
+    id: newId(),
+    sender: "bot",
+    kind: "text",
+    text,
+    created: new Date().toISOString(),
+    ticket_id: ticketId,
+  });
 
-  // Bot helpers
-  const postBot = useCallback(
-    (text: string, ticketId?: string, delay = 0) => {
-      window.setTimeout(() => {
-        addSupportMessage({
-          id: newId(),
-          sender: "bot",
-          kind: "text",
-          text,
-          created: new Date().toISOString(),
-          ticket_id: ticketId,
-        });
-      }, delay);
-    },
-    [addSupportMessage],
-  );
+  const flowNodeMessage = (flowKey: string): SupportMessage => ({
+    id: newId(),
+    sender: "bot",
+    kind: "system",
+    text: `flow:${flowKey}`,
+    created: new Date().toISOString(),
+    ticket_id: FLOW_TAG,
+  });
 
-  const postFlowNode = useCallback(
-    (flowKey: string, delay = 0) => {
-      window.setTimeout(() => {
-        addSupportMessage({
-          id: newId(),
-          sender: "bot",
-          kind: "system",
-          text: `flow:${flowKey}`,
-          created: new Date().toISOString(),
-          ticket_id: FLOW_TAG,
-        });
-      }, delay);
-    },
-    [addSupportMessage],
-  );
+  const userEchoMessage = (label: string): SupportMessage => ({
+    id: newId(),
+    sender: "user",
+    kind: "text",
+    text: label,
+    created: new Date().toISOString(),
+    read_by_admin: true,
+    ticket_id: FLOW_TAG,
+  });
 
-  const postUserEcho = useCallback(
-    (label: string) => {
-      addSupportMessage({
-        id: newId(),
-        sender: "user",
-        kind: "text",
-        text: label,
-        created: new Date().toISOString(),
-        read_by_admin: true,
-        ticket_id: FLOW_TAG,
-      });
-    },
-    [addSupportMessage],
-  );
+  const replaceFlowMessages = useCallback((nextMessages: SupportMessage[]) => {
+    useStore.setState((s) => ({
+      supportMessages: [
+        ...s.supportMessages.filter((m) => !isTransientFlowMessage(m)),
+        ...nextMessages,
+      ],
+    }));
+  }, []);
 
   const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
     haptic("light");
-    clearFlowMessages();
 
     // Operator → straight to ticket (skip diagnostics)
     if (cat.id === "operator") {
       const ticket = openSupportTicket(cat.id);
-      postBot(
-        t(
+      replaceFlowMessages([
+        botMessage(
+          t(
           "Подключаю оператора. Опишите вопрос подробно — ответим в ближайшее время.",
           "Connecting an operator. Describe your question in detail — we'll reply shortly.",
+          ),
+          ticket.id,
         ),
-        ticket.id,
-        250,
-      );
+      ]);
       tgNotify(
         `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
       );
@@ -773,50 +754,35 @@ export default function Support() {
     if (!root) {
       // Fallback — open ticket directly
       const ticket = openSupportTicket(cat.id);
-      postBot(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id, 200);
+      replaceFlowMessages([botMessage(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id)]);
       return;
     }
-    postBot(t(root.q.ru, root.q.en), FLOW_TAG, 200);
-    postFlowNode(rootKey, 350);
+    replaceFlowMessages([botMessage(t(root.q.ru, root.q.en)), flowNodeMessage(rootKey)]);
   };
 
   const handleFlowAnswer = (flowKey: string, opt: FlowOption) => {
     haptic("light");
-    // Echo user's pick
-    postUserEcho(t(opt.label.ru, opt.label.en));
 
     const a = opt.action;
     if (a.kind === "next") {
       const node = getFlowNode(a.next);
       if (!node) return;
       // Wipe prior Q&A so chat stays clean; keep only the freshest step
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 350);
-      postFlowNode(a.next, 500);
+      replaceFlowMessages([botMessage(t(node.q.ru, node.q.en)), flowNodeMessage(a.next)]);
     } else if (a.kind === "tip") {
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(a.tip.ru, a.tip.en), FLOW_TAG, 350);
       if (!flowKey.startsWith("resolve:")) {
         // First tip → ask "did it help?"
-        postFlowNode(`resolve:${a.category}`, 600);
+        replaceFlowMessages([botMessage(t(a.tip.ru, a.tip.en)), flowNodeMessage(`resolve:${a.category}`)]);
       } else {
         // User confirmed "Yes, all clear" → offer a fresh topic picker
-        window.setTimeout(() => {
-          clearFlowMessages();
-          addSupportMessage({
-            id: newId(),
-            sender: "bot",
-            kind: "system",
-            text: "triage_prompt",
-            created: new Date().toISOString(),
-          });
-        }, 650);
+        replaceFlowMessages([
+          { id: newId(), sender: "bot", kind: "system", text: "triage_prompt", created: new Date().toISOString() },
+        ]);
       }
     } else if (a.kind === "escalate") {
       const ticket = openSupportTicket(a.category, a.summary);
       // Clear all diagnostic clutter — only the ticket prompt remains
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(a.prompt.ru, a.prompt.en), ticket.id, 400);
+      replaceFlowMessages([botMessage(t(a.prompt.ru, a.prompt.en), ticket.id)]);
       const catLabel = CATEGORIES.find((c) => c.id === a.category);
       tgNotify(
         `🆕 Новая заявка ${ticket.id}\n📂 ${catLabel?.ru ?? a.category}${a.summary ? " · " + a.summary : ""}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
@@ -828,20 +794,14 @@ export default function Support() {
     const parent = getFlowParent(currentKey);
     if (!parent) return;
     haptic("light");
-    clearFlowMessages();
     if (parent === "__triage__") {
-      addSupportMessage({
-        id: newId(),
-        sender: "bot",
-        kind: "system",
-        text: "triage_prompt",
-        created: new Date().toISOString(),
-      });
+      replaceFlowMessages([
+        { id: newId(), sender: "bot", kind: "system", text: "triage_prompt", created: new Date().toISOString() },
+      ]);
     } else {
       const node = getFlowNode(parent);
       if (!node) return;
-      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 0);
-      postFlowNode(parent, 150);
+      replaceFlowMessages([botMessage(t(node.q.ru, node.q.en)), flowNodeMessage(parent)]);
     }
   };
 
@@ -1197,10 +1157,8 @@ function Header({
       <div style={{ position: "relative", flexShrink: 0 }}>
         <BrandAvatar />
         {presence.online && (
-          <motion.span
+          <span
             aria-hidden
-            animate={{ boxShadow: ["0 0 0 0 rgba(57,255,99,0.55)", "0 0 0 6px rgba(57,255,99,0)"] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
             style={{
               position: "absolute",
               right: -1,
@@ -1388,7 +1346,7 @@ function SystemMessage({
             disabled={locked}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
-            transition={{ delay: 0.06 * i, duration: 0.24, ease }}
+            transition={{ duration: 0.16, ease }}
             whileTap={locked ? undefined : { scale: 0.97 }}
             style={{
               display: "flex",
@@ -1456,7 +1414,7 @@ function SystemMessage({
             onClick={() => onFlowAnswer(flowKey, opt)}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i, duration: 0.22, ease }}
+            transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
@@ -1482,7 +1440,7 @@ function SystemMessage({
             onClick={() => onFlowBack(flowKey)}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 0.85, y: 0 }}
-            transition={{ delay: 0.05 * node.options.length, duration: 0.22, ease }}
+            transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
@@ -1578,11 +1536,10 @@ function MessageGroup({
 
   return (
     <motion.section
-      layout
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.28, ease }}
+      transition={{ duration: 0.14, ease }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -1640,7 +1597,6 @@ function DeletedPlaceholder({
 }) {
   return (
     <motion.button
-      layout
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       onClick={onReveal}
@@ -1704,10 +1660,9 @@ function Bubble({
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.12, ease }}
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
