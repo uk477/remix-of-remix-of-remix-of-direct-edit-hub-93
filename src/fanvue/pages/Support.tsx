@@ -1238,49 +1238,6 @@ function Header({
         </AnimatePresence>
       </div>
 
-      {hasActiveTicket && (
-        <motion.button
-          onClick={onCloseTicket}
-          whileTap={{ scale: 0.96 }}
-          initial={{ opacity: 0, y: -2 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -2 }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            height: 32,
-            padding: "0 12px 0 10px",
-            borderRadius: 999,
-            border: `1px solid ${C.borderHi}`,
-            background: C.surface,
-            color: C.text,
-            fontSize: 12.5,
-            fontWeight: 600,
-            letterSpacing: "-0.005em",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              background: "rgba(57,255,99,0.16)",
-              display: "grid",
-              placeItems: "center",
-              color: C.green,
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5L20 7" />
-            </svg>
-          </span>
-          {t("Завершить", "Resolve")}
-        </motion.button>
-      )}
-
       <motion.button onClick={onInfo} whileTap={{ scale: 0.92 }} aria-label={t("Информация", "Info")} style={iconBtn(C.soft)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
