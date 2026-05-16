@@ -692,59 +692,47 @@ export default function Support() {
   }, [activeTicket?.id, messages.length]);
 
   const clearFlowMessages = useCallback(() => {
-    const staleFlowMessages = useStore
-      .getState()
-      .supportMessages.filter(isTransientFlowMessage);
-    staleFlowMessages.forEach((m) => deleteSupportMessage(m.id, "all"));
-  }, [deleteSupportMessage]);
+    useStore.setState((s) => ({
+      supportMessages: s.supportMessages.filter((m) => !isTransientFlowMessage(m)),
+    }));
+  }, []);
 
-  // Bot helpers
-  const postBot = useCallback(
-    (text: string, ticketId?: string, delay = 0) => {
-      window.setTimeout(() => {
-        addSupportMessage({
-          id: newId(),
-          sender: "bot",
-          kind: "text",
-          text,
-          created: new Date().toISOString(),
-          ticket_id: ticketId,
-        });
-      }, delay);
-    },
-    [addSupportMessage],
-  );
+  const botMessage = (text: string, ticketId = FLOW_TAG): SupportMessage => ({
+    id: newId(),
+    sender: "bot",
+    kind: "text",
+    text,
+    created: new Date().toISOString(),
+    ticket_id: ticketId,
+  });
 
-  const postFlowNode = useCallback(
-    (flowKey: string, delay = 0) => {
-      window.setTimeout(() => {
-        addSupportMessage({
-          id: newId(),
-          sender: "bot",
-          kind: "system",
-          text: `flow:${flowKey}`,
-          created: new Date().toISOString(),
-          ticket_id: FLOW_TAG,
-        });
-      }, delay);
-    },
-    [addSupportMessage],
-  );
+  const flowNodeMessage = (flowKey: string): SupportMessage => ({
+    id: newId(),
+    sender: "bot",
+    kind: "system",
+    text: `flow:${flowKey}`,
+    created: new Date().toISOString(),
+    ticket_id: FLOW_TAG,
+  });
 
-  const postUserEcho = useCallback(
-    (label: string) => {
-      addSupportMessage({
-        id: newId(),
-        sender: "user",
-        kind: "text",
-        text: label,
-        created: new Date().toISOString(),
-        read_by_admin: true,
-        ticket_id: FLOW_TAG,
-      });
-    },
-    [addSupportMessage],
-  );
+  const userEchoMessage = (label: string): SupportMessage => ({
+    id: newId(),
+    sender: "user",
+    kind: "text",
+    text: label,
+    created: new Date().toISOString(),
+    read_by_admin: true,
+    ticket_id: FLOW_TAG,
+  });
+
+  const replaceFlowMessages = useCallback((nextMessages: SupportMessage[]) => {
+    useStore.setState((s) => ({
+      supportMessages: [
+        ...s.supportMessages.filter((m) => !isTransientFlowMessage(m)),
+        ...nextMessages,
+      ],
+    }));
+  }, []);
 
   const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
     haptic("light");
