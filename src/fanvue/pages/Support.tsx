@@ -1134,19 +1134,20 @@ function SystemMessage({
   lang,
   t,
   tickets,
-  activeTicket,
+  isLastMessage,
   onPickCategory,
+  onFlowAnswer,
 }: {
   msg: SupportMessage;
   lang: string;
   t: (ru: string, en: string) => string;
   tickets: SupportTicket[];
-  activeTicket: SupportTicket | null;
+  isLastMessage: boolean;
   onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
+  onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
 }) {
   if (msg.text === "triage_prompt") {
-    const locked = !!activeTicket;
-    const pickedId = activeTicket?.category;
+    const locked = !isLastMessage;
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -1160,40 +1161,85 @@ function SystemMessage({
           gap: 8,
         }}
       >
-        {CATEGORIES.map((c, i) => {
-          const isPicked = pickedId === c.id;
-          const dim = locked && !isPicked;
-          return (
-            <motion.button
-              key={c.id}
-              onClick={() => !locked && onPickCategory(c)}
-              disabled={locked}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: dim ? 0.35 : 1, y: 0 }}
-              transition={{ delay: 0.06 * i, duration: 0.24, ease }}
-              whileTap={locked ? undefined : { scale: 0.97 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "12px 12px",
-                borderRadius: 14,
-                border: `1px solid ${isPicked ? C.green : C.border}`,
-                background: isPicked ? `${C.green}14` : C.surface,
-                color: C.text,
-                fontSize: 13.5,
-                fontWeight: 500,
-                letterSpacing: "-0.005em",
-                cursor: locked ? "default" : "pointer",
-                textAlign: "left",
-                lineHeight: 1.25,
-              }}
-            >
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
-              <span>{t(c.ru, c.en)}</span>
-            </motion.button>
-          );
-        })}
+        {CATEGORIES.map((c, i) => (
+          <motion.button
+            key={c.id}
+            onClick={() => !locked && onPickCategory(c)}
+            disabled={locked}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: locked ? 0.35 : 1, y: 0 }}
+            transition={{ delay: 0.06 * i, duration: 0.24, ease }}
+            whileTap={locked ? undefined : { scale: 0.97 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "12px 12px",
+              borderRadius: 14,
+              border: `1px solid ${C.border}`,
+              background: C.surface,
+              color: C.text,
+              fontSize: 13.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: locked ? "default" : "pointer",
+              textAlign: "left",
+              lineHeight: 1.25,
+            }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
+            <span>{t(c.ru, c.en)}</span>
+          </motion.button>
+        ))}
+      </motion.div>
+    );
+  }
+  if (msg.text.startsWith("flow:")) {
+    const flowKey = msg.text.slice(5);
+    const node = getFlowNode(flowKey);
+    if (!node) return null;
+    const locked = !isLastMessage;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease }}
+        style={{
+          alignSelf: "stretch",
+          margin: "6px 0 6px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 7,
+        }}
+      >
+        {node.options.map((opt, i) => (
+          <motion.button
+            key={opt.id}
+            onClick={() => !locked && onFlowAnswer(flowKey, opt)}
+            disabled={locked}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
+            transition={{ delay: 0.05 * i, duration: 0.22, ease }}
+            whileTap={locked ? undefined : { scale: 0.98 }}
+            style={{
+              alignSelf: "flex-end",
+              maxWidth: "82%",
+              padding: "10px 14px",
+              borderRadius: 18,
+              border: `1px solid ${C.green}55`,
+              background: locked ? "transparent" : `${C.green}12`,
+              color: locked ? C.soft : C.green,
+              fontSize: 13.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: locked ? "default" : "pointer",
+              textAlign: "right",
+              lineHeight: 1.3,
+            }}
+          >
+            {t(opt.label.ru, opt.label.en)}
+          </motion.button>
+        ))}
       </motion.div>
     );
   }
