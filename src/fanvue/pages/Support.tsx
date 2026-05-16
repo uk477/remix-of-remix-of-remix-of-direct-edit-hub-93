@@ -2160,7 +2160,7 @@ function Composer({
               }
             }}
             rows={1}
-            className="fv-chat-textarea"
+            className="scrollbar-hide"
             style={{
               flex: 1,
               background: "transparent",
