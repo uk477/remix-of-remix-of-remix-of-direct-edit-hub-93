@@ -549,7 +549,14 @@ export default function Support() {
   }, [messages]);
 
   useEffect(() => {
-    if (!activeTicket && !lastBotPrompt && messages.length === 0) {
+    if (activeTicket) return;
+    const last = messages[messages.length - 1];
+    const lastIsInteractive =
+      last?.kind === "system" &&
+      (last.text === "triage_prompt" || last.text.startsWith("flow:"));
+    if (lastIsInteractive) return;
+
+    if (messages.length === 0) {
       // initial greeting
       addSupportMessage({
         id: newId(),
@@ -561,35 +568,28 @@ export default function Support() {
         ),
         created: new Date().toISOString(),
       });
-      addSupportMessage({
-        id: newId(),
-        sender: "bot",
-        kind: "system",
-        text: "triage_prompt",
-        created: new Date().toISOString(),
-      });
-    } else if (!activeTicket && !lastBotPrompt && messages.length > 0) {
+    } else if (!lastBotPrompt) {
       // returning after closed ticket
       addSupportMessage({
         id: newId(),
         sender: "bot",
         kind: "text",
         text: t(
-          "С возвращением 🙌 Если появился новый вопрос — выберите тему ниже, и мы откроем заявку.",
-          "Welcome back 🙌 New issue? Pick a topic and we'll open a ticket.",
+          "Чтобы написать в поддержку — выберите тему ниже, и мы откроем заявку.",
+          "To message support, pick a topic below and we'll open a ticket.",
         ),
         created: new Date().toISOString(),
       });
-      addSupportMessage({
-        id: newId(),
-        sender: "bot",
-        kind: "system",
-        text: "triage_prompt",
-        created: new Date().toISOString(),
-      });
     }
+    addSupportMessage({
+      id: newId(),
+      sender: "bot",
+      kind: "system",
+      text: "triage_prompt",
+      created: new Date().toISOString(),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTicket?.id]);
+  }, [activeTicket?.id, messages.length]);
 
   // Bot helpers
   const postBot = useCallback(
