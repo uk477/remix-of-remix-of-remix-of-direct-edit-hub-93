@@ -129,6 +129,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [address, setAddress] = useState('')
   const [detailId, setDetailId] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [createdId, setCreatedId] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragPointerId = useRef<number | null>(null)
@@ -167,11 +168,13 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   function handleSubmit() {
     if (!network) return
+    const newId = `RW-${Date.now()}`
     spendRefBalance(amountNum)
-    addRefWithdrawal({ amount: amountNum, network, address, status: 'pending' })
+    addRefWithdrawal({ id: newId, amount: amountNum, network, address, status: 'pending' } as Parameters<typeof addRefWithdrawal>[0])
+    setCreatedId(newId)
     haptic('success')
     tgNotify(
-      `💸 Реферальный вывод\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
+      `💸 Реферальный вывод\n🆔 ${newId}\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
     )
     setStep('done')
   }
@@ -867,6 +870,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       }}
                     >
                       {[
+                        { label: lang === 'ru' ? 'ID заявки' : 'Request ID', value: createdId ?? '—', mono: true, copy: createdId ?? '' },
                         { label: lang === 'ru' ? 'Сумма' : 'Amount', value: `$${amountNum.toFixed(2)}`, accent: true },
                         { label: lang === 'ru' ? 'Сеть' : 'Network', value: netOpt?.name ?? '' },
                         {

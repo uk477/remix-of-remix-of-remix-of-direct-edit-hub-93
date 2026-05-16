@@ -457,7 +457,7 @@ export const useStore = create<AppStore>()(
       addRefWithdrawal: (w) =>
         set((s) => ({
           refWithdrawals: [
-            { ...w, id: `RW-${Date.now()}`, createdAt: new Date().toISOString() },
+            { ...w, id: (w as { id?: string }).id ?? `RW-${Date.now()}`, createdAt: new Date().toISOString() },
             ...s.refWithdrawals,
           ],
         })),
