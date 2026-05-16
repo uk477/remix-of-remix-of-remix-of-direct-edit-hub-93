@@ -133,6 +133,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragPointerId = useRef<number | null>(null)
+  const swipeStartX = useRef(0)
+  const swipeStartOffset = useRef(0)
   const [trackW, setTrackW] = useState(0)
   const [swipeX, setSwipeX] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
@@ -179,15 +181,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function getSwipeValue(clientX: number) {
-    const rect = trackRef.current?.getBoundingClientRect()
-    if (!rect) return swipeX
-    return Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
-  }
-
   function updateSwipe(clientX: number) {
-    const nextX = getSwipeValue(clientX)
+    const nextX = Math.min(Math.max(swipeStartOffset.current + clientX - swipeStartX.current, 0), maxX)
     setSwipeX(nextX)
+    return nextX
   }
 
   function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
@@ -195,9 +192,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     e.preventDefault()
     e.stopPropagation()
     dragPointerId.current = e.pointerId
+    swipeStartX.current = e.clientX
+    swipeStartOffset.current = swipeX
     e.currentTarget.setPointerCapture(e.pointerId)
     setIsSwiping(true)
-    updateSwipe(e.clientX)
   }
 
   function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
@@ -214,8 +212,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     dragPointerId.current = null
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     setIsSwiping(false)
-    const finalX = getSwipeValue(e.clientX)
-    if (finalX >= maxX * 0.78) {
+    const finalX = updateSwipe(e.clientX)
+    if (finalX >= maxX * 0.65) {
       setSwipeX(maxX)
       handleSubmit()
     } else {
