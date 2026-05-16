@@ -2509,7 +2509,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
               <span style={{ color: isWorking ? "#39ff63" : "#ffb020", fontWeight: 600 }}>
                 {isWorking
                   ? t("сейчас отвечаем", "answering now")
-                  : t("вне рабочих часов", "outside hours")}
+                  : t("ответим завтра", "we'll reply tomorrow")}
               </span>
               <span style={{ color: C.muted }}>· 8:00–22:00 GMT+3</span>
             </div>
