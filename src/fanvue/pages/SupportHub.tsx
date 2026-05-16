@@ -325,7 +325,7 @@ export default function SupportHub() {
             style={{
               position: 'relative',
               textAlign: 'left',
-              padding: 22,
+              padding: '34px 22px 22px',
               borderRadius: 22,
               border: '1px solid rgba(55,187,254,0.28)',
               background: 'linear-gradient(160deg, rgba(55,187,254,0.10) 0%, rgba(18,26,38,0.85) 55%, rgba(15,20,28,0.95) 100%)',
