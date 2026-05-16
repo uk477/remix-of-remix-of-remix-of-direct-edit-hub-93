@@ -3780,9 +3780,9 @@ body::after { display: none; }
   background: var(--fv-panel-2);
 }
 .shop-lot-media img {
-  position: absolute; inset: -8% -8%;
-  width: 116%; height: 116%;
-  object-fit: cover;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
   filter: saturate(1.05) contrast(1.05);
   will-change: transform;
 }
