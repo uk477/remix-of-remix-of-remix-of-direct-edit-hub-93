@@ -852,8 +852,9 @@ export default function Support() {
                   lang={lang}
                   t={t}
                   tickets={tickets}
-                  activeTicket={activeTicket}
+                  isLastMessage={g.msg.id === messages[messages.length - 1]?.id}
                   onPickCategory={handlePickCategory}
+                  onFlowAnswer={handleFlowAnswer}
                 />
               );
             return (
