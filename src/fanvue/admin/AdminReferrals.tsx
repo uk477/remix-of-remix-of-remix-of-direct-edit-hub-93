@@ -36,6 +36,7 @@ function TxidInput({ id }: { id: string }) {
   const [showReason, setShowReason] = useState(false)
   const completeRefWithdrawal = useStore((s) => s.completeRefWithdrawal)
   const updateRefWithdrawal = useStore((s) => s.updateRefWithdrawal)
+  const creditRefBalance = useStore((s) => s.creditRefBalance)
   const lang = useStore((s) => s.lang)
 
   return (
