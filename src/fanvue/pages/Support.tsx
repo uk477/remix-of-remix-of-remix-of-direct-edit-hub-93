@@ -1670,7 +1670,7 @@ function Bubble({
       }}
       style={{
         maxWidth: "82%",
-        padding: msg.attachments && msg.attachments.length > 0 ? "6px 6px 8px" : "9px 14px",
+        padding: msg.attachments && msg.attachments.length > 0 ? "6px 6px 8px" : "7px 12px",
         borderRadius: isUser ? radiusUser : radiusOther,
         background: bg,
         color,
