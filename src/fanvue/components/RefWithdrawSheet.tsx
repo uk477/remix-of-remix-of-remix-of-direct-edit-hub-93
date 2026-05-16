@@ -133,6 +133,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragPointerId = useRef<number | null>(null)
+  const swipeStartX = useRef(0)
+  const swipeStartOffset = useRef(0)
   const [trackW, setTrackW] = useState(0)
   const [swipeX, setSwipeX] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
@@ -179,15 +181,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  function getSwipeValue(clientX: number) {
-    const rect = trackRef.current?.getBoundingClientRect()
-    if (!rect) return swipeX
-    return Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
-  }
-
   function updateSwipe(clientX: number) {
-    const nextX = getSwipeValue(clientX)
+    const nextX = Math.min(Math.max(swipeStartOffset.current + clientX - swipeStartX.current, 0), maxX)
     setSwipeX(nextX)
+    return nextX
   }
 
   function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
@@ -195,9 +192,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     e.preventDefault()
     e.stopPropagation()
     dragPointerId.current = e.pointerId
+    swipeStartX.current = e.clientX
+    swipeStartOffset.current = swipeX
     e.currentTarget.setPointerCapture(e.pointerId)
     setIsSwiping(true)
-    updateSwipe(e.clientX)
   }
 
   function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
@@ -214,8 +212,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     dragPointerId.current = null
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     setIsSwiping(false)
-    const finalX = getSwipeValue(e.clientX)
-    if (finalX >= maxX * 0.78) {
+    const finalX = updateSwipe(e.clientX)
+    if (finalX >= maxX * 0.65) {
       setSwipeX(maxX)
       handleSubmit()
     } else {
@@ -732,26 +730,31 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
-                        height: 60,
-                        borderRadius: 30,
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(57,255,99,0.3)',
+                        height: 64,
+                        borderRadius: 18,
+                        background: 'rgba(57,255,99,0.08)',
+                        border: '1px solid rgba(57,255,99,0.32)',
                         overflow: 'hidden',
                         marginBottom: 14,
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         WebkitTouchCallout: 'none',
                         touchAction: 'none',
-                        cursor: 'grab',
+                        cursor: isSwiping ? 'grabbing' : 'grab',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 14px 34px rgba(57,255,99,0.08)',
                       }}
                     >
                       <div
                         style={{
                           position: 'absolute',
-                          inset: 0,
-                          background: GREEN,
-                          opacity: 0.15 + swipeProgress * 0.85,
-                          borderRadius: 30,
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: `${Math.max(64, 64 + swipeProgress * Math.max(trackW - 64, 0))}px`,
+                          background: `linear-gradient(90deg, ${GREEN}, rgba(57,255,99,0.52))`,
+                          opacity: 0.18 + swipeProgress * 0.72,
+                          borderRadius: 18,
+                          transition: isSwiping ? 'none' : 'width 180ms ease, opacity 180ms ease',
                         }}
                       />
                       <div
@@ -762,24 +765,30 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontFamily: DISPLAY,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
-                          color: 'rgba(255,255,255,0.6)',
+                          color: swipeProgress > 0.72 ? INK : 'rgba(255,255,255,0.68)',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.28em',
+                          letterSpacing: '0.22em',
                           pointerEvents: 'none',
+                          paddingLeft: 66,
+                          paddingRight: 16,
+                          whiteSpace: 'nowrap',
+                          transition: 'color 160ms ease',
                         }}
                       >
-                        {lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm'}
+                        {swipeProgress > 0.72
+                          ? (lang === 'ru' ? 'Отпустите' : 'Release')
+                          : (lang === 'ru' ? 'Проведите вправо' : 'Slide right')}
                       </div>
                       <div
                         style={{
                           position: 'absolute',
-                          left: 2,
-                          top: 2,
+                          left: 4,
+                          top: 4,
                           width: thumbW,
                           height: thumbW,
-                          borderRadius: '50%',
+                          borderRadius: 14,
                           background: '#fff',
                           color: INK,
                           display: 'flex',
@@ -787,14 +796,14 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           justifyContent: 'center',
                           fontSize: 22,
                           fontWeight: 700,
-                          cursor: 'grab',
-                          boxShadow: '0 4px 16px rgba(57,255,99,0.4)',
+                          cursor: isSwiping ? 'grabbing' : 'grab',
+                          boxShadow: isSwiping ? '0 10px 26px rgba(57,255,99,0.45)' : '0 6px 18px rgba(0,0,0,0.28)',
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
                           WebkitTouchCallout: 'none',
                           pointerEvents: 'none',
-                          transform: `translateX(${swipeX}px)`,
-                          transition: isSwiping ? 'none' : 'transform 180ms ease',
+                          transform: `translateX(${swipeX}px) scale(${isSwiping ? 1.03 : 1})`,
+                          transition: isSwiping ? 'none' : 'transform 180ms ease, box-shadow 180ms ease',
                         }}
                       >
                         →
