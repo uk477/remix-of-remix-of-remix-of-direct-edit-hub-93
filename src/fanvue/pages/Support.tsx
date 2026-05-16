@@ -1540,7 +1540,7 @@ function MessageGroup({
     >
       {group.items.map((msg, idx) => {
         const isLast = idx === group.items.length - 1;
-        const showCheck = isUser && msg.id === lastUserId;
+        const showCheck = isUser;
         const replyMsg = msg.reply_to ? allMessages.find((x) => x.id === msg.reply_to) : null;
 
         // Deleted-for-user → for the user, replace with placeholder
