@@ -612,6 +612,8 @@ export default function Support() {
   useEffect(() => {
     if (activeTicket) return;
     const last = messages[messages.length - 1];
+    // Skip if user just answered a flow chip — next flow node is on its way
+    if (last?.sender === "user") return;
     const lastIsInteractive =
       last?.kind === "system" &&
       (last.text === "triage_prompt" || last.text.startsWith("flow:"));
