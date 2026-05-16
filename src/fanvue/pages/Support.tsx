@@ -769,6 +769,25 @@ export default function Support() {
     }
   };
 
+  const handleFlowBack = (currentKey: string) => {
+    const parent = getFlowParent(currentKey);
+    if (!parent) return;
+    haptic("light");
+    if (parent === "__triage__") {
+      addSupportMessage({
+        id: newId(),
+        sender: "bot",
+        kind: "system",
+        text: "triage_prompt",
+        created: new Date().toISOString(),
+      });
+    } else {
+      const node = getFlowNode(parent);
+      if (!node) return;
+      postBot(t(node.q.ru, node.q.en), undefined, 0);
+      postFlowNode(parent, 150);
+    }
+  };
 
 
   const sendMessage = () => {
