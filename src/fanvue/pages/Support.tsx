@@ -1157,10 +1157,8 @@ function Header({
       <div style={{ position: "relative", flexShrink: 0 }}>
         <BrandAvatar />
         {presence.online && (
-          <motion.span
+          <span
             aria-hidden
-            animate={{ boxShadow: ["0 0 0 0 rgba(57,255,99,0.55)", "0 0 0 6px rgba(57,255,99,0)"] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
             style={{
               position: "absolute",
               right: -1,
@@ -1348,7 +1346,7 @@ function SystemMessage({
             disabled={locked}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
-            transition={{ delay: 0.06 * i, duration: 0.24, ease }}
+            transition={{ duration: 0.16, ease }}
             whileTap={locked ? undefined : { scale: 0.97 }}
             style={{
               display: "flex",
@@ -1416,7 +1414,7 @@ function SystemMessage({
             onClick={() => onFlowAnswer(flowKey, opt)}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i, duration: 0.22, ease }}
+            transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
