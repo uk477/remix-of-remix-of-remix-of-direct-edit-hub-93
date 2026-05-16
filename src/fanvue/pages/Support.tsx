@@ -1440,7 +1440,7 @@ function SystemMessage({
             onClick={() => onFlowBack(flowKey)}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 0.85, y: 0 }}
-            transition={{ delay: 0.05 * node.options.length, duration: 0.22, ease }}
+            transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
@@ -1536,11 +1536,10 @@ function MessageGroup({
 
   return (
     <motion.section
-      layout
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.28, ease }}
+      transition={{ duration: 0.14, ease }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -1662,10 +1661,9 @@ function Bubble({
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.12, ease }}
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
