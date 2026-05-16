@@ -327,24 +327,29 @@ export default function Profile() {
               </div>
             </div>
             <button
-              onClick={() => canWithdraw && setShowWithdraw(true)}
-              disabled={!canWithdraw}
+              onClick={() => {
+                haptic('light')
+                setShowWithdraw(true)
+              }}
               style={{
                 marginTop: 12,
                 width: '100%',
                 padding: '10px 12px',
-                background: 'transparent',
-                border: `1px solid ${canWithdraw ? 'rgba(57,255,99,0.4)' : 'rgba(255,255,255,0.1)'}`,
-                color: canWithdraw ? GREEN : 'rgba(255,255,255,0.3)',
+                background: canWithdraw ? 'rgba(57,255,99,0.08)' : 'transparent',
+                border: `1px solid ${canWithdraw ? 'rgba(57,255,99,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                color: canWithdraw ? GREEN : 'rgba(255,255,255,0.55)',
                 fontFamily: DISPLAY,
                 fontSize: 11,
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.22em',
                 borderRadius: 999,
+                cursor: 'pointer',
               }}
             >
-              {lang === 'ru' ? 'Вывести' : 'Withdraw'}
+              {canWithdraw
+                ? (lang === 'ru' ? 'Вывести' : 'Withdraw')
+                : (lang === 'ru' ? `Min $10` : `Min $10`)}
             </button>
           </div>
 
