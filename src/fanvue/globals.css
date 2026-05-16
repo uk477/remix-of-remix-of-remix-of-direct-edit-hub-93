@@ -3749,10 +3749,32 @@ body::after { display: none; }
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
 }
+.shop-lot--b {
+  grid-template-columns: 1fr;
+  min-height: 0;
+  aspect-ratio: 1280 / 1920;
+  background: #000;
+  border-color: rgba(57,255,99,0.28);
+}
+.shop-lot--b .shop-lot-media {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.shop-lot--b .shop-lot-media img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: #000;
+}
+/* Image asset has all info baked in — hide DOM overlays */
+.shop-lot--b .shop-lot-num,
+.shop-lot--b .shop-lot-shade,
+.shop-lot--b .shop-lot-tags,
+.shop-lot--b .shop-lot-body { display: none !important; }
 .shop-lot--b::before {
   content: ''; position: absolute; inset: 0;
   border-radius: inherit; padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 50%);
+  background: linear-gradient(135deg, rgba(57,255,99,0.5), transparent 45%, rgba(57,255,99,0.15));
   -webkit-mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
