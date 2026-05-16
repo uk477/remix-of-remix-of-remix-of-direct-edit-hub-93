@@ -1886,6 +1886,9 @@ function Composer({
   disabled?: boolean;
 }) {
   const canSend = !disabled && (text.trim().length > 0 || pendingFiles.length > 0);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <footer
