@@ -355,7 +355,7 @@ export default function AdminSupport() {
           {!showProfile && openUid && chatUser && (
             <motion.div key="chat"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="col" style={{ minHeight: 'calc(100dvh - 70px - 48px - 32px)' }}
+              className="col" style={{ height: 'calc(100dvh - 70px - 48px - 32px)', minHeight: 0 }}
             >
               {/* Header */}
               <div className="row-between mb-3" style={{ paddingBottom: 10, borderBottom: `1px solid ${C.line}` }}>
