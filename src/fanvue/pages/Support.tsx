@@ -577,6 +577,7 @@ export default function Support() {
   const [replyTo, setReplyTo] = useState<SupportMessage | null>(null);
   const [actionMsg, setActionMsg] = useState<SupportMessage | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
   const [revealedDeleted, setRevealedDeleted] = useState<Set<number>>(new Set());
 
   const bottomRef = useRef<HTMLDivElement>(null);
