@@ -683,9 +683,20 @@ export default function Support() {
       postFlowNode(a.next, 500);
     } else if (a.kind === "tip") {
       postBot(t(a.tip.ru, a.tip.en), undefined, 350);
-      // Offer resolve / escalate, unless this was already a resolve node response
       if (!flowKey.startsWith("resolve:")) {
+        // First tip → ask "did it help?"
         postFlowNode(`resolve:${a.category}`, 600);
+      } else {
+        // User confirmed "Yes, thanks" → offer a fresh topic picker
+        window.setTimeout(() => {
+          addSupportMessage({
+            id: newId(),
+            sender: "bot",
+            kind: "system",
+            text: "triage_prompt",
+            created: new Date().toISOString(),
+          });
+        }, 650);
       }
     } else if (a.kind === "escalate") {
       const ticket = openSupportTicket(a.category, a.summary);
@@ -829,7 +840,7 @@ export default function Support() {
           if (!activeTicket) return;
           haptic("medium");
           const ok = window.confirm(
-            t("Закрыть текущую заявку?", "Close the current ticket?"),
+            t("Завершить заявку? Если вопрос ещё актуален — оставьте её открытой.", "Mark this ticket as resolved? If you still need help, keep it open."),
           );
           if (!ok) return;
           closeSupportTicket(activeTicket.id);
@@ -1106,30 +1117,43 @@ function Header({
       {hasActiveTicket && (
         <motion.button
           onClick={onCloseTicket}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
+          whileTap={{ scale: 0.96 }}
+          initial={{ opacity: 0, y: -2 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -2 }}
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            height: 30,
-            padding: "0 11px",
+            height: 32,
+            padding: "0 12px 0 10px",
             borderRadius: 999,
-            border: `1px solid rgba(255,90,95,0.32)`,
-            background: "rgba(255,90,95,0.10)",
-            color: "#ff8b8e",
-            fontSize: 12,
+            border: `1px solid ${C.borderHi}`,
+            background: C.surface,
+            color: C.text,
+            fontSize: 12.5,
             fontWeight: 600,
             letterSpacing: "-0.005em",
             cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-          {t("Закрыть", "Close")}
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "rgba(57,255,99,0.16)",
+              display: "grid",
+              placeItems: "center",
+              color: C.green,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12l5 5L20 7" />
+            </svg>
+          </span>
+          {t("Завершить", "Resolve")}
         </motion.button>
       )}
 
@@ -1657,20 +1681,21 @@ function Bubble({
 }
 
 function ReadCheck({ read }: { read: boolean }) {
+  // Single tick: ~12×9. Double tick: ~17×9 (two ticks offset).
+  if (!read) {
+    return (
+      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor"
+        strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
+        <path d="M1 4.8 L4.2 7.8 L11 1.2" />
+      </svg>
+    );
+  }
   return (
-    <svg
-      width={read ? 16 : 12}
-      height="9"
-      viewBox={read ? "0 0 16 9" : "0 0 12 9"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ marginLeft: 1 }}
-    >
-      <path d="M1 4.5l3 3L8 2" />
-      {read && <path d="M5 7.5L8.5 4 12 0.5" transform="translate(3 0)" />}
+    <svg width="17" height="9" viewBox="0 0 17 9" fill="none" stroke="currentColor"
+      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1 }}>
+      <path d="M1 4.8 L4.2 7.8 L11 1.2" />
+      <path d="M6.2 7.8 L10 1.2" opacity="0" />
+      <path d="M6.5 4.8 L9.7 7.8 L16 1.2" />
     </svg>
   );
 }
