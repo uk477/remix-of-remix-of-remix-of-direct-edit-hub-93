@@ -238,21 +238,22 @@ export default function Profile() {
           </div>
           <div style={{ position: 'relative' }}>
             <div style={eyebrow}>
-              {lang === 'ru' ? 'Баланс портфеля' : 'Portfolio Value'}
+              {lang === 'ru' ? 'Баланс' : 'Balance'}
             </div>
             <div
               style={{
                 fontFamily: DISPLAY,
                 fontWeight: 700,
-                fontSize: 96,
-                lineHeight: 0.85,
-                letterSpacing: '-0.07em',
+                fontSize: 68,
+                lineHeight: 0.9,
+                letterSpacing: '-0.05em',
                 marginTop: 10,
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'baseline',
               }}
             >
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 44, marginRight: 4 }}>$</span>
               <span>{whole}</span>
               <span style={{ color: GREEN, opacity: 0.85 }}>.{cents}</span>
             </div>
