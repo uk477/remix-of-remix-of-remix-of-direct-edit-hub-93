@@ -3460,8 +3460,6 @@ body::after { display: none; }
   text-align: left;
   transition: border-color 200ms;
 }
-.shop-hero-bal-main:hover { border-color: rgba(57,255,99,0.32); }
-.shop-hero-bal-main:active { transform: scale(0.995); }
 .shop-hero-bal-eye {
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--fv-soft); line-height: 1;

@@ -163,12 +163,12 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
         >
-          <button className="shop-hero-bal-main" onClick={goDeposit}>
+          <div className="shop-hero-bal-main">
             <span className="shop-hero-bal-eye">{lang === 'ru' ? 'Ваш баланс' : 'Your balance'}</span>
             <span className="shop-hero-bal-num">
               <i>$</i>{shownBal.toFixed(balDecimals)}
             </span>
-          </button>
+          </div>
           <motion.button
             className="home-topup"
             onPointerDown={spawnRipple}
