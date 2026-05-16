@@ -1298,6 +1298,7 @@ function SystemMessage({
   isLastMessage,
   onPickCategory,
   onFlowAnswer,
+  onFlowBack,
 }: {
   msg: SupportMessage;
   lang: string;
@@ -1306,6 +1307,7 @@ function SystemMessage({
   isLastMessage: boolean;
   onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
   onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
+  onFlowBack: (currentKey: string) => void;
 }) {
   if (msg.text === "triage_prompt") {
     if (!isLastMessage) return null;
