@@ -718,6 +718,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     {/* Swipe to confirm */}
                     <div
                       ref={trackRef}
+                      onPointerDown={handleSwipeStart}
+                      onPointerMove={handleSwipeMove}
+                      onPointerUp={handleSwipeEnd}
+                      onPointerCancel={handleSwipeEnd}
                       style={{
                         position: 'relative',
                         height: 60,
@@ -729,14 +733,16 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         WebkitTouchCallout: 'none',
+                        touchAction: 'none',
+                        cursor: 'grab',
                       }}
                     >
-                      <motion.div
+                      <div
                         style={{
                           position: 'absolute',
                           inset: 0,
                           background: GREEN,
-                          opacity: bgOpacity,
+                          opacity: 0.15 + swipeProgress * 0.85,
                           borderRadius: 30,
                         }}
                       />
@@ -758,11 +764,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       >
                         {lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm'}
                       </div>
-                      <motion.div
-                        drag="x"
-                        dragConstraints={{ left: 2, right: maxX }}
-                        dragElastic={0}
-                        dragMomentum={false}
+                      <div
                         style={{
                           position: 'absolute',
                           left: 2,
@@ -782,21 +784,13 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
                           WebkitTouchCallout: 'none',
-                          x,
-                        }}
-                        onDragEnd={(_, info) => {
-                          if (
-                            info.point.x - (trackRef.current?.getBoundingClientRect().left ?? 0) >
-                            trackW.current * 0.75
-                          ) {
-                            handleSubmit()
-                          } else {
-                            x.set(0)
-                          }
+                          pointerEvents: 'none',
+                          transform: `translateX(${swipeX}px)`,
+                          transition: isSwiping ? 'none' : 'transform 180ms ease',
                         }}
                       >
                         →
-                      </motion.div>
+                      </div>
                     </div>
 
                     <button style={ghostBtn} onClick={() => setStep('address')}>
