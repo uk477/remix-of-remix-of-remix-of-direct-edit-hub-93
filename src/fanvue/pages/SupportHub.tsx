@@ -147,6 +147,8 @@ export default function SupportHub() {
             {t('Как с вами', 'How should we')}
             <br />
             <span style={{
+              display: 'inline-block',
+              paddingRight: '0.18em',
               background: 'linear-gradient(110deg, #fff 0%, #5eead4 50%, #fff 100%)',
               backgroundSize: '200% 100%',
               WebkitBackgroundClip: 'text', backgroundClip: 'text',
