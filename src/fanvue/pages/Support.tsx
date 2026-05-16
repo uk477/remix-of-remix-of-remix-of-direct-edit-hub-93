@@ -691,15 +691,11 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id, messages.length]);
 
-  // Tag for transient flow Q&A messages so we can wipe them as the user advances
-  const FLOW_TAG = "__flow";
-
   const clearFlowMessages = useCallback(() => {
-    const ids = useStore
+    const staleFlowMessages = useStore
       .getState()
-      .supportMessages.filter((m) => m.ticket_id === FLOW_TAG)
-      .map((m) => m.id);
-    ids.forEach((id) => deleteSupportMessage(id, "all"));
+      .supportMessages.filter(isTransientFlowMessage);
+    staleFlowMessages.forEach((m) => deleteSupportMessage(m.id, "all"));
   }, [deleteSupportMessage]);
 
   // Bot helpers
