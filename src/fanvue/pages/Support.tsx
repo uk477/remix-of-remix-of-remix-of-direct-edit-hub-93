@@ -2295,7 +2295,7 @@ function ActionRow({
 
 /* ── Info sheet ─────────────────────────────────────────────────── */
 
-function InfoSheet({ t, onClose }: { t: (ru: string, en: string) => string; onClose: () => void }) {
+function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) => string; onClose: () => void; onCloseTicket?: () => void }) {
   const [open, setOpen] = useState<number | null>(0);
   const faq = [
     {
