@@ -583,47 +583,113 @@ export default function Support() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id]);
 
-  const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
-    haptic("light");
-    // Open ticket
-    const ticket = openSupportTicket(cat.id);
-    // Bot follow-up
-    const followUp: Record<SupportTicketCategory, { ru: string; en: string }> = {
-      payment: {
-        ru: "Опишите, пожалуйста, проблему с платежом: дата, сумма, сеть. Можно прикрепить скриншот.",
-        en: "Please describe the payment issue: date, amount, network. Feel free to attach a screenshot.",
-      },
-      delivery: {
-        ru: "Укажите номер заказа (если есть) и что именно вас беспокоит. Если есть фото — прикрепите.",
-        en: "Share the order ID (if any) and what exactly is wrong. Attach a photo if helpful.",
-      },
-      account: {
-        ru: "Расскажите о ситуации с аккаунтом или верификацией. Скриншоты ускорят решение.",
-        en: "Tell us about your account or verification. Screenshots speed things up.",
-      },
-      operator: {
-        ru: "Подключаю оператора. Опишите вопрос подробно — оператор ответит в ближайшее время.",
-        en: "Connecting an operator. Describe your question in detail — they'll reply shortly.",
-      },
-      other: {
-        ru: "Опишите ваш вопрос подробно — мы постараемся помочь.",
-        en: "Describe your question in detail — we'll do our best.",
-      },
-    };
-    setTimeout(() => {
+  // Bot helpers
+  const postBot = useCallback(
+    (text: string, ticketId?: string, delay = 0) => {
+      window.setTimeout(() => {
+        addSupportMessage({
+          id: newId(),
+          sender: "bot",
+          kind: "text",
+          text,
+          created: new Date().toISOString(),
+          ticket_id: ticketId,
+        });
+      }, delay);
+    },
+    [addSupportMessage],
+  );
+
+  const postFlowNode = useCallback(
+    (flowKey: string, delay = 0) => {
+      window.setTimeout(() => {
+        addSupportMessage({
+          id: newId(),
+          sender: "bot",
+          kind: "system",
+          text: `flow:${flowKey}`,
+          created: new Date().toISOString(),
+        });
+      }, delay);
+    },
+    [addSupportMessage],
+  );
+
+  const postUserEcho = useCallback(
+    (label: string) => {
       addSupportMessage({
         id: newId(),
-        sender: "bot",
+        sender: "user",
         kind: "text",
-        text: t(followUp[cat.id].ru, followUp[cat.id].en),
+        text: label,
         created: new Date().toISOString(),
-        ticket_id: ticket.id,
+        read_by_admin: true,
       });
-    }, 250);
-    tgNotify(
-      `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
-    );
+    },
+    [addSupportMessage],
+  );
+
+  const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
+    haptic("light");
+
+    // Operator → straight to ticket (skip diagnostics)
+    if (cat.id === "operator") {
+      const ticket = openSupportTicket(cat.id);
+      postBot(
+        t(
+          "Подключаю оператора. Опишите вопрос подробно — ответим в ближайшее время.",
+          "Connecting an operator. Describe your question in detail — we'll reply shortly.",
+        ),
+        ticket.id,
+        250,
+      );
+      tgNotify(
+        `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+      );
+      return;
+    }
+
+    // Start guided diagnostic flow
+    const rootKey = `${cat.id}:root`;
+    const root = getFlowNode(rootKey);
+    if (!root) {
+      // Fallback — open ticket directly
+      const ticket = openSupportTicket(cat.id);
+      postBot(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id, 200);
+      return;
+    }
+    postBot(t(root.q.ru, root.q.en), undefined, 200);
+    postFlowNode(rootKey, 350);
   };
+
+  const handleFlowAnswer = (flowKey: string, opt: FlowOption) => {
+    haptic("light");
+    // Echo user's pick
+    postUserEcho(t(opt.label.ru, opt.label.en));
+
+    const a = opt.action;
+    if (a.kind === "next") {
+      const node = getFlowNode(a.next);
+      if (!node) return;
+      postBot(t(node.q.ru, node.q.en), undefined, 350);
+      postFlowNode(a.next, 500);
+    } else if (a.kind === "tip") {
+      postBot(t(a.tip.ru, a.tip.en), undefined, 350);
+      // Offer resolve / escalate, unless this was already a resolve node response
+      if (!flowKey.startsWith("resolve:")) {
+        postFlowNode(`resolve:${a.category}`, 600);
+      }
+    } else if (a.kind === "escalate") {
+      const ticket = openSupportTicket(a.category, a.summary);
+      postBot(t(a.prompt.ru, a.prompt.en), ticket.id, 400);
+      const catLabel = CATEGORIES.find((c) => c.id === a.category);
+      tgNotify(
+        `🆕 Новая заявка ${ticket.id}\n📂 ${catLabel?.ru ?? a.category}${a.summary ? " · " + a.summary : ""}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+      );
+    }
+  };
+
+
 
   const sendMessage = () => {
     const trimmed = text.trim();
