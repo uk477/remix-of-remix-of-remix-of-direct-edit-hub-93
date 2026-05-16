@@ -580,6 +580,12 @@ export default function Support() {
   const [showInfo, setShowInfo] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [revealedDeleted, setRevealedDeleted] = useState<Set<number>>(new Set());
+  // Тик каждые 30с — чтобы строка "был только что / в этом часу / сегодня в …" обновлялась без новых событий
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
