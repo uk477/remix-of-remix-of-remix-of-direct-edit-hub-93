@@ -1539,6 +1539,7 @@ function MessageGroup({
       }}
     >
       {group.items.map((msg, idx) => {
+        const isFirst = idx === 0;
         const isLast = idx === group.items.length - 1;
         const showCheck = isUser;
         const replyMsg = msg.reply_to ? allMessages.find((x) => x.id === msg.reply_to) : null;
@@ -1560,6 +1561,7 @@ function MessageGroup({
             key={msg.id}
             msg={msg}
             isUser={isUser}
+            isFirst={isFirst}
             isLast={isLast}
             isBot={msg.sender === "bot"}
             showCheck={showCheck}
