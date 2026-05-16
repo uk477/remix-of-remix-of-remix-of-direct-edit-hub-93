@@ -396,7 +396,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                           marginBottom: 4,
                         }}
                       >
-                        {lang === 'ru' ? 'ВЫВЕСТИ' : 'WITHDRAW'}
+                        {lang === 'ru' ? `Минимум $${MIN_WITHDRAW}` : `Minimum $${MIN_WITHDRAW}`}
                       </div>
                       <div style={{ fontFamily: BODY, fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
                         {balance >= MIN_WITHDRAW
