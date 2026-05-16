@@ -431,17 +431,30 @@ export default function AdminSupport() {
 
                     if (isSystem) {
                       const [type, id, reason] = m.text.split(':')
-                      const label = type === 'ticket_opened'
-                        ? (lang === 'ru' ? `Открыто обращение ${id}` : `Ticket ${id} opened`)
-                        : (lang === 'ru' ? `Закрыто ${id}${reason ? ' · ' + reason : ''}` : `Closed ${id}${reason ? ' · ' + reason : ''}`)
+                      const tk = tickets.find((x) => x.id === id)
+                      let label = ''
+                      if (type === 'ticket_opened') {
+                        const cat = tk?.category ?? ''
+                        const sum = tk?.summary
+                        label = lang === 'ru'
+                          ? `Открыто ${id}${cat ? ' · ' + cat : ''}${sum ? ' · ' + sum : ''}`
+                          : `Opened ${id}${cat ? ' · ' + cat : ''}${sum ? ' · ' + sum : ''}`
+                      } else {
+                        label = lang === 'ru'
+                          ? `Закрыто ${id}${reason ? ' · ' + reason : ''}`
+                          : `Closed ${id}${reason ? ' · ' + reason : ''}`
+                      }
+                      const accent = type === 'ticket_opened'
                       return (
                         <motion.div key={m.id}
                           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                           className="row" style={{ justifyContent: 'center', margin: '12px 0' }}
                         >
                           <div style={{
-                            fontSize: 11, color: C.muted, padding: '4px 10px',
-                            background: C.surface, borderRadius: 999, border: `1px solid ${C.line}`,
+                            fontSize: 11, color: accent ? C.brand : C.muted, padding: '4px 10px',
+                            background: C.surface, borderRadius: 999,
+                            border: `1px solid ${accent ? C.brand + '40' : C.line}`,
+                            fontWeight: accent ? 700 : 400,
                           }}>{label}</div>
                         </motion.div>
                       )
