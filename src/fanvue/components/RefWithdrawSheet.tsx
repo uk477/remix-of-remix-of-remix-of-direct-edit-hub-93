@@ -293,7 +293,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
             }}
           >
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'grab', touchAction: 'none' }}
+            >
               <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }} />
             </div>
 
