@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type CSSProperties } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
@@ -131,11 +131,13 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [copied, setCopied] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
-  const trackW = useRef(260)
+  const dragPointerId = useRef<number | null>(null)
+  const [trackW, setTrackW] = useState(0)
+  const [swipeX, setSwipeX] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
   const thumbW = 56
-  const maxX = trackW.current - thumbW - 4
-  const bgOpacity = useTransform(x, [0, maxX], [0.15, 1])
+  const maxX = Math.max(trackW - thumbW - 4, 0)
+  const swipeProgress = maxX > 0 ? Math.min(swipeX / maxX, 1) : 0
 
   useEffect(() => {
     if (open) {
@@ -143,13 +145,19 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       setAmount('')
       setNetwork(null)
       setAddress('')
-      x.set(0)
+      setSwipeX(0)
+      setIsSwiping(false)
     }
-  }, [open, x])
+  }, [open])
 
   useEffect(() => {
-    if (trackRef.current) trackW.current = trackRef.current.offsetWidth
-  })
+    if (!open || !trackRef.current) return
+    const measure = () => setTrackW(trackRef.current?.offsetWidth ?? 0)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(trackRef.current)
+    return () => observer.disconnect()
+  }, [open, step])
 
   if (!user) return null
   const balance = user.ref_balance
