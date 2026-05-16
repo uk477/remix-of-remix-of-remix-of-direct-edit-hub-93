@@ -1929,8 +1929,9 @@ function Composer({
         >
           <textarea
             ref={taRef}
-            placeholder={t("Сообщение", "Message")}
+            placeholder={disabled ? t("Создайте заявку, чтобы написать", "Create a ticket to send a message") : t("Сообщение", "Message")}
             value={text}
+            disabled={disabled}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => {
@@ -1942,7 +1943,7 @@ function Composer({
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSend();
+                if (!disabled) handleSend();
               }
             }}
             rows={1}
