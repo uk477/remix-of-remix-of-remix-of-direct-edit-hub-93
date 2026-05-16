@@ -406,14 +406,27 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           {refWithdrawals.map((w) => (
-                            <div
+                            <button
                               key={w.id}
+                              onClick={() => {
+                                haptic('light')
+                                setDetailId(w.id)
+                              }}
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 12,
                                 padding: '12px 0',
                                 borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottomColor: 'rgba(255,255,255,0.06)',
+                                borderBottomStyle: 'solid',
+                                borderBottomWidth: 1,
+                                width: '100%',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                color: '#fff',
                               }}
                             >
                               <CryptoLogo network={w.network} size={28} showBadge />
@@ -440,7 +453,8 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                                 </div>
                               </div>
                               <StatusLabel status={w.status} lang={lang} />
-                            </div>
+                              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 18, marginLeft: 4 }}>›</span>
+                            </button>
                           ))}
                         </div>
                       </div>
