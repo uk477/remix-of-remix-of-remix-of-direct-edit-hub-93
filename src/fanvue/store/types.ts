@@ -34,6 +34,7 @@ export interface RefWithdrawal {
   address: string
   status: RefWithdrawalStatus
   createdAt: string
+  completedAt?: string
   txid?: string
 }
 
