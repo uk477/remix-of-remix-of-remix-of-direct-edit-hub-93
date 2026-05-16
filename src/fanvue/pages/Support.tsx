@@ -2135,10 +2135,9 @@ function Composer({
             background: C.surface,
             border: `1px solid ${C.border}`,
             borderRadius: 22,
-            padding: "0 6px 0 14px",
+            padding: "0 14px",
             display: "flex",
             alignItems: "flex-end",
-            overflow: "hidden",
           }}
         >
           <textarea
@@ -2175,44 +2174,45 @@ function Composer({
               padding: "9px 0",
               maxHeight: 120,
               letterSpacing: "-0.005em",
+              width: "100%",
             }}
           />
-          <AnimatePresence initial={false}>
-            {canSend && (
-              <motion.button
-                key="send"
-                onClick={handleSend}
-                initial={{ scale: 0.4, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.4, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                whileTap={{ scale: 0.88 }}
-                style={{
-                  width: 30,
-                  height: 30,
-                  flexShrink: 0,
-                  margin: "0 0 4px 4px",
-                  borderRadius: "50%",
-                  border: "none",
-                  background: C.green,
-                  color: C.greenInk,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                  boxShadow: "0 4px 14px -4px rgba(57,255,99,0.6)",
-                }}
-                aria-label="Send"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19V5" />
-                  <path d="M5 12l7-7 7 7" />
-                </svg>
-              </motion.button>
-            )}
-          </AnimatePresence>
         </motion.div>
+
+        <AnimatePresence initial={false}>
+          {canSend && (
+            <motion.button
+              key="send"
+              onClick={handleSend}
+              initial={{ scale: 0.4, opacity: 0, width: 0, marginLeft: 0 }}
+              animate={{ scale: 1, opacity: 1, width: 38, marginLeft: 0 }}
+              exit={{ scale: 0.4, opacity: 0, width: 0, marginLeft: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 28 }}
+              whileTap={{ scale: 0.88 }}
+              style={{
+                height: 38,
+                flexShrink: 0,
+                borderRadius: "50%",
+                border: "none",
+                background: C.green,
+                color: C.greenInk,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                padding: 0,
+                boxShadow: "0 4px 14px -4px rgba(57,255,99,0.6)",
+                overflow: "hidden",
+              }}
+              aria-label="Send"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5" />
+                <path d="M5 12l7-7 7 7" />
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </footer>
   );
