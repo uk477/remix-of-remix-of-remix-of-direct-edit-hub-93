@@ -1056,6 +1056,27 @@ export default function Support() {
       <AnimatePresence>
         {showInfo && <InfoSheet t={t} onClose={() => setShowInfo(false)} />}
       </AnimatePresence>
+
+      <ConfirmSheet
+        open={confirmClose}
+        title={t("Завершить заявку?", "Close this ticket?")}
+        message={t(
+          "Если вопрос ещё актуален — лучше оставить её открытой. Закрытую заявку нельзя продолжить, потребуется создать новую.",
+          "If your question is still relevant, keep it open. A closed ticket can't be reopened — you'll need to start a new one.",
+        )}
+        confirmLabel={t("Закрыть заявку", "Close ticket")}
+        cancelLabel={t("Отмена", "Cancel")}
+        danger
+        onCancel={() => setConfirmClose(false)}
+        onConfirm={() => {
+          setConfirmClose(false);
+          if (!activeTicket) return;
+          closeSupportTicket(activeTicket.id);
+          tgNotify(
+            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+          );
+        }}
+      />
     </div>
   );
 }
