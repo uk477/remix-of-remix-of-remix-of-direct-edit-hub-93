@@ -1213,7 +1213,7 @@ function SystemMessage({
           margin: "10px 0 6px",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: 8,
+          gap: 10,
         }}
       >
         {CATEGORIES.map((c, i) => (
@@ -1222,28 +1222,45 @@ function SystemMessage({
             onClick={() => !locked && onPickCategory(c)}
             disabled={locked}
             initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: locked ? 0.35 : 1, y: 0 }}
+            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
             transition={{ delay: 0.06 * i, duration: 0.24, ease }}
             whileTap={locked ? undefined : { scale: 0.97 }}
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "12px 12px",
-              borderRadius: 14,
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 8,
+              padding: "13px 13px 12px",
+              borderRadius: 16,
               border: `1px solid ${C.border}`,
-              background: C.surface,
+              background: `linear-gradient(180deg, ${C.surfaceHi} 0%, ${C.surface} 100%)`,
               color: C.text,
-              fontSize: 13.5,
-              fontWeight: 500,
-              letterSpacing: "-0.005em",
               cursor: locked ? "default" : "pointer",
               textAlign: "left",
               lineHeight: 1.25,
+              minHeight: 86,
             }}
           >
-            <span style={{ fontSize: 18, flexShrink: 0 }}>{c.emoji}</span>
-            <span>{t(c.ru, c.en)}</span>
+            <span
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                display: "grid",
+                placeItems: "center",
+                background: "rgba(57,255,99,0.10)",
+                border: "1px solid rgba(57,255,99,0.20)",
+                fontSize: 16,
+              }}
+            >
+              {c.emoji}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>
+              {t(c.ru, c.en)}
+            </span>
+            <span style={{ fontSize: 11.5, fontWeight: 450, color: C.muted, letterSpacing: "-0.005em" }}>
+              {t(c.subRu, c.subEn)}
+            </span>
           </motion.button>
         ))}
       </motion.div>
