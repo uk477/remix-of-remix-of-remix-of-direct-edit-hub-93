@@ -2300,6 +2300,16 @@ function ActionRow({
 
 function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) => string; onClose: () => void; onCloseTicket?: () => void }) {
   const [open, setOpen] = useState<number | null>(0);
+
+  // Считаем "сейчас работаем" по GMT+3, 8:00–22:00
+  const nowMskHour = (() => {
+    const d = new Date();
+    const utcMin = d.getUTCHours() * 60 + d.getUTCMinutes();
+    const mskMin = (utcMin + 3 * 60) % (24 * 60);
+    return mskMin / 60;
+  })();
+  const isWorking = nowMskHour >= 8 && nowMskHour < 22;
+
   const faq = [
     {
       q: t("Как составить заявку?", "How do I file a ticket?"),
@@ -2311,8 +2321,8 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
     {
       q: t("Время работы поддержки", "Support hours"),
       a: t(
-        "Поддержка работает 24/7. Среднее время первого ответа — 2–10 минут днём, до 30 минут ночью.",
-        "Support is 24/7. Average first reply: 2–10 min daytime, up to 30 min at night.",
+        "Работаем ежедневно с 8:00 до 22:00 (GMT+3). Среднее время первого ответа — около 5 минут.",
+        "We work daily 8:00–22:00 (GMT+3). Average first reply ≈ 5 minutes.",
       ),
     },
     {
@@ -2347,7 +2357,9 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.55)",
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
         zIndex: 60,
         display: "flex",
         alignItems: "flex-end",
@@ -2358,87 +2370,148 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 280, damping: 32 }}
+        transition={{ type: "spring", stiffness: 320, damping: 34 }}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: 480,
-          maxHeight: "85vh",
+          maxHeight: "88vh",
           overflowY: "auto",
-          background: C.surfaceHi,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          background:
+            "radial-gradient(120% 80% at 50% 0%, rgba(57,255,99,0.08) 0%, rgba(57,255,99,0) 55%), linear-gradient(180deg, #131418 0%, #0d0e11 100%)",
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
           padding: "10px 18px max(24px, env(safe-area-inset-bottom))",
-          border: `1px solid ${C.border}`,
+          border: `1px solid ${C.borderHi}`,
+          boxShadow: "0 -20px 60px rgba(0,0,0,0.5)",
         }}
       >
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: C.borderHi, margin: "4px auto 16px" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-          <BrandAvatar size={44} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em" }}>
-              {t("Fanvue · Забота", "Fanvue Care")}
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.18)", margin: "4px auto 18px" }} />
+
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}
+        >
+          <div style={{ position: "relative" }}>
+            <BrandAvatar size={52} />
+            <motion.span
+              animate={isWorking ? { scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] } : {}}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+              style={{
+                position: "absolute", inset: -3, borderRadius: "50%",
+                border: `2px solid ${isWorking ? "#39ff63" : "transparent"}`,
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.01em" }}>
+              {t("Поддержка Fanvue", "Fanvue Support")}
             </div>
-            <div style={{ fontSize: 12.5, color: C.soft, marginTop: 2 }}>
-              {t("Команда поддержки · 24/7", "Support team · 24/7")}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 4, fontSize: 12.5 }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: "50%",
+                background: isWorking ? "#39ff63" : "#ffb020",
+                boxShadow: isWorking ? "0 0 8px #39ff63" : "none",
+              }} />
+              <span style={{ color: isWorking ? "#39ff63" : "#ffb020", fontWeight: 600 }}>
+                {isWorking
+                  ? t("сейчас отвечаем", "answering now")
+                  : t("вне рабочих часов", "outside hours")}
+              </span>
+              <span style={{ color: C.muted }}>· 8:00–22:00 GMT+3</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-          <Stat label={t("Ответ", "Reply")} value="2–10 мин" />
-          <Stat label={t("Часы", "Hours")} value="24/7" />
-          <Stat label={t("Язык", "Language")} value="RU / EN" />
-        </div>
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{ display: "flex", gap: 8, marginBottom: 22 }}
+        >
+          <Stat icon="bolt"  label={t("Ответ", "Reply")} value={t("≈ 5 мин", "≈ 5 min")} />
+          <Stat icon="clock" label={t("Часы", "Hours")} value="8–22" />
+          <Stat icon="globe" label={t("Язык", "Lang")}  value="RU / EN" />
+        </motion.div>
 
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 8px" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", margin: "8px 0 10px" }}>
           {t("Частые вопросы", "FAQ")}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {faq.map((f, i) => (
-            <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04, delayChildren: 0.15 } } }}
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        >
+          {faq.map((f, i) => {
+            const isOpen = open === i;
+            return (
+              <motion.div
+                key={i}
+                variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                 style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 14px",
-                  background: "transparent",
-                  border: "none",
-                  color: C.text,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textAlign: "left",
-                  cursor: "pointer",
+                  background: isOpen
+                    ? "linear-gradient(180deg, rgba(57,255,99,0.06), rgba(57,255,99,0.02))"
+                    : "rgba(255,255,255,0.025)",
+                  border: `1px solid ${isOpen ? "rgba(57,255,99,0.25)" : C.border}`,
+                  borderRadius: 14,
+                  overflow: "hidden",
+                  transition: "background 200ms ease, border-color 200ms ease",
                 }}
               >
-                {f.q}
-                <motion.span animate={{ rotate: open === i ? 180 : 0 }} style={{ display: "inline-flex", color: C.soft }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </motion.span>
-              </button>
-              <AnimatePresence initial={false}>
-                {open === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{ overflow: "hidden" }}
-                  >
-                    <div style={{ padding: "0 14px 14px", fontSize: 13.5, color: C.soft, lineHeight: 1.5 }}>{f.a}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    padding: "13px 14px",
+                    background: "transparent",
+                    border: "none",
+                    color: C.text,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    textAlign: "left",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span>{f.q}</span>
+                  <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }} style={{ display: "inline-flex", color: isOpen ? "#39ff63" : C.soft, flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </motion.span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div style={{ padding: "0 14px 14px", fontSize: 13.5, color: C.soft, lineHeight: 1.5 }}>{f.a}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </motion.div>
 
-        <a
+        <motion.a
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          whileTap={{ scale: 0.98 }}
           href={`https://t.me/${CONFIG.supportUsername}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -2447,22 +2520,26 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            marginTop: 18,
-            padding: "13px 16px",
-            borderRadius: 14,
-            background: "linear-gradient(135deg, rgba(55,187,254,0.14), rgba(55,187,254,0.06))",
-            border: "1px solid rgba(55,187,254,0.32)",
+            marginTop: 20,
+            padding: "14px 16px",
+            borderRadius: 16,
+            background: "linear-gradient(135deg, rgba(55,187,254,0.18), rgba(55,187,254,0.08))",
+            border: "1px solid rgba(55,187,254,0.38)",
             color: "#7cd1ff",
-            fontSize: 14,
-            fontWeight: 600,
+            fontSize: 14.5,
+            fontWeight: 700,
             textDecoration: "none",
+            boxShadow: "0 8px 24px rgba(55,187,254,0.15)",
           }}
         >
           {t("Связаться в Telegram", "Open in Telegram")} ↗
-        </a>
+        </motion.a>
 
         {onCloseTicket && (
           <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
             onClick={onCloseTicket}
             whileTap={{ scale: 0.98 }}
             style={{
@@ -2493,20 +2570,30 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, icon }: { label: string; value: string; icon?: "bolt" | "clock" | "globe" }) {
+  const Icon = () => {
+    if (icon === "bolt") return <svg width="14" height="14" viewBox="0 0 24 24" fill="#39ff63"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>;
+    if (icon === "clock") return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#39ff63" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
+    if (icon === "globe") return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#39ff63" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
+    return null;
+  };
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -2 }}
       style={{
         flex: 1,
-        padding: "10px 8px",
-        background: "rgba(255,255,255,0.03)",
+        padding: "12px 8px",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
         border: `1px solid ${C.border}`,
-        borderRadius: 12,
+        borderRadius: 14,
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, letterSpacing: "-0.01em" }}>{value}</div>
-      <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
-    </div>
+      <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5, fontSize: 14, fontWeight: 800, color: C.text, letterSpacing: "-0.01em" }}>
+        <Icon />
+        {value}
+      </div>
+      <div style={{ fontSize: 10, color: C.muted, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>{label}</div>
+    </motion.div>
   );
 }
