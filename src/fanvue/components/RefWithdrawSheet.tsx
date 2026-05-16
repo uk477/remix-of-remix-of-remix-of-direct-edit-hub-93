@@ -412,7 +412,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     <div style={{ ...sectionLabel, marginBottom: 10 }}>
                       {lang === 'ru' ? 'Сумма вывода' : 'Withdrawal amount'}
                     </div>
-                    <div style={{ position: 'relative', marginBottom: 24 }}>
+                    <div style={{ position: 'relative', marginBottom: 10 }}>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -443,6 +443,43 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       >
                         Max
                       </button>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 12px',
+                        marginBottom: 24,
+                        background: 'rgba(57,255,99,0.04)',
+                        border: '1px solid rgba(57,255,99,0.14)',
+                        borderRadius: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          background: 'rgba(57,255,99,0.12)',
+                          color: GREEN,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 13,
+                          flexShrink: 0,
+                        }}
+                      >
+                        ⓘ
+                      </div>
+                      <div style={{ fontFamily: DISPLAY, fontSize: 11, color: 'rgba(255,255,255,0.72)', lineHeight: 1.45 }}>
+                        {lang === 'ru' ? (
+                          <>1 реферал = <span style={{ color: GREEN, fontWeight: 700 }}>$5</span> фиксировано</>
+                        ) : (
+                          <>1 referral = <span style={{ color: GREEN, fontWeight: 700 }}>$5</span> fixed</>
+                        )}
+                      </div>
                     </div>
 
                     <button
