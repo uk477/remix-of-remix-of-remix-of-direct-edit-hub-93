@@ -932,6 +932,7 @@ export default function Support() {
         replyTo={replyTo}
         cancelReply={() => setReplyTo(null)}
         t={t}
+        disabled={!activeTicket}
       />
 
       {/* Action sheet for message */}
@@ -1750,6 +1751,7 @@ function Composer({
   replyTo,
   cancelReply,
   t,
+  disabled,
 }: {
   focused: boolean;
   text: string;
@@ -1765,8 +1767,9 @@ function Composer({
   replyTo: SupportMessage | null;
   cancelReply: () => void;
   t: (ru: string, en: string) => string;
+  disabled?: boolean;
 }) {
-  const canSend = text.trim().length > 0 || pendingFiles.length > 0;
+  const canSend = !disabled && (text.trim().length > 0 || pendingFiles.length > 0);
 
   return (
     <footer
@@ -1895,13 +1898,15 @@ function Composer({
         />
 
         <motion.button
-          whileTap={{ scale: 0.88 }}
+          whileTap={disabled ? undefined : { scale: 0.88 }}
           onClick={() => {
+            if (disabled) return;
             haptic("light");
             fileInputRef.current?.click();
           }}
+          disabled={disabled}
           aria-label={t("Прикрепить", "Attach")}
-          style={{ ...iconBtn(C.soft), marginBottom: 2 }}
+          style={{ ...iconBtn(C.soft), marginBottom: 2, opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -1924,8 +1929,9 @@ function Composer({
         >
           <textarea
             ref={taRef}
-            placeholder={t("Сообщение", "Message")}
+            placeholder={disabled ? t("Создайте заявку, чтобы написать", "Create a ticket to send a message") : t("Сообщение", "Message")}
             value={text}
+            disabled={disabled}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => {
@@ -1937,7 +1943,7 @@ function Composer({
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSend();
+                if (!disabled) handleSend();
               }
             }}
             rows={1}
