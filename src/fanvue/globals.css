@@ -3749,7 +3749,7 @@ body::after { display: none; }
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
 }
-.shop-lot--b { grid-template-columns: minmax(120px, 42%) minmax(0, 1fr); }
+.shop-lot--b { grid-template-columns: minmax(120px, 34%) minmax(0, 1fr); }
 .shop-lot--b .shop-lot-media { background: #000; }
 .shop-lot--b .shop-lot-media img {
   object-fit: contain;
