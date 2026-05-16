@@ -3752,7 +3752,8 @@ body::after { display: none; }
 }
 .shop-lot--b {
   grid-template-columns: minmax(104px, 34%) minmax(0, 1fr);
-  min-height: 154px;
+  height: 262px;
+  min-height: 262px;
   background: linear-gradient(135deg, rgba(57,255,99,0.12), rgba(255,255,255,0.025));
   border-color: rgba(57,255,99,0.28);
 }
