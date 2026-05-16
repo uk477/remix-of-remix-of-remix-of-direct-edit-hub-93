@@ -1054,7 +1054,13 @@ export default function Support() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showInfo && <InfoSheet t={t} onClose={() => setShowInfo(false)} />}
+        {showInfo && (
+          <InfoSheet
+            t={t}
+            onClose={() => setShowInfo(false)}
+            onCloseTicket={activeTicket ? () => { setShowInfo(false); haptic("medium"); setConfirmClose(true); } : undefined}
+          />
+        )}
       </AnimatePresence>
 
       <ConfirmSheet
