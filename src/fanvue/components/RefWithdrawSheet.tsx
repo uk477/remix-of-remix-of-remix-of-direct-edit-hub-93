@@ -870,6 +870,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       }}
                     >
                       {[
+                        { label: lang === 'ru' ? 'ID заявки' : 'Request ID', value: createdId ?? '—', mono: true, copy: createdId ?? '' },
                         { label: lang === 'ru' ? 'Сумма' : 'Amount', value: `$${amountNum.toFixed(2)}`, accent: true },
                         { label: lang === 'ru' ? 'Сеть' : 'Network', value: netOpt?.name ?? '' },
                         {
