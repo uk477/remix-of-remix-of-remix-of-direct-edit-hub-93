@@ -344,9 +344,26 @@ export default function SupportHub() {
                   animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.9, 0.6] }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 />
-                <div style={{ position: 'relative', borderRadius: '50%', boxShadow: '0 10px 30px -10px rgba(55,187,254,0.7)' }}>
+                {/* Flight trail */}
+                <svg
+                  aria-hidden
+                  width="70" height="20" viewBox="0 0 70 20"
+                  style={{ position: 'absolute', left: -22, top: '50%', marginTop: -10, opacity: 0.55, pointerEvents: 'none' }}
+                >
+                  <motion.path
+                    d="M2 10 Q 18 2 35 10 T 68 10"
+                    fill="none" stroke="#37BBFE" strokeWidth="1.1" strokeDasharray="3 5" strokeLinecap="round"
+                    animate={{ strokeDashoffset: [0, -16] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
+                  />
+                </svg>
+                <motion.div
+                  animate={{ x: [-2, 3, -2], y: [1, -2, 1], rotate: [-5, 6, -5] }}
+                  transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ position: 'relative', borderRadius: '50%', boxShadow: '0 10px 30px -10px rgba(55,187,254,0.7)' }}
+                >
                   <TelegramMark size={54} />
-                </div>
+                </motion.div>
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
