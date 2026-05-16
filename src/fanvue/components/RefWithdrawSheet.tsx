@@ -129,6 +129,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [address, setAddress] = useState('')
   const [detailId, setDetailId] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [createdId, setCreatedId] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const dragPointerId = useRef<number | null>(null)
