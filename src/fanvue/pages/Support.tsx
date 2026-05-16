@@ -1021,6 +1021,46 @@ export default function Support() {
         <div ref={bottomRef} />
       </main>
 
+      {activeTicket && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "4px 14px 6px",
+          }}
+        >
+          <motion.button
+            onClick={() => { haptic("medium"); setConfirmClose(true); }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              height: 32,
+              padding: "0 14px",
+              borderRadius: 999,
+              border: `1px solid ${C.border}`,
+              background: "rgba(255,255,255,0.03)",
+              color: C.soft,
+              fontSize: 12.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            {t("Вопрос решён — завершить заявку", "Issue resolved — close ticket")}
+          </motion.button>
+        </motion.div>
+      )}
+
+
       <Composer
         focused={focused}
         text={text}
@@ -1137,8 +1177,6 @@ function Header({
   adminTyping,
   lang,
   t,
-  hasActiveTicket,
-  onCloseTicket,
   onBack,
   onInfo,
 }: {
@@ -1146,8 +1184,8 @@ function Header({
   adminTyping: boolean;
   lang: string;
   t: (ru: string, en: string) => string;
-  hasActiveTicket: boolean;
-  onCloseTicket: () => void;
+  hasActiveTicket?: boolean;
+  onCloseTicket?: () => void;
   onBack: () => void;
   onInfo: () => void;
 }) {
@@ -1237,49 +1275,6 @@ function Header({
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {hasActiveTicket && (
-        <motion.button
-          onClick={onCloseTicket}
-          whileTap={{ scale: 0.96 }}
-          initial={{ opacity: 0, y: -2 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -2 }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            height: 32,
-            padding: "0 12px 0 10px",
-            borderRadius: 999,
-            border: `1px solid ${C.borderHi}`,
-            background: C.surface,
-            color: C.text,
-            fontSize: 12.5,
-            fontWeight: 600,
-            letterSpacing: "-0.005em",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              background: "rgba(57,255,99,0.16)",
-              display: "grid",
-              placeItems: "center",
-              color: C.green,
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5L20 7" />
-            </svg>
-          </span>
-          {t("Завершить", "Resolve")}
-        </motion.button>
-      )}
 
       <motion.button onClick={onInfo} whileTap={{ scale: 0.92 }} aria-label={t("Информация", "Info")} style={iconBtn(C.soft)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
