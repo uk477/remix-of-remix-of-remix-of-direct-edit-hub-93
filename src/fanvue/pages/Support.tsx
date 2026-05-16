@@ -993,6 +993,8 @@ function Header({
   adminTyping,
   lang,
   t,
+  hasActiveTicket,
+  onCloseTicket,
   onBack,
   onInfo,
 }: {
@@ -1000,6 +1002,8 @@ function Header({
   adminTyping: boolean;
   lang: string;
   t: (ru: string, en: string) => string;
+  hasActiveTicket: boolean;
+  onCloseTicket: () => void;
   onBack: () => void;
   onInfo: () => void;
 }) {
