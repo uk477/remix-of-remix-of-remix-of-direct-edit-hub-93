@@ -2007,30 +2007,92 @@ function Composer({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,application/pdf,.doc,.docx,.txt"
+          accept="*/*"
           multiple
           style={{ display: "none" }}
-          onChange={(e) => {
-            onPickFiles(e.target.files);
-            e.target.value = "";
-          }}
+          onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          style={{ display: "none" }}
+          onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
         />
 
-        <motion.button
-          whileTap={disabled ? undefined : { scale: 0.88 }}
-          onClick={() => {
-            if (disabled) return;
-            haptic("light");
-            fileInputRef.current?.click();
-          }}
-          disabled={disabled}
-          aria-label={t("Прикрепить", "Attach")}
-          style={{ ...iconBtn(C.soft), marginBottom: 2, opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-          </svg>
-        </motion.button>
+        <div style={{ position: "relative" }}>
+          <motion.button
+            whileTap={disabled ? undefined : { scale: 0.88 }}
+            onClick={() => { if (disabled) return; haptic("light"); setAttachOpen((v) => !v); }}
+            disabled={disabled}
+            aria-label={t("Прикрепить", "Attach")}
+            style={{ ...iconBtn(C.soft), marginBottom: 2, opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+          >
+            <motion.span animate={{ rotate: attachOpen ? 45 : 0 }} transition={{ duration: 0.2 }} style={{ display: "inline-flex" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </motion.span>
+          </motion.button>
+
+          <AnimatePresence>
+            {attachOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  onClick={() => setAttachOpen(false)}
+                  style={{ position: "fixed", inset: 0, zIndex: 40 }}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                  transition={{ duration: 0.16 }}
+                  style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", left: 0, zIndex: 50,
+                    background: "rgba(22,23,26,0.96)", backdropFilter: "blur(20px)",
+                    border: `1px solid ${C.borderHi}`, borderRadius: 16,
+                    padding: 6, minWidth: 200,
+                    boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
+                  }}
+                >
+                  {[
+                    { k: "camera", label: t("Камера", "Camera"), icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>, color: "#39ff63", ref: cameraInputRef },
+                    { k: "gallery", label: t("Фото / Видео", "Photo / Video"), icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>, color: "#7cd1ff", ref: galleryInputRef },
+                    { k: "file", label: t("Документ", "Document"), icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M10 13h4M10 17h4"/></svg>, color: "#ffb020", ref: fileInputRef },
+                  ].map((opt) => (
+                    <button
+                      key={opt.k}
+                      onClick={() => { haptic("light"); setAttachOpen(false); opt.ref.current?.click(); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12, width: "100%",
+                        padding: "11px 12px", background: "transparent", border: "none",
+                        color: C.text, fontSize: 14, fontWeight: 500, textAlign: "left",
+                        borderRadius: 10, cursor: "pointer",
+                      }}
+                    >
+                      <span style={{
+                        width: 32, height: 32, borderRadius: 10,
+                        background: `${opt.color}1f`, color: opt.color,
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      }}>{opt.icon}</span>
+                      {opt.label}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
         <motion.div
           animate={{ borderColor: focused ? "rgba(57,255,99,0.45)" : C.border }}
