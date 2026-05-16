@@ -2566,14 +2566,17 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           whileTap={{ scale: 0.98 }}
+          whileHover="hover"
           href={`https://t.me/${CONFIG.supportUsername}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
+            position: "relative",
+            overflow: "hidden",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 8,
+            gap: 10,
             marginTop: 20,
             padding: "14px 16px",
             borderRadius: 16,
@@ -2586,7 +2589,31 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
             boxShadow: "0 8px 24px rgba(55,187,254,0.15)",
           }}
         >
-          {t("Связаться в Telegram", "Open in Telegram")} ↗
+          {/* Dashed flight trail */}
+          <motion.svg
+            aria-hidden
+            width="100%" height="14" viewBox="0 0 300 14" preserveAspectRatio="none"
+            style={{ position: "absolute", left: 0, right: 0, top: "50%", marginTop: -7, opacity: 0.35, pointerEvents: "none" }}
+          >
+            <motion.path
+              d="M0 7 Q 75 -2 150 7 T 300 7"
+              fill="none" stroke="#7cd1ff" strokeWidth="1" strokeDasharray="3 5"
+              animate={{ strokeDashoffset: [0, -16] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.svg>
+          <motion.span
+            style={{ display: "inline-flex" }}
+            animate={{ x: [-3, 3, -3], y: [1, -1, 1], rotate: [-6, 6, -6] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+            variants={{ hover: { x: 4, y: -2, rotate: 8, transition: { duration: 0.3 } } }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7cd1ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 2L11 13" />
+              <path d="M22 2l-7 20-4-9-9-4 20-7z" fill="rgba(124,209,255,0.15)" />
+            </svg>
+          </motion.span>
+          <span style={{ position: "relative" }}>{t("Связаться в Telegram", "Open in Telegram")}</span>
         </motion.a>
 
         {onCloseTicket && (
