@@ -1613,6 +1613,7 @@ function DeletedPlaceholder({
 function Bubble({
   msg,
   isUser,
+  isFirst,
   isLast,
   isBot,
   showCheck,
@@ -1624,6 +1625,7 @@ function Bubble({
 }: {
   msg: SupportMessage;
   isUser: boolean;
+  isFirst: boolean;
   isLast: boolean;
   isBot: boolean;
   showCheck: boolean;
@@ -1642,8 +1644,13 @@ function Bubble({
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
   };
 
-  const radiusUser = isLast ? "22px 22px 6px 22px" : "22px 22px 22px 22px";
-  const radiusOther = isLast ? "22px 22px 22px 6px" : "22px 22px 22px 22px";
+  // Telegram-style: tight corner on sender side between grouped messages,
+  // tail (small radius) on the last bubble's sender-side bottom corner.
+  const R = 18;
+  const S = 6;
+  const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? S : S}px ${R}px`;
+  const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? S : S}px`;
+
 
   const bg = isUser ? C.greenBubble : isBot ? "rgba(57,255,99,0.06)" : C.surface;
   const color = isUser ? C.greenInk : C.text;
