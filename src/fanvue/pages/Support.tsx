@@ -2457,6 +2457,34 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
         >
           {t("Связаться в Telegram", "Open in Telegram")} ↗
         </a>
+
+        {onCloseTicket && (
+          <motion.button
+            onClick={onCloseTicket}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              width: "100%",
+              marginTop: 10,
+              padding: "13px 16px",
+              borderRadius: 14,
+              background: "transparent",
+              border: `1px solid ${C.border}`,
+              color: C.soft,
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            {t("Завершить заявку", "Close ticket")}
+          </motion.button>
+        )}
       </motion.div>
     </motion.div>
   );
