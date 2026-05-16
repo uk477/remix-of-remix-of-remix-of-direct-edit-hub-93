@@ -470,7 +470,7 @@ export const useStore = create<AppStore>()(
       completeRefWithdrawal: (id, txid) =>
         set((s) => ({
           refWithdrawals: s.refWithdrawals.map((w) =>
-            w.id === id ? { ...w, status: 'completed' as const, txid } : w
+            w.id === id ? { ...w, status: 'completed' as const, txid, completedAt: new Date().toISOString() } : w
           ),
         })),
 
