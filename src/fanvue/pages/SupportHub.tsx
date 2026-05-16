@@ -208,26 +208,18 @@ export default function SupportHub() {
                 <motion.div
                   style={{
                     position: 'absolute', inset: 0, borderRadius: '50%',
-                    border: '1px solid rgba(94,234,212,0.5)',
+                    border: '1px solid rgba(94,234,212,0.35)',
                   }}
-                  animate={{ scale: [1, 1.35, 1.35], opacity: [0.7, 0, 0] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
-                />
-                <motion.div
-                  aria-hidden
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-                  style={{
-                    position: 'absolute', inset: 0, borderRadius: '50%',
-                    background: 'conic-gradient(from 0deg, rgba(94,234,212,0.7), rgba(94,234,212,0) 40%, rgba(94,234,212,0) 65%, rgba(94,234,212,0.55) 100%)',
-                  }}
+                  animate={{ scale: [1, 1.25, 1.25], opacity: [0.5, 0, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeOut' }}
                 />
                 <div style={{
-                  position: 'absolute', inset: 2, borderRadius: '50%',
+                  position: 'absolute', inset: 0, borderRadius: '50%',
                   background: 'radial-gradient(120% 90% at 30% 20%, #0e3835 0%, #04201f 80%)',
+                  border: '1px solid rgba(94,234,212,0.35)',
                   display: 'grid', placeItems: 'center',
                   overflow: 'hidden',
-                  boxShadow: 'inset 0 0 14px rgba(94,234,212,0.25), 0 10px 30px -10px rgba(94,234,212,0.6)',
+                  boxShadow: 'inset 0 0 14px rgba(94,234,212,0.22), 0 8px 24px -12px rgba(94,234,212,0.5)',
                 }}>
                   <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
                     <defs>
@@ -243,14 +235,14 @@ export default function SupportHub() {
                     <motion.path
                       d="M4 9c0-2.2 1.8-4 4-4h13c2.2 0 4 1.8 4 4v6c0 2.2-1.8 4-4 4h-9l-5 4v-4c-1.7-.3-3-1.8-3-3.6V9z"
                       fill="url(#hub-lc-a)"
-                      animate={{ y: [0, -1.2, 0] }}
-                      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                      animate={{ y: [0, -0.4, 0] }}
+                      transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
                     />
                     <motion.path
                       d="M36 23c0-2.2-1.8-4-4-4H19c-2.2 0-4 1.8-4 4v6c0 2.2 1.8 4 4 4h9l5 4v-4c1.7-.3 3-1.8 3-3.6v-6.4z"
                       fill="url(#hub-lc-b)"
-                      animate={{ y: [0, 1.2, 0] }}
-                      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                      animate={{ y: [0, 0.4, 0] }}
+                      transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
                     />
                     {[0, 1, 2].map((i) => (
                       <motion.circle
@@ -259,8 +251,8 @@ export default function SupportHub() {
                         cy={28}
                         r={1.4}
                         fill="#04201f"
-                        animate={{ opacity: [0.3, 1, 0.3], cy: [28, 26.5, 28] }}
-                        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }}
+                        animate={{ opacity: [0.35, 1, 0.35] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.2 }}
                       />
                     ))}
                   </svg>
