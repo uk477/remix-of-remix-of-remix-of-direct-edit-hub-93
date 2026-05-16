@@ -290,24 +290,26 @@ export default function AdminSupport() {
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => { setAdminPresence({ online: !presence.online, lastSeen: new Date().toISOString() }); haptic('light') }}
+                <div
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 7,
                     padding: '7px 11px', borderRadius: 999,
-                    background: presence.online ? 'rgba(61,255,102,0.08)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${presence.online ? 'rgba(61,255,102,0.25)' : C.line}`,
-                    fontSize: 11, fontWeight: 600, color: presence.online ? C.brand : C.muted,
+                    background: 'rgba(61,255,102,0.08)',
+                    border: `1px solid rgba(61,255,102,0.25)`,
+                    fontSize: 11, fontWeight: 600, color: C.brand,
                     fontFamily: MONO, letterSpacing: '0.04em', textTransform: 'uppercase',
                   }}
+                  title={lang === 'ru' ? 'Клиенты видят, что вы в сети' : 'Clients see you online'}
                 >
-                  <span style={{
-                    width: 7, height: 7, borderRadius: '50%',
-                    background: presence.online ? C.brand : C.muted,
-                    boxShadow: presence.online ? `0 0 8px ${C.brand}` : 'none',
-                  }} />
-                  {presence.online ? 'live' : 'away'}
-                </button>
+                  <motion.span
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ duration: 1.8, repeat: Infinity }}
+                    style={{
+                      width: 7, height: 7, borderRadius: '50%',
+                      background: C.brand, boxShadow: `0 0 8px ${C.brand}`,
+                    }} />
+                  live
+                </div>
               </div>
 
               {groups.length === 0 ? (
