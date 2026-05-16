@@ -3725,8 +3725,7 @@ body::after { display: none; }
 /* Variant accents — subtle differentiation */
 .shop-lot--a {
   grid-template-columns: minmax(104px, 34%) minmax(0, 1fr);
-  height: 262px;
-  min-height: 262px;
+  min-height: 154px;
   background: linear-gradient(135deg, rgba(57,255,99,0.12), rgba(255,255,255,0.025));
   border-color: rgba(57,255,99,0.28);
 }
@@ -3750,24 +3749,10 @@ body::after { display: none; }
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
 }
-.shop-lot--b {
-  grid-template-columns: minmax(104px, 34%) minmax(0, 1fr);
-  height: 262px;
-  min-height: 262px;
-  background: linear-gradient(135deg, rgba(57,255,99,0.12), rgba(255,255,255,0.025));
-  border-color: rgba(57,255,99,0.28);
-}
-.shop-lot--b .shop-lot-media { background: transparent; }
-.shop-lot--b .shop-lot-media img {
-  object-fit: contain;
-  object-position: center;
-  filter: none;
-}
-.shop-lot--b .shop-lot-shade { display: none; }
 .shop-lot--b::before {
   content: ''; position: absolute; inset: 0;
   border-radius: inherit; padding: 1px;
-  background: linear-gradient(135deg, rgba(57,255,99,0.5), transparent 45%, rgba(57,255,99,0.15));
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 50%);
   -webkit-mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 3;
