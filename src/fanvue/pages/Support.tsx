@@ -683,9 +683,20 @@ export default function Support() {
       postFlowNode(a.next, 500);
     } else if (a.kind === "tip") {
       postBot(t(a.tip.ru, a.tip.en), undefined, 350);
-      // Offer resolve / escalate, unless this was already a resolve node response
       if (!flowKey.startsWith("resolve:")) {
+        // First tip → ask "did it help?"
         postFlowNode(`resolve:${a.category}`, 600);
+      } else {
+        // User confirmed "Yes, thanks" → offer a fresh topic picker
+        window.setTimeout(() => {
+          addSupportMessage({
+            id: newId(),
+            sender: "bot",
+            kind: "system",
+            text: "triage_prompt",
+            created: new Date().toISOString(),
+          });
+        }, 650);
       }
     } else if (a.kind === "escalate") {
       const ticket = openSupportTicket(a.category, a.summary);
