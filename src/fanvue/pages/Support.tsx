@@ -817,6 +817,19 @@ export default function Support() {
         adminTyping={adminTyping}
         lang={lang}
         t={t}
+        hasActiveTicket={!!activeTicket}
+        onCloseTicket={() => {
+          if (!activeTicket) return;
+          haptic("medium");
+          const ok = window.confirm(
+            t("Закрыть текущую заявку?", "Close the current ticket?"),
+          );
+          if (!ok) return;
+          closeSupportTicket(activeTicket.id);
+          tgNotify(
+            `✅ Клиент закрыл заявку ${activeTicket.id}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
+          );
+        }}
         onBack={() => {
           haptic("light");
           if (window.history.length > 1) navigate(-1);
