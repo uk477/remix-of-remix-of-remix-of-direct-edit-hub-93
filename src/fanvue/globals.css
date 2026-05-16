@@ -5,7 +5,7 @@
    Typography: Instrument Serif (display) + Inter (UI) + JetBrains Mono (eyebrow).
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 :root {
@@ -3452,33 +3452,66 @@ body::after { display: none; }
 .shop-hero-bal-main {
   position: relative;
   flex: 1 1 auto;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  padding: 10px 16px 12px;
-  border-radius: 0;
+  display: flex; flex-direction: row; align-items: center; gap: 12px;
+  padding: 8px 12px 8px 4px;
   background: transparent;
   border: none;
   box-shadow: none;
   text-align: left;
+  min-height: 56px;
+}
+.shop-hero-bal-rule {
+  flex: 0 0 auto;
+  width: 3px; height: 40px;
+  background: var(--fv-accent, #39ff63);
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(57,255,99,0.45);
+}
+.shop-hero-bal-text {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  min-width: 0;
 }
 .shop-hero-bal-eye {
-  position: relative; z-index: 1;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--fv-soft); line-height: 1;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255,255,255,0.42); line-height: 1;
 }
 .shop-hero-bal-num {
-  position: relative; z-index: 1;
-  font-size: 30px; font-weight: 950; line-height: 1; letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums; color: var(--fv-text);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fv-text, #fff);
   display: inline-flex; align-items: baseline; gap: 3px;
-  background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 .shop-hero-bal-num i {
-  font-style: normal; font-size: 16px; font-weight: 800;
-  color: rgba(57,255,99,0.9);
-  -webkit-text-fill-color: rgba(57,255,99,0.9);
+  font-style: normal;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 18px; font-weight: 800;
+  color: rgba(57,255,99,0.95);
 }
+.shop-hero-bal-decals {
+  margin-left: auto;
+  display: flex; flex-direction: column; gap: 4px;
+  opacity: 0.32;
+  pointer-events: none;
+}
+.shop-hero-bal-decal-row {
+  display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+}
+.shop-hero-bal-decal-row .dot {
+  width: 4px; height: 4px; border-radius: 999px;
+  background: rgba(255,255,255,0.25);
+}
+.shop-hero-bal-decal-row .dot.dot-on {
+  background: var(--fv-accent, #39ff63);
+  box-shadow: 0 0 6px rgba(57,255,99,0.6);
+}
+.shop-hero-bal-decal-row .bar {
+  height: 3px; border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+}
+.shop-hero-bal-decal-row .bar-sm { width: 4px; }
+.shop-hero-bal-decal-row .bar-md { width: 9px; }
+.shop-hero-bal-decal-row .bar-lg { width: 16px; }
 
 .shop-hero-topup {
   position: relative;
