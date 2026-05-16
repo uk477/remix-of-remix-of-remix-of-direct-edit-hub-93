@@ -3487,10 +3487,6 @@ body::after { display: none; }
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-  background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 .shop-hero-bal-num i {
   font-style: normal; font-size: 16px; font-weight: 800;
   color: rgba(57,255,99,0.9);
