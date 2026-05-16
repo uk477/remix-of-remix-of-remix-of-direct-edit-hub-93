@@ -89,11 +89,18 @@ function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string
     : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
 }
 
-const CATEGORIES: Array<{ id: SupportTicketCategory; emoji: string; ru: string; en: string }> = [
-  { id: "payment", emoji: "💳", ru: "Проблема с платежом", en: "Payment issue" },
-  { id: "delivery", emoji: "📦", ru: "Вопрос о доставке", en: "Delivery question" },
-  { id: "account", emoji: "👤", ru: "Аккаунт/верификация", en: "Account / verification" },
-  { id: "operator", emoji: "💬", ru: "Связь с оператором", en: "Talk to operator" },
+const CATEGORIES: Array<{
+  id: SupportTicketCategory;
+  emoji: string;
+  ru: string;
+  en: string;
+  subRu: string;
+  subEn: string;
+}> = [
+  { id: "payment", emoji: "💳", ru: "Платёж", en: "Payment", subRu: "оплата, зачисление, возврат", subEn: "checkout, credit, refund" },
+  { id: "delivery", emoji: "📦", ru: "Доставка", en: "Delivery", subRu: "статус и сроки заказа", subEn: "order status & ETA" },
+  { id: "account", emoji: "👤", ru: "Аккаунт", en: "Account", subRu: "вход, профиль, верификация", subEn: "login, profile, KYC" },
+  { id: "operator", emoji: "💬", ru: "Оператор", en: "Operator", subRu: "написать человеку напрямую", subEn: "talk to a human" },
 ];
 
 /* ── Guided diagnostic flow ─────────────────────────────────────── */
