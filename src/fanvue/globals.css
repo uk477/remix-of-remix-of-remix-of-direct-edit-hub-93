@@ -3474,13 +3474,19 @@ body::after { display: none; }
   pointer-events: none;
 }
 .shop-hero-bal-eye {
+  position: relative; z-index: 1;
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--fv-soft); line-height: 1;
 }
 .shop-hero-bal-num {
+  position: relative; z-index: 1;
   font-size: 30px; font-weight: 950; line-height: 1; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--fv-text);
   display: inline-flex; align-items: baseline; gap: 3px;
+  background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
   background: linear-gradient(180deg, #ffffff 0%, #d8ffe3 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
