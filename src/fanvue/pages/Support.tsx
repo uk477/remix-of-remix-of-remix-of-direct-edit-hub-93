@@ -1644,8 +1644,8 @@ function Bubble({
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
   };
 
-  const R = 28;
-  const S = 7;
+  const R = 18;
+  const S = 6;
   const radiusUser = `${R}px ${isFirst ? R : S}px ${isLast ? R : S}px ${R}px`;
   const radiusOther = `${isFirst ? R : S}px ${R}px ${R}px ${isLast ? R : S}px`;
 
@@ -1668,16 +1668,16 @@ function Bubble({
       }}
       style={{
         maxWidth: "82%",
-        padding: msg.attachments && msg.attachments.length > 0 ? "7px 7px 9px" : "10px 14px 10px 18px",
+        padding: msg.attachments && msg.attachments.length > 0 ? "4px 4px 6px" : "7px 12px",
         borderRadius: isUser ? radiusUser : radiusOther,
         background: bg,
         color,
         border,
         fontFamily: 'var(--font-sans, Inter, system-ui, sans-serif)',
-        fontSize: 22,
-        lineHeight: 1.12,
-        fontWeight: isUser ? 700 : 500,
-        letterSpacing: 0,
+        fontSize: 15,
+        lineHeight: 1.32,
+        fontWeight: isUser ? 500 : 450,
+        letterSpacing: "-0.005em",
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
         boxShadow: "none",
@@ -1779,14 +1779,14 @@ function Bubble({
           alignItems: "center",
           gap: 4,
           marginLeft: msg.text ? 10 : 0,
-          padding: msg.attachments && msg.attachments.length > 0 && !msg.text ? "0 10px 0 0" : 0,
-          fontSize: 17,
+          padding: msg.attachments && msg.attachments.length > 0 && !msg.text ? "0 8px 0 0" : 0,
+          fontSize: 10.5,
           fontWeight: 500,
           color: isUser ? "rgba(6,42,16,0.58)" : C.muted,
           verticalAlign: "baseline",
           whiteSpace: "nowrap",
           position: "relative",
-          top: 1,
+          top: 2,
           float: msg.text ? "right" : "none",
         }}
       >
@@ -1802,17 +1802,17 @@ function Bubble({
 function ReadCheck({ read }: { read: boolean }) {
   if (!read) {
     return (
-      <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor"
-        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
-        <path d="M2 7.6 L6.2 11.4 L16 2.2" />
+      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor"
+        strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
+        <path d="M1 5 L4.2 8 L11 1" />
       </svg>
     );
   }
   return (
-    <svg width="25" height="14" viewBox="0 0 25 14" fill="none" stroke="currentColor"
-      strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
-      <path d="M2 7.6 L6.2 11.4 L16 2.2" />
-      <path d="M9 7.6 L13.2 11.4 L23 2.2" />
+    <svg width="17" height="9" viewBox="0 0 17 9" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 1, opacity: 0.9 }}>
+      <path d="M1 5 L4.2 8 L11 1" />
+      <path d="M6 5 L9.2 8 L16 1" />
     </svg>
   );
 }
