@@ -560,7 +560,6 @@ export default function Support() {
   const presence = useStore((s) => s.adminPresence);
   const adminTyping = useStore((s) => s.adminTyping);
   const addSupportMessage = useStore((s) => s.addSupportMessage);
-  const updateSupportMessage = useStore((s) => s.updateSupportMessage);
   const deleteSupportMessage = useStore((s) => s.deleteSupportMessage);
   const markAdminMessagesReadByUser = useStore((s) => s.markAdminMessagesReadByUser);
   const setUserTyping = useStore((s) => s.setUserTyping);
@@ -597,7 +596,7 @@ export default function Support() {
   }, [markAdminMessagesReadByUser, messages.length]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, adminTyping]);
 
   // Real typing flag (debounced)
@@ -690,12 +689,6 @@ export default function Support() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTicket?.id, messages.length]);
-
-  const clearFlowMessages = useCallback(() => {
-    useStore.setState((s) => ({
-      supportMessages: s.supportMessages.filter((m) => !isTransientFlowMessage(m)),
-    }));
-  }, []);
 
   const botMessage = (text: string, ticketId = FLOW_TAG): SupportMessage => ({
     id: newId(),
