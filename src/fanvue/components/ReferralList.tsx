@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMemo } from 'react'
 import { useStore } from '../store'
 
 interface Props {
@@ -6,25 +7,45 @@ interface Props {
   onClose: () => void
 }
 
+const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
+const MONO = "'JetBrains Mono', ui-monospace, monospace"
+const GREEN = '#39ff63'
+const INK = '#0a0a0a'
+
+// Mock referral pool — used to render entries based on user.ref_count
+const REFERRAL_POOL: { username: string; nickname: string; daysAgo: number; hue: number }[] = [
+  { username: 'crypto_max',     nickname: 'Max',       daysAgo: 1,  hue: 142 },
+  { username: 'lena_diamond',   nickname: 'Lena',      daysAgo: 3,  hue: 320 },
+  { username: '',               nickname: 'Anonymous', daysAgo: 6,  hue: 24  },
+  { username: 'nova_trader',    nickname: 'Nova',      daysAgo: 9,  hue: 200 },
+  { username: 'shadow_99',      nickname: 'Shadow',    daysAgo: 14, hue: 270 },
+  { username: 'rin_satoshi',    nickname: 'Rin',       daysAgo: 18, hue: 50  },
+  { username: '',               nickname: 'Guest',     daysAgo: 24, hue: 12  },
+  { username: 'leo_btc',        nickname: 'Leo',       daysAgo: 30, hue: 180 },
+  { username: 'mira_x',         nickname: 'Mira',      daysAgo: 41, hue: 340 },
+  { username: 'kai_eth',        nickname: 'Kai',       daysAgo: 55, hue: 100 },
+]
+
 export default function ReferralList({ open, onClose }: Props) {
   const lang = useStore((s) => s.lang)
   const user = useStore((s) => s.user)
-  const refDailyLog = useStore((s) => s.refDailyLog)
-  const refReward = useStore((s) => s.refReward)
+
+  const referrals = useMemo(() => {
+    if (!user) return []
+    const now = Date.now()
+    return REFERRAL_POOL.slice(0, Math.max(0, user.ref_count)).map((r, i) => ({
+      ...r,
+      id: `ref-${i}`,
+      joinedAt: new Date(now - r.daysAgo * 86400000).toISOString(),
+    }))
+  }, [user])
 
   if (!user) return null
 
-  const entries = Object.entries(refDailyLog)
-    .sort(([a], [b]) => b.localeCompare(a))
-
   const totalEarned = user.ref_earned
-  const GOAL = 10
-  const progress = Math.min(refReward.count, GOAL)
-  const bonusEarned = refReward.claimed
-  const pct = (progress / GOAL) * 100
 
-  function formatDate(dateStr: string) {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString(
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString(
       lang === 'ru' ? 'ru-RU' : 'en-US',
       { day: 'numeric', month: 'short', year: 'numeric' }
     )
@@ -42,146 +63,216 @@ export default function ReferralList({ open, onClose }: Props) {
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0,0,0,0.7)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              background: 'rgba(0,0,0,0.78)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               zIndex: 100,
             }}
           />
           <motion.div
-            className="sheet"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
             drag="y"
             dragConstraints={{ top: 0 }}
-            dragElastic={0.1}
-            onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            onDragEnd={(_, info) => { if (info.offset.y > 100) onClose() }}
             style={{
               position: 'fixed',
               left: 0,
               right: 0,
               bottom: 0,
               zIndex: 101,
-              maxHeight: '85vh',
-              overflowY: 'hidden',
+              background: INK,
+              borderTop: `1px solid rgba(57,255,99,0.2)`,
+              borderRadius: '24px 24px 0 0',
+              maxHeight: '92vh',
               display: 'flex',
               flexDirection: 'column',
+              fontFamily: DISPLAY,
+              color: '#fff',
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4, flexShrink: 0 }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--b-default)' }} />
+            {/* Drag handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'grab', touchAction: 'none' }}>
+              <div style={{ width: 42, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.18)' }} />
             </div>
 
-            <div className="row-between" style={{ padding: '8px 20px 12px', flexShrink: 0 }}>
-              <div className="t-lg fw-black">
-                {lang === 'ru' ? 'Мои рефералы' : 'My Referrals'}
+            {/* Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 22px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', fontFamily: MONO }}>
+                  /referrals
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.01em', marginTop: 2 }}>
+                  {lang === 'ru' ? 'Мои рефералы' : 'My Referrals'}
+                </div>
               </div>
-              <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} style={{ color: 'var(--t-muted)', fontSize: 20, lineHeight: 1 }}>×</motion.button>
+              <motion.button
+                onClick={onClose}
+                whileTap={{ scale: 0.9 }}
+                style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#fff', fontSize: 18, lineHeight: 1, cursor: 'pointer',
+                }}
+              >×</motion.button>
             </div>
 
-            <div style={{ overflowY: 'auto', flex: 1, padding: '0 20px 28px' }}>
-              {/* Total earned */}
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(232,54,93,0.1), rgba(151,114,255,0.08))',
-                border: '1px solid rgba(232,54,93,0.2)',
-                borderRadius: 14,
-                padding: '16px',
-                marginBottom: 16,
-              }}>
-                <div className="t-xs t-muted">
+            <div style={{ overflowY: 'auto', flex: 1, padding: '20px 22px 32px' }}>
+              {/* Earnings hero */}
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: 18,
+                  padding: '22px 22px 24px',
+                  background: `radial-gradient(circle at 100% 0%, rgba(57,255,99,0.18), transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))`,
+                  border: '1px solid rgba(57,255,99,0.22)',
+                  overflow: 'hidden',
+                  marginBottom: 22,
+                }}
+              >
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', fontFamily: MONO }}>
                   {lang === 'ru' ? 'Всего заработано' : 'Total earned'}
                 </div>
-                <div className="t-xl fw-black" style={{ color: 'var(--brand)' }}>
-                  ${totalEarned.toFixed(2)}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}>$</span>
+                  <span style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-0.03em', color: GREEN, lineHeight: 1 }}>
+                    {totalEarned.toFixed(2)}
+                  </span>
                 </div>
-                <div className="t-xs t-muted" style={{ marginTop: 4 }}>
-                  {user.ref_count} {lang === 'ru' ? 'рефералов' : 'referrals'}
-                </div>
-              </div>
-
-              {/* Monthly bonus progress */}
-              <div style={{
-                background: 'var(--surface-2)',
-                borderRadius: 12,
-                padding: '14px',
-                marginBottom: 20,
-              }}>
-                <div className="row-between mb-1">
-                  <div className="t-sm fw-bold">
-                    {lang === 'ru' ? '🎯 Бонус месяца' : '🎯 Monthly Bonus'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
+                  <div style={{
+                    background: 'rgba(57,255,99,0.12)',
+                    border: '1px solid rgba(57,255,99,0.25)',
+                    color: GREEN,
+                    fontFamily: MONO,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    letterSpacing: '0.05em',
+                  }}>
+                    {user.ref_count} {lang === 'ru' ? 'РЕФЕРАЛОВ' : 'REFERRALS'}
                   </div>
-                  <div className="t-xs fw-bold" style={{ color: bonusEarned ? 'var(--success)' : 'var(--brand)' }}>
-                    {bonusEarned ? '✓ +$50' : `${progress}/${GOAL}`}
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: MONO }}>
+                    × $5
                   </div>
                 </div>
-                <div style={{ background: 'var(--b-default)', borderRadius: 6, height: 6, overflow: 'hidden', marginBottom: 8 }}>
-                  <motion.div
-                    style={{
-                      height: '100%',
-                      background: bonusEarned ? 'var(--success)' : 'var(--brand)',
-                      borderRadius: 6,
-                    }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                  />
+              </div>
+
+              {/* History header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontFamily: MONO }}>
+                  {lang === 'ru' ? '/История' : '/History'}
                 </div>
-                <div className="t-xs t-muted">
-                  {bonusEarned
-                    ? (lang === 'ru' ? 'Бонус $50 получен!' : '$50 bonus claimed!')
-                    : (lang === 'ru'
-                      ? `Ещё ${GOAL - progress} до бонуса $50`
-                      : `${GOAL - progress} more for $50 bonus`)}
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: MONO }}>
+                  {referrals.length}
                 </div>
               </div>
 
-              {/* Daily log */}
-              <div className="t-sm fw-bold mb-3">
-                {lang === 'ru' ? 'История' : 'History'}
-              </div>
-
-              {entries.length === 0 ? (
-                <div className="t-sm t-muted" style={{ textAlign: 'center', padding: '32px 0' }}>
+              {referrals.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px 0',
+                  border: '1px dashed rgba(255,255,255,0.08)',
+                  borderRadius: 14,
+                  color: 'rgba(255,255,255,0.4)',
+                  fontSize: 13,
+                }}>
                   {lang === 'ru' ? 'Пока нет рефералов' : 'No referrals yet'}
                 </div>
               ) : (
-                <div className="col gap-2">
-                  {entries.map(([date, count], i) => (
-                    <motion.div
-                      key={date}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 25 }}
-                      style={{
-                        background: 'var(--surface-2)',
-                        borderRadius: 10,
-                        padding: '12px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div>
-                        <div className="t-sm fw-bold">{formatDate(date)}</div>
-                        <div className="t-xs t-muted">
-                          +${(count * 5).toFixed(0)} {lang === 'ru' ? 'заработано' : 'earned'}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {referrals.map((r, i) => {
+                    const displayName = r.username ? `@${r.username}` : r.nickname
+                    const initial = (r.username || r.nickname).charAt(0).toUpperCase()
+                    return (
+                      <motion.div
+                        key={r.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.035, type: 'spring', stiffness: 320, damping: 26 }}
+                        style={{
+                          background: 'rgba(255,255,255,0.025)',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          borderRadius: 14,
+                          padding: '12px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                        }}
+                      >
+                        {/* Avatar */}
+                        <div
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: '50%',
+                            background: `linear-gradient(135deg, hsl(${r.hue} 70% 55%), hsl(${(r.hue + 40) % 360} 65% 35%))`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontFamily: DISPLAY,
+                            fontSize: 16,
+                            fontWeight: 800,
+                            color: '#fff',
+                            flexShrink: 0,
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                          }}
+                        >
+                          {initial}
                         </div>
-                      </div>
-                      <div style={{
-                        background: 'rgba(73,242,100,0.1)',
-                        color: 'var(--success)',
-                        borderRadius: 8,
-                        padding: '4px 10px',
-                        fontSize: 13,
-                        fontWeight: 800,
-                      }}>
-                        +{count}
-                      </div>
-                    </motion.div>
-                  ))}
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: '#fff',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}>
+                            {displayName}
+                          </div>
+                          <div style={{
+                            fontSize: 11,
+                            color: 'rgba(255,255,255,0.4)',
+                            fontFamily: MONO,
+                            marginTop: 2,
+                          }}>
+                            {formatDate(r.joinedAt)}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          fontFamily: MONO,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: GREEN,
+                          background: 'rgba(57,255,99,0.08)',
+                          border: '1px solid rgba(57,255,99,0.18)',
+                          padding: '5px 10px',
+                          borderRadius: 8,
+                          flexShrink: 0,
+                        }}>
+                          +$5
+                        </div>
+                      </motion.div>
+                    )
+                  })}
                 </div>
               )}
             </div>
