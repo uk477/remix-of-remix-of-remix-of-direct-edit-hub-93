@@ -736,19 +736,19 @@ export default function Support() {
 
   const handlePickCategory = (cat: (typeof CATEGORIES)[number]) => {
     haptic("light");
-    clearFlowMessages();
 
     // Operator → straight to ticket (skip diagnostics)
     if (cat.id === "operator") {
       const ticket = openSupportTicket(cat.id);
-      postBot(
-        t(
+      replaceFlowMessages([
+        botMessage(
+          t(
           "Подключаю оператора. Опишите вопрос подробно — ответим в ближайшее время.",
           "Connecting an operator. Describe your question in detail — we'll reply shortly.",
+          ),
+          ticket.id,
         ),
-        ticket.id,
-        250,
-      );
+      ]);
       tgNotify(
         `🆕 Новая заявка ${ticket.id}\n📂 ${cat.ru}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
       );
@@ -761,50 +761,35 @@ export default function Support() {
     if (!root) {
       // Fallback — open ticket directly
       const ticket = openSupportTicket(cat.id);
-      postBot(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id, 200);
+      replaceFlowMessages([botMessage(t("Опишите ваш вопрос подробно — мы постараемся помочь.", "Describe your question in detail — we'll do our best."), ticket.id)]);
       return;
     }
-    postBot(t(root.q.ru, root.q.en), FLOW_TAG, 200);
-    postFlowNode(rootKey, 350);
+    replaceFlowMessages([botMessage(t(root.q.ru, root.q.en)), flowNodeMessage(rootKey)]);
   };
 
   const handleFlowAnswer = (flowKey: string, opt: FlowOption) => {
     haptic("light");
-    // Echo user's pick
-    postUserEcho(t(opt.label.ru, opt.label.en));
 
     const a = opt.action;
     if (a.kind === "next") {
       const node = getFlowNode(a.next);
       if (!node) return;
       // Wipe prior Q&A so chat stays clean; keep only the freshest step
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(node.q.ru, node.q.en), FLOW_TAG, 350);
-      postFlowNode(a.next, 500);
+      replaceFlowMessages([botMessage(t(node.q.ru, node.q.en)), flowNodeMessage(a.next)]);
     } else if (a.kind === "tip") {
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(a.tip.ru, a.tip.en), FLOW_TAG, 350);
       if (!flowKey.startsWith("resolve:")) {
         // First tip → ask "did it help?"
-        postFlowNode(`resolve:${a.category}`, 600);
+        replaceFlowMessages([botMessage(t(a.tip.ru, a.tip.en)), flowNodeMessage(`resolve:${a.category}`)]);
       } else {
         // User confirmed "Yes, all clear" → offer a fresh topic picker
-        window.setTimeout(() => {
-          clearFlowMessages();
-          addSupportMessage({
-            id: newId(),
-            sender: "bot",
-            kind: "system",
-            text: "triage_prompt",
-            created: new Date().toISOString(),
-          });
-        }, 650);
+        replaceFlowMessages([
+          { id: newId(), sender: "bot", kind: "system", text: "triage_prompt", created: new Date().toISOString() },
+        ]);
       }
     } else if (a.kind === "escalate") {
       const ticket = openSupportTicket(a.category, a.summary);
       // Clear all diagnostic clutter — only the ticket prompt remains
-      window.setTimeout(() => clearFlowMessages(), 300);
-      postBot(t(a.prompt.ru, a.prompt.en), ticket.id, 400);
+      replaceFlowMessages([botMessage(t(a.prompt.ru, a.prompt.en), ticket.id)]);
       const catLabel = CATEGORIES.find((c) => c.id === a.category);
       tgNotify(
         `🆕 Новая заявка ${ticket.id}\n📂 ${catLabel?.ru ?? a.category}${a.summary ? " · " + a.summary : ""}\n👤 ${user?.username ? "@" + user.username : user?.full_name ?? "—"} (ID: ${user?.uid})`,
