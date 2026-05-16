@@ -2678,3 +2678,133 @@ function Stat({ label, value, icon }: { label: string; value: string; icon?: "bo
     </motion.div>
   );
 }
+
+function LiveChatLogo({ size = 56, active = true }: { size?: number; active?: boolean }) {
+  const ring = active ? "#39ff63" : "rgba(255,255,255,0.18)";
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: size,
+        height: size,
+        flexShrink: 0,
+      }}
+    >
+      {/* Outer pulsing ring */}
+      {active && (
+        <>
+          <motion.span
+            aria-hidden
+            animate={{ scale: [1, 1.45, 1], opacity: [0.55, 0, 0.55] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+            style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              border: `2px solid ${ring}`,
+              pointerEvents: "none",
+            }}
+          />
+          <motion.span
+            aria-hidden
+            animate={{ scale: [1, 1.7, 1], opacity: [0.35, 0, 0.35] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
+            style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              border: `1px solid ${ring}`,
+              pointerEvents: "none",
+            }}
+          />
+        </>
+      )}
+
+      {/* Rotating conic accent */}
+      <motion.div
+        aria-hidden
+        animate={{ rotate: 360 }}
+        transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+        style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          background: active
+            ? "conic-gradient(from 0deg, rgba(57,255,99,0.55), rgba(57,255,99,0) 35%, rgba(57,255,99,0) 65%, rgba(57,255,99,0.4) 100%)"
+            : "conic-gradient(from 0deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%)",
+          filter: "blur(0.5px)",
+        }}
+      />
+
+      {/* Inner disc */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 2,
+          borderRadius: "50%",
+          background: "radial-gradient(120% 90% at 30% 20%, #1d1f24 0%, #0c0d10 75%)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          display: "grid",
+          placeItems: "center",
+          overflow: "hidden",
+          boxShadow: active
+            ? "inset 0 0 18px rgba(57,255,99,0.18), 0 6px 20px -8px rgba(57,255,99,0.45)"
+            : "inset 0 0 12px rgba(0,0,0,0.6)",
+        }}
+      >
+        {/* Two stacked chat bubbles forming an infinity-like dialog */}
+        <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 40 40" fill="none">
+          <defs>
+            <linearGradient id="lc-a" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#a8ffba" />
+              <stop offset="100%" stopColor="#39ff63" />
+            </linearGradient>
+            <linearGradient id="lc-b" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7cd1ff" />
+              <stop offset="100%" stopColor="#3aa6ff" />
+            </linearGradient>
+          </defs>
+          {/* Left/upper bubble */}
+          <motion.path
+            d="M4 9c0-2.2 1.8-4 4-4h13c2.2 0 4 1.8 4 4v6c0 2.2-1.8 4-4 4h-9l-5 4v-4c-1.7-.3-3-1.8-3-3.6V9z"
+            fill="url(#lc-a)"
+            animate={active ? { y: [0, -1.2, 0] } : {}}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Right/lower bubble */}
+          <motion.path
+            d="M36 23c0-2.2-1.8-4-4-4H19c-2.2 0-4 1.8-4 4v6c0 2.2 1.8 4 4 4h9l5 4v-4c1.7-.3 3-1.8 3-3.6v-6.4z"
+            fill="url(#lc-b)"
+            animate={active ? { y: [0, 1.2, 0] } : {}}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          />
+          {/* Typing dots in the lower bubble */}
+          {active && (
+            <g>
+              {[0, 1, 2].map((i) => (
+                <motion.circle
+                  key={i}
+                  cx={21 + i * 4}
+                  cy={28}
+                  r={1.4}
+                  fill="#0b0c0f"
+                  animate={{ opacity: [0.3, 1, 0.3], cy: [28, 26.5, 28] }}
+                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 }}
+                />
+              ))}
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {/* Online dot */}
+      <span
+        style={{
+          position: "absolute",
+          right: 1,
+          bottom: 1,
+          width: 12,
+          height: 12,
+          borderRadius: "50%",
+          background: active ? "#39ff63" : "#ffb020",
+          border: "2px solid #0d0e11",
+          boxShadow: active ? "0 0 8px #39ff63" : "none",
+        }}
+      />
+    </div>
+  );
+}
