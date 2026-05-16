@@ -1379,7 +1379,8 @@ function SystemMessage({
     const flowKey = msg.text.slice(5);
     const node = getFlowNode(flowKey);
     if (!node) return null;
-    const locked = !isLastMessage;
+    if (!isLastMessage) return null; // stale flow — hide
+    const parent = getFlowParent(flowKey);
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -1396,24 +1397,23 @@ function SystemMessage({
         {node.options.map((opt, i) => (
           <motion.button
             key={opt.id}
-            onClick={() => !locked && onFlowAnswer(flowKey, opt)}
-            disabled={locked}
+            onClick={() => onFlowAnswer(flowKey, opt)}
             initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 * i, duration: 0.22, ease }}
-            whileTap={locked ? undefined : { scale: 0.98 }}
+            whileTap={{ scale: 0.98 }}
             style={{
               alignSelf: "flex-end",
               maxWidth: "82%",
               padding: "10px 14px",
               borderRadius: 18,
               border: `1px solid ${C.green}55`,
-              background: locked ? "transparent" : `${C.green}12`,
-              color: locked ? C.soft : C.green,
+              background: `${C.green}12`,
+              color: C.green,
               fontSize: 13.5,
               fontWeight: 500,
               letterSpacing: "-0.005em",
-              cursor: locked ? "default" : "pointer",
+              cursor: "pointer",
               textAlign: "right",
               lineHeight: 1.3,
             }}
@@ -1421,6 +1421,35 @@ function SystemMessage({
             {t(opt.label.ru, opt.label.en)}
           </motion.button>
         ))}
+        {parent && (
+          <motion.button
+            onClick={() => onFlowBack(flowKey)}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 0.85, y: 0 }}
+            transition={{ delay: 0.05 * node.options.length, duration: 0.22, ease }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              alignSelf: "flex-end",
+              padding: "8px 12px",
+              borderRadius: 16,
+              border: `1px solid ${C.border}`,
+              background: "transparent",
+              color: C.soft,
+              fontSize: 12.5,
+              fontWeight: 500,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            {t("Назад", "Back")}
+          </motion.button>
+        )}
       </motion.div>
     );
   }
