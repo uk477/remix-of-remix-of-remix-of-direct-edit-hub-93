@@ -103,6 +103,9 @@ function TxidInput({ id }: { id: string }) {
               const trimmed = reason.trim()
               if (!trimmed) return
               const w = useStore.getState().refWithdrawals.find((x) => x.id === id)
+              if (w && w.status === 'pending') {
+                creditRefBalance(w.amount)
+              }
               updateRefWithdrawal(id, {
                 status: 'rejected',
                 completedAt: new Date().toISOString(),
@@ -112,7 +115,7 @@ function TxidInput({ id }: { id: string }) {
                 [
                   '❌ Заявка на вывод отклонена',
                   w ? `🆔 ${w.id}` : '',
-                  w ? `💵 $${w.amount.toFixed(2)}` : '',
+                  w ? `💵 $${w.amount.toFixed(2)} возвращены на баланс` : '',
                   '',
                   `📝 Причина: ${trimmed}`,
                 ]
