@@ -71,20 +71,34 @@ function fmtPresence(online: boolean, lastSeenIso: string, lang: string): string
   const diffMs = Math.max(0, now - last);
   const diffMin = Math.floor(diffMs / 60000);
   const diffH = Math.floor(diffMs / 3600000);
-  const today = new Date();
-  const lastD = new Date(lastSeenIso);
-  const sameDay = today.toDateString() === lastD.toDateString();
-  const yest = new Date();
-  yest.setDate(today.getDate() - 1);
-  const isYest = yest.toDateString() === lastD.toDateString();
   const diffDays = Math.floor(diffMs / 86400000);
+  const lastD = new Date(lastSeenIso);
 
-  if (diffMin < 2) return ru ? "был только что" : "just now";
-  if (diffMin < 60) return ru ? "был в этом часу" : "within the hour";
-  if (sameDay && diffH < 6) return ru ? `был ${diffH} ч. назад` : `${diffH}h ago`;
-  if (sameDay) return ru ? `был сегодня в ${fmtTime(lastSeenIso, lang)}` : `today at ${fmtTime(lastSeenIso, lang)}`;
-  if (isYest) return ru ? `был вчера в ${fmtTime(lastSeenIso, lang)}` : `yesterday at ${fmtTime(lastSeenIso, lang)}`;
-  if (diffDays < 7) return ru ? `был ${diffDays} дн. назад` : `${diffDays}d ago`;
+  // RU: правильное склонение
+  const plural = (n: number, one: string, few: string, many: string) => {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+    return many;
+  };
+
+  if (diffMin < 1) return ru ? "был только что" : "last seen just now";
+  if (diffMin < 60) {
+    return ru
+      ? `был ${diffMin} ${plural(diffMin, "минуту", "минуты", "минут")} назад`
+      : `last seen ${diffMin} ${diffMin === 1 ? "minute" : "minutes"} ago`;
+  }
+  if (diffH < 24) {
+    return ru
+      ? `был ${diffH} ${plural(diffH, "час", "часа", "часов")} назад`
+      : `last seen ${diffH} ${diffH === 1 ? "hour" : "hours"} ago`;
+  }
+  if (diffDays < 7) {
+    return ru
+      ? `был ${diffDays} ${plural(diffDays, "день", "дня", "дней")} назад`
+      : `last seen ${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
+  }
   return ru
     ? `был ${lastD.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`
     : `last seen ${lastD.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
