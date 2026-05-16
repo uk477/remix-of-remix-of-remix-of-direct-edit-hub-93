@@ -211,15 +211,56 @@ export default function SupportHub() {
                   animate={{ scale: [1, 1.35, 1.35], opacity: [0.7, 0, 0] }}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
                 />
+                <motion.div
+                  aria-hidden
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+                  style={{
+                    position: 'absolute', inset: 0, borderRadius: '50%',
+                    background: 'conic-gradient(from 0deg, rgba(94,234,212,0.7), rgba(94,234,212,0) 40%, rgba(94,234,212,0) 65%, rgba(94,234,212,0.55) 100%)',
+                  }}
+                />
                 <div style={{
-                  position: 'absolute', inset: 0, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #5eead4, #0ea5a3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#04201f',
-                  boxShadow: '0 10px 30px -10px rgba(94,234,212,0.6)',
+                  position: 'absolute', inset: 2, borderRadius: '50%',
+                  background: 'radial-gradient(120% 90% at 30% 20%, #0e3835 0%, #04201f 80%)',
+                  display: 'grid', placeItems: 'center',
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 0 14px rgba(94,234,212,0.25), 0 10px 30px -10px rgba(94,234,212,0.6)',
                 }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                    <defs>
+                      <linearGradient id="hub-lc-a" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#a8fff0" />
+                        <stop offset="100%" stopColor="#5eead4" />
+                      </linearGradient>
+                      <linearGradient id="hub-lc-b" x1="1" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#5eead4" />
+                        <stop offset="100%" stopColor="#0ea5a3" />
+                      </linearGradient>
+                    </defs>
+                    <motion.path
+                      d="M4 9c0-2.2 1.8-4 4-4h13c2.2 0 4 1.8 4 4v6c0 2.2-1.8 4-4 4h-9l-5 4v-4c-1.7-.3-3-1.8-3-3.6V9z"
+                      fill="url(#hub-lc-a)"
+                      animate={{ y: [0, -1.2, 0] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <motion.path
+                      d="M36 23c0-2.2-1.8-4-4-4H19c-2.2 0-4 1.8-4 4v6c0 2.2 1.8 4 4 4h9l5 4v-4c1.7-.3 3-1.8 3-3.6v-6.4z"
+                      fill="url(#hub-lc-b)"
+                      animate={{ y: [0, 1.2, 0] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                    />
+                    {[0, 1, 2].map((i) => (
+                      <motion.circle
+                        key={i}
+                        cx={21 + i * 4}
+                        cy={28}
+                        r={1.4}
+                        fill="#04201f"
+                        animate={{ opacity: [0.3, 1, 0.3], cy: [28, 26.5, 28] }}
+                        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }}
+                      />
+                    ))}
                   </svg>
                 </div>
               </div>
@@ -303,9 +344,26 @@ export default function SupportHub() {
                   animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.9, 0.6] }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 />
-                <div style={{ position: 'relative', borderRadius: '50%', boxShadow: '0 10px 30px -10px rgba(55,187,254,0.7)' }}>
+                {/* Flight trail */}
+                <svg
+                  aria-hidden
+                  width="70" height="20" viewBox="0 0 70 20"
+                  style={{ position: 'absolute', left: -22, top: '50%', marginTop: -10, opacity: 0.55, pointerEvents: 'none' }}
+                >
+                  <motion.path
+                    d="M2 10 Q 18 2 35 10 T 68 10"
+                    fill="none" stroke="#37BBFE" strokeWidth="1.1" strokeDasharray="3 5" strokeLinecap="round"
+                    animate={{ strokeDashoffset: [0, -16] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
+                  />
+                </svg>
+                <motion.div
+                  animate={{ x: [-2, 3, -2], y: [1, -2, 1], rotate: [-5, 6, -5] }}
+                  transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ position: 'relative', borderRadius: '50%', boxShadow: '0 10px 30px -10px rgba(55,187,254,0.7)' }}
+                >
                   <TelegramMark size={54} />
-                </div>
+                </motion.div>
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
