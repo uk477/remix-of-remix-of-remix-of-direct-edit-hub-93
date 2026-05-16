@@ -1312,17 +1312,17 @@ function SystemMessage({
           >
             <span
               style={{
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 borderRadius: 10,
                 display: "grid",
                 placeItems: "center",
                 background: "rgba(57,255,99,0.10)",
                 border: "1px solid rgba(57,255,99,0.20)",
-                fontSize: 16,
+                color: C.green,
               }}
             >
-              {c.emoji}
+              <CategoryIcon icon={c.icon} size={18} />
             </span>
             <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>
               {t(c.ru, c.en)}
