@@ -7267,3 +7267,96 @@ body::after { display: none; }
   background: rgba(255, 255, 255, 0.18);
   margin: 4px auto 14px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   VERIFIED CARD — magenta/pink variant (shop-lot--a override)
+   Inspired by reference: pink neon, premium badge feel
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --fv-pink:      #ff3d8b;
+  --fv-pink-hot:  #ff5fa2;
+  --fv-pink-deep: #c91e6b;
+  --fv-pink-glow: rgba(255, 61, 139, 0.55);
+}
+
+.shop-lot--a {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255,61,139,0.14), transparent 55%),
+    radial-gradient(120% 80% at 100% 100%, rgba(201,30,107,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,61,139,0.05), rgba(20,8,16,0.4));
+}
+.shop-lot--a::before {
+  background: linear-gradient(135deg,
+    rgba(255,95,162,0.7),
+    rgba(255,61,139,0.25) 40%,
+    transparent 65%,
+    rgba(255,61,139,0.35));
+}
+/* outer pink glow */
+.shop-lot--a {
+  box-shadow:
+    0 18px 40px -22px rgba(255,61,139,0.45),
+    0 0 0 1px rgba(255,61,139,0.06);
+}
+
+/* Eyebrow → pink */
+.shop-lot--a .shop-lot-eye {
+  color: var(--fv-pink);
+  text-shadow: 0 0 12px rgba(255,61,139,0.35);
+}
+
+/* Title — keep white but with subtle pink accent on first word handled via JSX would need; just keep */
+.shop-lot--a .shop-lot-title { color: #fff; }
+
+/* Checkmarks in features → pink */
+.shop-lot--a .shop-lot-feats svg {
+  color: var(--fv-pink);
+  filter: drop-shadow(0 0 6px rgba(255,61,139,0.5));
+}
+
+/* Price $ symbol → pink */
+.shop-lot--a .shop-price-cur {
+  color: var(--fv-pink);
+  text-shadow: 0 0 10px rgba(255,61,139,0.4);
+}
+
+/* CTA button → pink gradient */
+.shop-lot--a .shop-cta {
+  background: linear-gradient(135deg, var(--fv-pink-hot) 0%, var(--fv-pink) 55%, var(--fv-pink-deep) 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 28px -12px var(--fv-pink-glow),
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+}
+.shop-lot--a .shop-cta:hover {
+  filter: brightness(1.1) saturate(1.05);
+  box-shadow:
+    0 18px 36px -10px var(--fv-pink-glow),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+/* Auto tag → pink to match */
+.shop-lot--a .shop-tag.is-auto {
+  color: var(--fv-pink);
+  border-color: rgba(255,61,139,0.45);
+  background: rgba(255,61,139,0.08);
+}
+
+/* Media shade — slight pink tint */
+.shop-lot--a .shop-lot-shade {
+  background: linear-gradient(180deg,
+    rgba(0,0,0,0) 40%,
+    rgba(60,5,30,0.55) 100%);
+}
+
+/* Lot number eyebrow + index get pink accent */
+.shop-lot--a .shop-lot-num span:first-child {
+  background: linear-gradient(180deg, #ffffff 0%, #ffd0e3 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.shop-lot--a .shop-lot-num i {
+  background: var(--fv-pink);
+  box-shadow: 0 0 8px rgba(255,61,139,0.55);
+}
