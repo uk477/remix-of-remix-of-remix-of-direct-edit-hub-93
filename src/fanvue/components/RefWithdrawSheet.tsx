@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type CSSProperties } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
-import { useT } from '../i18n'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
@@ -14,27 +13,110 @@ interface Props {
 
 type Step = 'amount' | 'network' | 'address' | 'confirm' | 'done'
 
+const GREEN = '#39FF63'
+const INK = '#050505'
+const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
+const BODY = "'DM Sans', system-ui, sans-serif"
+const MONO = "'JetBrains Mono', 'Space Mono', ui-monospace, monospace"
+
+const eyebrow: CSSProperties = {
+  fontFamily: DISPLAY,
+  fontSize: 10,
+  fontWeight: 600,
+  letterSpacing: '0.32em',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.4)',
+  fontStyle: 'italic',
+}
+
+const sectionLabel: CSSProperties = {
+  fontFamily: DISPLAY,
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase',
+  color: '#fff',
+}
+
+const inputStyle: CSSProperties = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 4,
+  padding: '14px 16px',
+  color: '#fff',
+  fontFamily: MONO,
+  fontSize: 15,
+  outline: 'none',
+}
+
+const primaryBtn = (disabled = false): CSSProperties => ({
+  width: '100%',
+  background: disabled ? 'rgba(57,255,99,0.18)' : GREEN,
+  color: INK,
+  fontFamily: DISPLAY,
+  fontWeight: 700,
+  fontSize: 13,
+  padding: '16px 16px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.22em',
+  border: 'none',
+  borderRadius: '0 0 28px 0',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  opacity: disabled ? 0.5 : 1,
+})
+
+const ghostBtn: CSSProperties = {
+  background: 'transparent',
+  border: '1px solid rgba(255,255,255,0.18)',
+  color: 'rgba(255,255,255,0.8)',
+  fontFamily: DISPLAY,
+  fontWeight: 700,
+  fontSize: 11,
+  padding: '14px 16px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.22em',
+  borderRadius: 4,
+  cursor: 'pointer',
+}
+
 const STATUS_COLOR: Record<RefWithdrawal['status'], string> = {
-  pending:   'var(--t-muted)',
-  completed: 'var(--success)',
-  rejected:  '#ff5050',
+  pending: 'rgba(255,255,255,0.55)',
+  completed: GREEN,
+  rejected: '#ff5050',
 }
 
-const STATUS_ICON: Record<RefWithdrawal['status'], string> = {
-  pending:   '⏳',
-  completed: '✅',
-  rejected:  '❌',
-}
-
-function StatusLabel({ status }: { status: RefWithdrawal['status'] }) {
-  const t = useT()
-  const map = { pending: t('withdraw_submitted'), completed: t('withdraw_paid'), rejected: t('withdraw_rejected') }
-  return <span style={{ color: STATUS_COLOR[status], fontWeight: 700 }}>{STATUS_ICON[status]} {map[status]}</span>
+function StatusLabel({ status, lang }: { status: RefWithdrawal['status']; lang: 'ru' | 'en' }) {
+  const label =
+    status === 'pending'
+      ? lang === 'ru'
+        ? 'В обработке'
+        : 'Pending'
+      : status === 'completed'
+        ? lang === 'ru'
+          ? 'Выплачено'
+          : 'Paid'
+        : lang === 'ru'
+          ? 'Отклонено'
+          : 'Rejected'
+  return (
+    <span
+      style={{
+        fontFamily: MONO,
+        fontSize: 10,
+        fontWeight: 700,
+        color: STATUS_COLOR[status],
+        textTransform: 'uppercase',
+        letterSpacing: '0.12em',
+      }}
+    >
+      {label}
+    </span>
+  )
 }
 
 export default function RefWithdrawSheet({ open, onClose }: Props) {
-  const t = useT()
-  const lang = useStore((s) => s.lang)
+  const lang = useStore((s) => s.lang) as 'ru' | 'en'
   const user = useStore((s) => s.user)
   const refWithdrawals = useStore((s) => s.refWithdrawals)
   const addRefWithdrawal = useStore((s) => s.addRefWithdrawal)
@@ -45,18 +127,22 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [amount, setAmount] = useState('')
   const [network, setNetwork] = useState<CryptoNetwork | null>(null)
   const [address, setAddress] = useState('')
-  const [confirmed, setConfirmed] = useState(false)
 
-  // Swipe-to-confirm track
   const trackRef = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
   const trackW = useRef(260)
   const thumbW = 56
   const maxX = trackW.current - thumbW - 4
-  const bgOpacity = useTransform(x, [0, maxX], [0.2, 1])
+  const bgOpacity = useTransform(x, [0, maxX], [0.15, 1])
 
   useEffect(() => {
-    if (open) { setStep('amount'); setAmount(''); setNetwork(null); setAddress(''); setConfirmed(false); x.set(0) }
+    if (open) {
+      setStep('amount')
+      setAmount('')
+      setNetwork(null)
+      setAddress('')
+      x.set(0)
+    }
   }, [open, x])
 
   useEffect(() => {
@@ -65,7 +151,6 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
 
   if (!user) return null
   const balance = user.ref_balance
-
   const MIN_WITHDRAW = 10
   const amountNum = parseFloat(amount) || 0
   const amountValid = amountNum >= MIN_WITHDRAW && amountNum <= balance
@@ -76,144 +161,284 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     addRefWithdrawal({ amount: amountNum, network, address, status: 'pending' })
     haptic('success')
     tgNotify(
-      `💸 Реферальный вывод\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`
+      `💸 Реферальный вывод\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
     )
     setStep('done')
-    setConfirmed(true)
   }
 
   function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    return new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   const netOpt = CRYPTO_OPTIONS.find((o) => o.id === network)
+  const stepNum =
+    step === 'amount' ? '01' : step === 'network' ? '02' : step === 'address' ? '03' : step === 'confirm' ? '04' : '05'
+  const stepTitle =
+    step === 'amount'
+      ? lang === 'ru' ? 'Сумма' : 'Amount'
+      : step === 'network'
+        ? lang === 'ru' ? 'Сеть' : 'Network'
+        : step === 'address'
+          ? lang === 'ru' ? 'Адрес' : 'Address'
+          : step === 'confirm'
+            ? lang === 'ru' ? 'Подтверждение' : 'Confirm'
+            : lang === 'ru' ? 'Готово' : 'Done'
 
   return (
     <AnimatePresence>
       {open && (
         <>
           <motion.div
-            className="sheet-backdrop"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onClose}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 100,
+            }}
           />
           <motion.div
-            className="sheet"
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
             drag="y"
             dragConstraints={{ top: 0 }}
-            dragElastic={0.1}
-            onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
-            style={{ maxHeight: '90vh', overflowY: 'hidden', display: 'flex', flexDirection: 'column' }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100) onClose()
+            }}
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 101,
+              background: INK,
+              borderTop: `1px solid rgba(57,255,99,0.25)`,
+              borderRadius: '24px 24px 0 0',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              fontFamily: BODY,
+              color: '#fff',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
           >
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4, flexShrink: 0 }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--b-default)' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }} />
             </div>
 
             {/* Header */}
-            <div className="row-between" style={{ padding: '8px 20px 12px', flexShrink: 0 }}>
-              <div className="t-lg fw-black">{t('withdraw_title')}</div>
-              <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} style={{ color: 'var(--t-muted)', fontSize: 20, lineHeight: 1 }}>×</motion.button>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 20px 14px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                <span style={{ fontFamily: MONO, fontSize: 12, color: GREEN, fontWeight: 700 }}>/{stepNum}</span>
+                <span
+                  style={{
+                    fontFamily: DISPLAY,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {stepTitle}
+                </span>
+              </div>
+              <button
+                onClick={onClose}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.7)',
+                  fontSize: 18,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
             </div>
 
             {/* Scrollable content */}
-            <div style={{ overflowY: 'auto', flex: 1, padding: '0 20px 28px' }}>
+            <div style={{ overflowY: 'auto', flex: 1, padding: '22px 20px 28px' }}>
               <AnimatePresence mode="wait">
-
-                {/* ── STEP: AMOUNT ── */}
+                {/* STEP: AMOUNT */}
                 {step === 'amount' && (
-                  <motion.div key="amount" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <div className="t-xs t-muted mb-1">{t('ref_balance_label')}</div>
-                    <div className="t-xl fw-black t-brand mb-3">${balance.toFixed(2)}</div>
+                  <motion.div
+                    key="amount"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                  >
+                    <div style={eyebrow}>{lang === 'ru' ? 'Доступно' : 'Available'}</div>
+                    <div
+                      style={{
+                        fontFamily: DISPLAY,
+                        fontWeight: 700,
+                        fontSize: 48,
+                        lineHeight: 1,
+                        letterSpacing: '-0.04em',
+                        marginTop: 8,
+                        marginBottom: 18,
+                        display: 'flex',
+                        alignItems: 'baseline',
+                      }}
+                    >
+                      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 30, marginRight: 4 }}>$</span>
+                      <span>{balance.toFixed(2).split('.')[0]}</span>
+                      <span style={{ color: GREEN, opacity: 0.85 }}>.{balance.toFixed(2).split('.')[1]}</span>
+                    </div>
 
-                    {/* Min withdraw notice */}
-                    <div style={{
-                      background: balance >= MIN_WITHDRAW
-                        ? 'rgba(73,242,100,0.08)'
-                        : 'rgba(255,165,0,0.08)',
-                      border: `1px solid ${balance >= MIN_WITHDRAW ? 'rgba(73,242,100,0.2)' : 'rgba(255,165,0,0.25)'}`,
-                      borderRadius: 10, padding: '10px 14px', marginBottom: 20,
-                      display: 'flex', gap: 10, alignItems: 'flex-start',
-                    }}>
-                      <span style={{ fontSize: 16, flexShrink: 0 }}>
-                        {balance >= MIN_WITHDRAW ? '✅' : '⏳'}
-                      </span>
-                      <div>
-                        <div className="t-xs fw-bold" style={{ color: balance >= MIN_WITHDRAW ? 'var(--success)' : 'var(--orange)', marginBottom: 2 }}>
-                          {lang === 'ru'
-                            ? `Минимальная сумма вывода — $${MIN_WITHDRAW}`
-                            : `Minimum withdrawal — $${MIN_WITHDRAW}`}
-                        </div>
-                        <div className="t-xs t-muted">
-                          {balance >= MIN_WITHDRAW
-                            ? (lang === 'ru' ? 'Баланс достаточен — можно выводить!' : 'Balance is sufficient — you can withdraw!')
-                            : (lang === 'ru'
-                                ? `Нужно ещё $${(MIN_WITHDRAW - balance).toFixed(2)} — пригласи ещё ${Math.ceil((MIN_WITHDRAW - balance) / 5)} ${Math.ceil((MIN_WITHDRAW - balance) / 5) === 1 ? 'покупателя' : 'покупателей'}`
-                                : `Need $${(MIN_WITHDRAW - balance).toFixed(2)} more — invite ${Math.ceil((MIN_WITHDRAW - balance) / 5)} more ${Math.ceil((MIN_WITHDRAW - balance) / 5) === 1 ? 'buyer' : 'buyers'}`)}
-                        </div>
+                    {/* Min notice */}
+                    <div
+                      style={{
+                        background:
+                          balance >= MIN_WITHDRAW ? 'rgba(57,255,99,0.06)' : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${balance >= MIN_WITHDRAW ? 'rgba(57,255,99,0.25)' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: 4,
+                        padding: '12px 14px',
+                        marginBottom: 24,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: MONO,
+                          fontSize: 10,
+                          color: balance >= MIN_WITHDRAW ? GREEN : 'rgba(255,255,255,0.55)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.14em',
+                          marginBottom: 4,
+                        }}
+                      >
+                        {lang === 'ru' ? `Минимум — $${MIN_WITHDRAW}` : `Minimum — $${MIN_WITHDRAW}`}
+                      </div>
+                      <div style={{ fontFamily: BODY, fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                        {balance >= MIN_WITHDRAW
+                          ? lang === 'ru'
+                            ? 'Баланс достаточен для вывода'
+                            : 'Balance is sufficient'
+                          : lang === 'ru'
+                            ? `Нужно ещё $${(MIN_WITHDRAW - balance).toFixed(2)}`
+                            : `Need $${(MIN_WITHDRAW - balance).toFixed(2)} more`}
                       </div>
                     </div>
 
-                    <div className="t-sm fw-bold mb-2">{t('withdraw_amount_label')}</div>
-                    <div style={{ position: 'relative', marginBottom: 6 }}>
+                    <div style={{ ...sectionLabel, marginBottom: 10 }}>
+                      {lang === 'ru' ? 'Сумма вывода' : 'Withdrawal amount'}
+                    </div>
+                    <div style={{ position: 'relative', marginBottom: 24 }}>
                       <input
-                        className="input"
                         type="number"
                         inputMode="decimal"
                         placeholder="100.00"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        style={{ paddingRight: 64 }}
+                        style={{ ...inputStyle, paddingRight: 70 }}
                       />
-                      <motion.button
-                        style={{
-                          position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                          fontSize: 12, fontWeight: 700, color: 'var(--brand)',
-                          padding: '6px 10px', borderRadius: 8,
-                          background: 'rgba(232,54,93,0.1)',
-                          minWidth: 44, minHeight: 36,
-                        }}
+                      <button
                         onClick={() => setAmount(balance.toFixed(2))}
-                        whileTap={{ scale: 0.9 }}
+                        style={{
+                          position: 'absolute',
+                          right: 6,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontFamily: DISPLAY,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: GREEN,
+                          background: 'rgba(57,255,99,0.1)',
+                          border: '1px solid rgba(57,255,99,0.3)',
+                          padding: '8px 12px',
+                          borderRadius: 999,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.18em',
+                          cursor: 'pointer',
+                        }}
                       >
-                        {t('withdraw_max')}
-                      </motion.button>
+                        Max
+                      </button>
                     </div>
-                    <div className="t-xs t-muted mb-5">{t('withdraw_amount_hint')}</div>
 
-                    <motion.button
-                      className="btn btn-primary"
-                      style={{ width: '100%' }}
+                    <button
+                      style={primaryBtn(!amountValid)}
                       disabled={!amountValid}
-                      onClick={() => setStep('network')}
-                      whileTap={{ scale: 0.97 }}
+                      onClick={() => {
+                        haptic('light')
+                        setStep('network')
+                      }}
                     >
-                      {lang === 'ru' ? 'Продолжить' : 'Continue'}
-                    </motion.button>
+                      {lang === 'ru' ? 'Продолжить →' : 'Continue →'}
+                    </button>
 
                     {/* History */}
                     {refWithdrawals.length > 0 && (
-                      <div style={{ marginTop: 28 }}>
-                        <div className="t-sm fw-bold mb-3">{t('withdraw_history')}</div>
-                        <div className="col gap-2">
+                      <div style={{ marginTop: 32 }}>
+                        <div style={{ ...eyebrow, marginBottom: 12 }}>
+                          {lang === 'ru' ? 'История' : 'History'}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                           {refWithdrawals.map((w) => (
-                            <div key={w.id} style={{
-                              background: 'var(--surface-2)',
-                              borderRadius: 10,
-                              padding: '10px 12px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 10,
-                            }}>
+                            <div
+                              key={w.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: '12px 0',
+                                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                              }}
+                            >
                               <CryptoLogo network={w.network} size={28} showBadge />
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div className="t-sm fw-bold">${w.amount.toFixed(2)}</div>
-                                <div className="t-xs t-muted">{formatDate(w.createdAt)}</div>
-                                {w.txid && <div className="t-xs t-muted" style={{ fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.txid}</div>}
+                                <div
+                                  style={{
+                                    fontFamily: DISPLAY,
+                                    fontSize: 15,
+                                    fontWeight: 700,
+                                    letterSpacing: '-0.01em',
+                                  }}
+                                >
+                                  ${w.amount.toFixed(2)}
+                                </div>
+                                <div
+                                  style={{
+                                    fontFamily: MONO,
+                                    fontSize: 10,
+                                    color: 'rgba(255,255,255,0.4)',
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  {formatDate(w.createdAt)}
+                                </div>
                               </div>
-                              <StatusLabel status={w.status} />
+                              <StatusLabel status={w.status} lang={lang} />
                             </div>
                           ))}
                         </div>
@@ -222,117 +447,254 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                   </motion.div>
                 )}
 
-                {/* ── STEP: NETWORK ── */}
+                {/* STEP: NETWORK */}
                 {step === 'network' && (
-                  <motion.div key="network" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <div className="t-sm fw-bold mb-3">{t('withdraw_network_label')}</div>
-                    <div className="col gap-2 mb-5">
-                      {CRYPTO_OPTIONS.map((opt) => (
-                        <motion.button
-                          key={opt.id}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            padding: '12px 14px',
-                            background: network === opt.id ? 'rgba(var(--brand-rgb),0.12)' : 'var(--surface-2)',
-                            border: network === opt.id ? '1.5px solid var(--brand)' : '1.5px solid transparent',
-                            borderRadius: 12, textAlign: 'left',
-                          }}
-                          onClick={() => setNetwork(opt.id)}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <CryptoLogo network={opt.id} size={32} showBadge />
-                          <div style={{ flex: 1 }}>
-                            <div className="t-sm fw-bold">{opt.name}</div>
-                            <div className="t-xs t-muted">{opt.symbol}</div>
-                          </div>
-                          {network === opt.id && <span style={{ color: 'var(--brand)', fontSize: 18 }}>✓</span>}
-                        </motion.button>
-                      ))}
+                  <motion.div
+                    key="network"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                  >
+                    <div style={{ ...sectionLabel, marginBottom: 14 }}>
+                      {lang === 'ru' ? 'Выберите сеть' : 'Select network'}
                     </div>
-                    <div className="row gap-3">
-                      <motion.button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setStep('amount')} whileTap={{ scale: 0.97 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+                      {CRYPTO_OPTIONS.map((opt) => {
+                        const active = network === opt.id
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => {
+                              haptic('light')
+                              setNetwork(opt.id)
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: '14px 16px',
+                              background: active ? 'rgba(57,255,99,0.08)' : 'rgba(255,255,255,0.03)',
+                              border: `1px solid ${active ? 'rgba(57,255,99,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                              borderRadius: 4,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              color: '#fff',
+                            }}
+                          >
+                            <CryptoLogo network={opt.id} size={32} showBadge />
+                            <div style={{ flex: 1 }}>
+                              <div
+                                style={{
+                                  fontFamily: DISPLAY,
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                  letterSpacing: '-0.01em',
+                                }}
+                              >
+                                {opt.name}
+                              </div>
+                              <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                                {opt.symbol}
+                              </div>
+                            </div>
+                            {active && (
+                              <span style={{ color: GREEN, fontFamily: MONO, fontSize: 16, fontWeight: 700 }}>✓</span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={{ ...ghostBtn, flex: 1 }} onClick={() => setStep('amount')}>
                         ← {lang === 'ru' ? 'Назад' : 'Back'}
-                      </motion.button>
-                      <motion.button className="btn btn-primary" style={{ flex: 2 }} disabled={!network} onClick={() => setStep('address')} whileTap={{ scale: 0.97 }}>
-                        {lang === 'ru' ? 'Продолжить' : 'Continue'}
-                      </motion.button>
+                      </button>
+                      <div style={{ flex: 2 }}>
+                        <button
+                          style={primaryBtn(!network)}
+                          disabled={!network}
+                          onClick={() => {
+                            haptic('light')
+                            setStep('address')
+                          }}
+                        >
+                          {lang === 'ru' ? 'Далее →' : 'Next →'}
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── STEP: ADDRESS ── */}
+                {/* STEP: ADDRESS */}
                 {step === 'address' && (
-                  <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <motion.div
+                    key="address"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                  >
                     {netOpt && (
-                      <div className="row gap-2 mb-4">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                         <CryptoLogo network={netOpt.id} size={28} showBadge />
-                        <span className="t-sm fw-bold">{netOpt.name}</span>
+                        <div>
+                          <div style={{ ...eyebrow, marginBottom: 2 }}>{lang === 'ru' ? 'Сеть' : 'Network'}</div>
+                          <div style={{ fontFamily: DISPLAY, fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
+                            {netOpt.name}
+                          </div>
+                        </div>
                       </div>
                     )}
-                    <div className="t-sm fw-bold mb-2">{t('withdraw_address_label')}</div>
+                    <div style={{ ...sectionLabel, marginBottom: 10 }}>
+                      {lang === 'ru' ? 'Адрес кошелька' : 'Wallet address'}
+                    </div>
                     <input
-                      className="input mb-1"
                       type="text"
-                      placeholder={t('withdraw_address_hint')}
+                      placeholder={lang === 'ru' ? 'Вставьте адрес' : 'Paste address'}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
+                      style={{ ...inputStyle, marginBottom: 8 }}
                     />
-                    <div className="t-xs t-muted mb-5" style={{ wordBreak: 'break-all' }}>
-                      {lang === 'ru' ? 'Убедитесь, что адрес соответствует выбранной сети' : 'Make sure the address matches the selected network'}
+                    <div
+                      style={{
+                        fontFamily: MONO,
+                        fontSize: 10,
+                        color: 'rgba(255,255,255,0.4)',
+                        marginBottom: 24,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                      }}
+                    >
+                      {lang === 'ru'
+                        ? 'Адрес должен соответствовать сети'
+                        : 'Address must match the network'}
                     </div>
-                    <div className="row gap-3">
-                      <motion.button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setStep('network')} whileTap={{ scale: 0.97 }}>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={{ ...ghostBtn, flex: 1 }} onClick={() => setStep('network')}>
                         ← {lang === 'ru' ? 'Назад' : 'Back'}
-                      </motion.button>
-                      <motion.button className="btn btn-primary" style={{ flex: 2 }} disabled={address.trim().length < 10} onClick={() => setStep('confirm')} whileTap={{ scale: 0.97 }}>
-                        {lang === 'ru' ? 'Продолжить' : 'Continue'}
-                      </motion.button>
+                      </button>
+                      <div style={{ flex: 2 }}>
+                        <button
+                          style={primaryBtn(address.trim().length < 10)}
+                          disabled={address.trim().length < 10}
+                          onClick={() => {
+                            haptic('light')
+                            setStep('confirm')
+                          }}
+                        >
+                          {lang === 'ru' ? 'Далее →' : 'Next →'}
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── STEP: CONFIRM (swipe) ── */}
+                {/* STEP: CONFIRM */}
                 {step === 'confirm' && (
-                  <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <div className="t-sm fw-bold mb-3">{t('withdraw_summary')}</div>
-                    <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '14px', marginBottom: 20 }} className="col gap-3">
-                      <div className="row-between">
-                        <span className="t-xs t-muted">{t('withdraw_amount_label')}</span>
-                        <span className="t-sm fw-bold">${amountNum.toFixed(2)}</span>
-                      </div>
-                      <div className="row-between">
-                        <span className="t-xs t-muted">{t('withdraw_network_label')}</span>
-                        <span className="t-sm fw-bold">{netOpt?.name}</span>
-                      </div>
-                      <div className="row-between" style={{ alignItems: 'flex-start' }}>
-                        <span className="t-xs t-muted">{t('withdraw_address_label')}</span>
-                        <span className="t-xs fw-bold" style={{ maxWidth: 180, textAlign: 'right', wordBreak: 'break-all' }}>{address}</span>
-                      </div>
+                  <motion.div
+                    key="confirm"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                  >
+                    <div style={{ ...sectionLabel, marginBottom: 14 }}>
+                      {lang === 'ru' ? 'Проверьте детали' : 'Review details'}
+                    </div>
+                    <div
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 4,
+                        padding: 4,
+                        marginBottom: 22,
+                      }}
+                    >
+                      {[
+                        { label: lang === 'ru' ? 'Сумма' : 'Amount', value: `$${amountNum.toFixed(2)}`, accent: true },
+                        { label: lang === 'ru' ? 'Сеть' : 'Network', value: netOpt?.name ?? '' },
+                        { label: lang === 'ru' ? 'Адрес' : 'Address', value: address, mono: true },
+                      ].map((row, i, arr) => (
+                        <div
+                          key={row.label}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: 14,
+                            padding: '14px 12px',
+                            borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontFamily: MONO,
+                              fontSize: 10,
+                              color: 'rgba(255,255,255,0.45)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.12em',
+                              flexShrink: 0,
+                              paddingTop: 2,
+                            }}
+                          >
+                            {row.label}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: row.mono ? MONO : DISPLAY,
+                              fontSize: row.mono ? 11 : 14,
+                              fontWeight: 700,
+                              color: row.accent ? GREEN : '#fff',
+                              maxWidth: 200,
+                              textAlign: 'right',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {row.value}
+                          </span>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Swipe track */}
+                    {/* Swipe to confirm */}
                     <div
                       ref={trackRef}
                       style={{
                         position: 'relative',
                         height: 60,
                         borderRadius: 30,
-                        background: 'var(--surface-2)',
-                        border: '1.5px solid var(--b-default)',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(57,255,99,0.3)',
                         overflow: 'hidden',
-                        marginBottom: 16,
+                        marginBottom: 14,
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         WebkitTouchCallout: 'none',
                       }}
                     >
-                      <motion.div style={{ position: 'absolute', inset: 0, background: 'var(--g-brand)', opacity: bgOpacity, borderRadius: 30 }} />
-                      <div style={{
-                        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)',
-                        pointerEvents: 'none',
-                      }}>
-                        {t('withdraw_swipe')}
+                      <motion.div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: GREEN,
+                          opacity: bgOpacity,
+                          borderRadius: 30,
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontFamily: DISPLAY,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: 'rgba(255,255,255,0.6)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.28em',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {lang === 'ru' ? 'Свайп для подтверждения' : 'Swipe to confirm'}
                       </div>
                       <motion.div
                         drag="x"
@@ -340,19 +702,31 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                         dragElastic={0}
                         dragMomentum={false}
                         style={{
-                          position: 'absolute', left: 2, top: 2,
-                          width: thumbW, height: thumbW,
+                          position: 'absolute',
+                          left: 2,
+                          top: 2,
+                          width: thumbW,
+                          height: thumbW,
                           borderRadius: '50%',
-                          background: 'white',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 22, cursor: 'grab', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          background: '#fff',
+                          color: INK,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 22,
+                          fontWeight: 700,
+                          cursor: 'grab',
+                          boxShadow: '0 4px 16px rgba(57,255,99,0.4)',
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
                           WebkitTouchCallout: 'none',
                           x,
                         }}
                         onDragEnd={(_, info) => {
-                          if (info.point.x - (trackRef.current?.getBoundingClientRect().left ?? 0) > (trackW.current * 0.75)) {
+                          if (
+                            info.point.x - (trackRef.current?.getBoundingClientRect().left ?? 0) >
+                            trackW.current * 0.75
+                          ) {
                             handleSubmit()
                           } else {
                             x.set(0)
@@ -363,139 +737,124 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       </motion.div>
                     </div>
 
-                    <motion.button className="btn btn-ghost" style={{ width: '100%' }} onClick={() => setStep('address')} whileTap={{ scale: 0.97 }}>
+                    <button style={ghostBtn} onClick={() => setStep('address')}>
                       ← {lang === 'ru' ? 'Назад' : 'Back'}
-                    </motion.button>
+                    </button>
                   </motion.div>
                 )}
 
-                {/* ── STEP: DONE ── */}
+                {/* STEP: DONE */}
                 {step === 'done' && (
-                  <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ paddingTop: 16, paddingBottom: 10 }}>
-                    <div className="t-lg fw-black" style={{ textAlign: 'center', marginBottom: 20 }}>
-                      {lang === 'ru' ? 'Заявка создана' : 'Request Created'}
+                  <motion.div
+                    key="done"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          background: GREEN,
+                          color: INK,
+                          margin: '0 auto 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 32,
+                          fontWeight: 800,
+                          boxShadow: '0 0 40px rgba(57,255,99,0.5)',
+                        }}
+                      >
+                        ✓
+                      </motion.div>
+                      <div
+                        style={{
+                          fontFamily: DISPLAY,
+                          fontWeight: 700,
+                          fontStyle: 'italic',
+                          fontSize: 24,
+                          letterSpacing: '-0.02em',
+                        }}
+                      >
+                        {lang === 'ru' ? 'Заявка создана' : 'Request created'}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: MONO,
+                          fontSize: 10,
+                          color: 'rgba(255,255,255,0.4)',
+                          marginTop: 8,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.2em',
+                        }}
+                      >
+                        {lang === 'ru' ? 'Обычно до 24 часов' : 'Usually within 24h'}
+                      </div>
                     </div>
 
-                    {/* Timeline tracker */}
-                    <div style={{ padding: '0 4px', marginBottom: 24 }}>
+                    <div
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 4,
+                        marginBottom: 22,
+                      }}
+                    >
                       {[
+                        { label: lang === 'ru' ? 'Сумма' : 'Amount', value: `$${amountNum.toFixed(2)}`, accent: true },
+                        { label: lang === 'ru' ? 'Сеть' : 'Network', value: netOpt?.name ?? '' },
                         {
-                          icon: '✅',
-                          title: lang === 'ru' ? 'Заявка отправлена' : 'Request Submitted',
-                          subtitle: lang === 'ru' ? 'Ожидайте рассмотрения' : 'Awaiting review',
-                          state: 'completed' as const,
+                          label: lang === 'ru' ? 'Адрес' : 'Address',
+                          value: address.length > 18 ? `${address.slice(0, 8)}…${address.slice(-8)}` : address,
+                          mono: true,
                         },
-                        {
-                          icon: '🔍',
-                          title: lang === 'ru' ? 'На рассмотрении' : 'Under Review',
-                          subtitle: lang === 'ru' ? 'Обычно до 24 часов' : 'Usually within 24 hours',
-                          state: 'active' as const,
-                        },
-                        {
-                          icon: '💸',
-                          title: lang === 'ru' ? 'Выплата произведена' : 'Payout Complete',
-                          subtitle: lang === 'ru' ? 'Средства поступят на ваш кошелёк' : 'Funds will arrive to your wallet',
-                          state: 'pending' as const,
-                        },
-                      ].map((item, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -12 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.15 + i * 0.12, type: 'spring', stiffness: 260, damping: 22 }}
-                          style={{ display: 'flex', gap: 14, position: 'relative' }}
+                      ].map((row, i, arr) => (
+                        <div
+                          key={row.label}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 14,
+                            padding: '14px 14px',
+                            borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                          }}
                         >
-                          {/* Vertical line connector */}
-                          {i < 2 && (
-                            <div style={{
-                              position: 'absolute',
-                              left: 17,
-                              top: 36,
-                              width: 2,
-                              height: 'calc(100% - 20px)',
-                              background: item.state === 'completed' ? 'var(--success)' : 'var(--b-default)',
-                              borderRadius: 1,
-                            }} />
-                          )}
-
-                          {/* Dot / icon */}
-                          <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, width: 36, display: 'flex', justifyContent: 'center' }}>
-                            {item.state === 'completed' ? (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.2 + i * 0.12, type: 'spring', stiffness: 400, damping: 15 }}
-                                style={{
-                                  width: 36, height: 36, borderRadius: '50%',
-                                  background: 'rgba(73,242,100,0.15)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 18,
-                                }}
-                              >
-                                {item.icon}
-                              </motion.div>
-                            ) : item.state === 'active' ? (
-                              <motion.div
-                                animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                                style={{
-                                  width: 36, height: 36, borderRadius: '50%',
-                                  background: 'rgba(232,54,93,0.12)',
-                                  border: '1.5px solid var(--brand)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 18,
-                                }}
-                              >
-                                {item.icon}
-                              </motion.div>
-                            ) : (
-                              <div style={{
-                                width: 36, height: 36, borderRadius: '50%',
-                                background: 'var(--surface-2)',
-                                border: '1.5px solid var(--b-default)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 18, opacity: 0.4,
-                              }}>
-                                {item.icon}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Text */}
-                          <div style={{ paddingTop: 6, paddingBottom: i < 2 ? 20 : 0, opacity: item.state === 'pending' ? 0.45 : 1 }}>
-                            <div className="t-sm fw-bold">{item.title}</div>
-                            <div className="t-xs t-muted" style={{ marginTop: 2 }}>{item.subtitle}</div>
-                          </div>
-                        </motion.div>
+                          <span
+                            style={{
+                              fontFamily: MONO,
+                              fontSize: 10,
+                              color: 'rgba(255,255,255,0.45)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.12em',
+                            }}
+                          >
+                            {row.label}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: row.mono ? MONO : DISPLAY,
+                              fontSize: row.mono ? 11 : 14,
+                              fontWeight: 700,
+                              color: row.accent ? GREEN : '#fff',
+                            }}
+                          >
+                            {row.value}
+                          </span>
+                        </div>
                       ))}
                     </div>
 
-                    {/* Withdrawal details */}
-                    <div style={{
-                      background: 'var(--surface-2)', borderRadius: 12, padding: '14px', width: '100%',
-                    }} className="col gap-3">
-                      <div className="row-between">
-                        <span className="t-xs t-muted">{t('withdraw_amount_label')}</span>
-                        <span className="t-sm fw-bold">${amountNum.toFixed(2)}</span>
-                      </div>
-                      <div className="row-between">
-                        <span className="t-xs t-muted">{t('withdraw_network_label')}</span>
-                        <span className="t-sm fw-bold">{netOpt?.name}</span>
-                      </div>
-                      <div className="row-between" style={{ alignItems: 'flex-start' }}>
-                        <span className="t-xs t-muted">{t('withdraw_address_label')}</span>
-                        <span className="t-xs fw-bold" style={{ maxWidth: 160, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {address.length > 16 ? `${address.slice(0, 8)}...${address.slice(-8)}` : address}
-                        </span>
-                      </div>
-                    </div>
-
-                    <motion.button className="btn btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={onClose} whileTap={{ scale: 0.97 }}>
+                    <button style={primaryBtn(false)} onClick={onClose}>
                       {lang === 'ru' ? 'Закрыть' : 'Close'}
-                    </motion.button>
+                    </button>
                   </motion.div>
                 )}
-
               </AnimatePresence>
             </div>
           </motion.div>
