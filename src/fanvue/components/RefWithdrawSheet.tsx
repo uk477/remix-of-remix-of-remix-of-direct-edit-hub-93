@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type CSSProperties } from 'react'
+import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
@@ -174,6 +174,45 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       `💸 Реферальный вывод\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
     )
     setStep('done')
+  }
+
+  function updateSwipe(clientX: number) {
+    const rect = trackRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const nextX = Math.min(Math.max(clientX - rect.left - thumbW / 2, 0), maxX)
+    setSwipeX(nextX)
+  }
+
+  function handleSwipeStart(e: PointerEvent<HTMLDivElement>) {
+    if (!maxX) return
+    e.preventDefault()
+    e.stopPropagation()
+    dragPointerId.current = e.pointerId
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setIsSwiping(true)
+    updateSwipe(e.clientX)
+  }
+
+  function handleSwipeMove(e: PointerEvent<HTMLDivElement>) {
+    if (dragPointerId.current !== e.pointerId) return
+    e.preventDefault()
+    e.stopPropagation()
+    updateSwipe(e.clientX)
+  }
+
+  function handleSwipeEnd(e: PointerEvent<HTMLDivElement>) {
+    if (dragPointerId.current !== e.pointerId) return
+    e.preventDefault()
+    e.stopPropagation()
+    dragPointerId.current = null
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+    setIsSwiping(false)
+    if (swipeX >= maxX * 0.78) {
+      setSwipeX(maxX)
+      handleSubmit()
+    } else {
+      setSwipeX(0)
+    }
   }
 
   function formatDate(iso: string) {
