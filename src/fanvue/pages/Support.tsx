@@ -891,6 +891,18 @@ export default function Support() {
         cur = null;
       }
       if (m.kind === "system") {
+        // Dedupe consecutive identical system pills (e.g. multiple "ticket_closed:")
+        const prev = out[out.length - 1];
+        const sysKey = m.text.split(":")[0];
+        if (
+          prev &&
+          prev.type === "system" &&
+          prev.msg.kind === "system" &&
+          prev.msg.text.split(":")[0] === sysKey
+        ) {
+          cur = null;
+          return;
+        }
         out.push({ type: "system", key: "s-" + m.id, msg: m });
         cur = null;
         return;
@@ -1473,7 +1485,7 @@ function SystemMessage({
     return null;
   }
   if (msg.text.startsWith("ticket_closed:")) {
-    return <SysPill text={t("Заявка закрыта", "Ticket closed")} accent />;
+    return <SysPill text={t("Заявка закрыта", "Ticket closed")} />;
   }
   return null;
 }
