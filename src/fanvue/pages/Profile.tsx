@@ -156,43 +156,23 @@ export default function Profile() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 6,
-                background: GREEN,
-                color: INK,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: DISPLAY,
-                fontWeight: 800,
-                fontSize: 22,
-                fontStyle: 'italic',
-                transform: 'rotate(-4deg)',
-                boxShadow: '0 0 32px rgba(57,255,99,0.35)',
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}
-            >
-              {user.photo_url ? (
-                <img src={user.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'rotate(4deg)' }} />
-              ) : (
-                initials
-              )}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.01em' }}>
-                {user.full_name}
-              </div>
-              {user.username && (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>
-                  @{user.username}
-                </div>
-              )}
-            </div>
+          <div className="shop-hero-brand" aria-label="Fanvue Profile">
+            <img
+              src={fanvueGlyph}
+              alt=""
+              draggable={false}
+              decoding="async"
+              width={36}
+              height={36}
+              className="shop-hero-brand-logo"
+            />
+            <span className="shop-hero-brand-sep" aria-hidden />
+            <span className="shop-hero-brand-mark" aria-hidden>
+              {'PROFILE'.split('').map((ch, i) => (
+                <span key={i}>{ch}</span>
+              ))}
+              <span className="shop-hero-brand-sheen" aria-hidden />
+            </span>
           </div>
           <button
             onClick={() => navigate('/settings')}
