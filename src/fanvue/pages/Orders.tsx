@@ -13,7 +13,13 @@ const MONO = "'JetBrains Mono', ui-monospace, monospace"
 const GREEN = '#39ff63'
 const INK = '#0a0a0a'
 
-type Filter = 'all' | OrderStatus
+type Filter = 'all' | 'closed' | 'pending' | 'cancelled'
+
+function bucket(s: OrderStatus): Exclude<Filter, 'all'> {
+  if (s === 'completed') return 'closed'
+  if (s === 'pending' || s === 'paid') return 'pending'
+  return 'cancelled'
+}
 
 const STATUS_META: Record<string, { ru: string; en: string; color: string; bg: string; border: string }> = {
   completed: { ru: 'Закрыт',   en: 'Closed',    color: GREEN,              bg: 'rgba(57,255,99,0.10)',  border: 'rgba(57,255,99,0.28)' },
@@ -33,17 +39,18 @@ export default function Orders() {
   const navigate = useNavigate()
   const lang = useStore((s) => s.lang)
   const allOrders = useStore((s) => s.orders)
-  const isAdmin = useStore((s) => s.isAdmin)
+  
   const [filter, setFilter] = useState<Filter>('all')
   const [openOrder, setOpenOrder] = useState<Order | null>(null)
 
+  // include all buy orders in any status
   const orders = useMemo(
-    () => allOrders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid' || (isAdmin() && o.status === 'pending'))),
-    [allOrders, isAdmin],
+    () => allOrders.filter((o) => o.kind === 'buy'),
+    [allOrders],
   )
 
   const filtered = useMemo(() => {
-    const arr = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
+    const arr = filter === 'all' ? orders : orders.filter((o) => bucket(o.status) === filter)
     return arr.slice().sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
   }, [orders, filter])
 
@@ -62,13 +69,15 @@ export default function Orders() {
   const FILTERS: { key: Filter; label: string }[] = lang === 'ru'
     ? [
         { key: 'all',       label: 'Все' },
-        { key: 'completed', label: 'Закрытые' },
-        { key: 'paid',      label: 'Оплачены' },
+        { key: 'closed',    label: 'Закрытые' },
+        { key: 'pending',   label: 'В процессе' },
+        { key: 'cancelled', label: 'Отменённые' },
       ]
     : [
         { key: 'all',       label: 'All' },
-        { key: 'completed', label: 'Closed' },
-        { key: 'paid',      label: 'Paid' },
+        { key: 'closed',    label: 'Closed' },
+        { key: 'pending',   label: 'In progress' },
+        { key: 'cancelled', label: 'Cancelled' },
       ]
 
 
