@@ -43,9 +43,10 @@ export default function Orders() {
   const [filter, setFilter] = useState<Filter>('all')
   const [openOrder, setOpenOrder] = useState<Order | null>(null)
 
+  // include all buy orders in any status
   const orders = useMemo(
-    () => allOrders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid' || (isAdmin() && o.status === 'pending'))),
-    [allOrders, isAdmin],
+    () => allOrders.filter((o) => o.kind === 'buy'),
+    [allOrders],
   )
 
   const filtered = useMemo(() => {
