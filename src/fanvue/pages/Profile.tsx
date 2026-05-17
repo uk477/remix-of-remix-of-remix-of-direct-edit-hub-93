@@ -7,6 +7,7 @@ import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { useToast } from '../components/Toast'
 import { CONFIG } from '../config'
+import fanvueGlyph from '../../assets/fanvue-glyph.png'
 
 const GREEN = '#39FF63'
 const INK = '#050505'
