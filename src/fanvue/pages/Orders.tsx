@@ -37,9 +37,10 @@ export default function Orders() {
   const [filter, setFilter] = useState<Filter>('all')
   const [openOrder, setOpenOrder] = useState<Order | null>(null)
 
-  const orders = isAdmin()
-    ? allOrders
-    : allOrders.filter((o) => o.status === 'completed' || o.status === 'paid' || o.status === 'pending')
+  const orders = useMemo(
+    () => allOrders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid' || (isAdmin() && o.status === 'pending'))),
+    [allOrders, isAdmin],
+  )
 
   const filtered = useMemo(() => {
     const arr = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
@@ -62,23 +63,19 @@ export default function Orders() {
     ? [
         { key: 'all',       label: 'Все' },
         { key: 'completed', label: 'Закрытые' },
-        { key: 'pending',   label: 'В работе' },
-        { key: 'failed',    label: 'Отменён' },
+        { key: 'paid',      label: 'Оплачены' },
       ]
     : [
         { key: 'all',       label: 'All' },
         { key: 'completed', label: 'Closed' },
-        { key: 'pending',   label: 'Pending' },
-        { key: 'failed',    label: 'Cancelled' },
+        { key: 'paid',      label: 'Paid' },
       ]
 
-  const totalIn = orders
-    .filter((o) => o.kind === 'deposit' && o.status === 'completed')
+  const totalSpent = orders
+    .filter((o) => o.status === 'completed' || o.status === 'paid')
     .reduce((s, o) => s + o.amount, 0)
-  const totalOut = orders
-    .filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid'))
-    .reduce((s, o) => s + o.amount, 0)
-  const pendingCount = orders.filter((o) => o.status === 'pending').length
+  const closedCount = orders.filter((o) => o.status === 'completed').length
+  const itemsCount = orders.length
 
   return (
     <PageTransition>
