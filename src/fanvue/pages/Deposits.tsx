@@ -88,11 +88,6 @@ export default function Deposits() {
     { key: 'failed',  label: lang === 'ru' ? 'Отменены'   : 'Cancelled', count: deposits.filter((o) => statusBucket(o.status) === 'failed').length },
   ]
 
-  const totalIn = deposits
-    .filter((o) => statusBucket(o.status) === 'success')
-    .reduce((s, o) => s + o.amount, 0)
-  const successCount = deposits.filter((o) => statusBucket(o.status) === 'success').length
-  const pendingCount = deposits.filter((o) => statusBucket(o.status) === 'pending').length
 
   return (
     <PageTransition>
