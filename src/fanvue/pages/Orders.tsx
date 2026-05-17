@@ -137,27 +137,6 @@ export default function Orders() {
             {lang === 'ru' ? 'История заказов' : 'Order History'}
           </h1>
 
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
-            <StatCard
-              label={lang === 'ru' ? 'Заказов' : 'Orders'}
-              value={String(itemsCount)}
-              accent={GREEN}
-              symbol="#"
-            />
-            <StatCard
-              label={lang === 'ru' ? 'Потрачено' : 'Spent'}
-              value={`$${totalSpent.toFixed(2)}`}
-              accent="#fff"
-              symbol="$"
-            />
-            <StatCard
-              label={lang === 'ru' ? 'Закрыто' : 'Closed'}
-              value={String(closedCount)}
-              accent="#ffd24a"
-              symbol="✓"
-            />
-          </div>
         </motion.div>
 
         {/* Filter pills */}
