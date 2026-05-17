@@ -71,11 +71,7 @@ export default function Orders() {
         { key: 'paid',      label: 'Paid' },
       ]
 
-  const totalSpent = orders
-    .filter((o) => o.status === 'completed' || o.status === 'paid')
-    .reduce((s, o) => s + o.amount, 0)
-  const closedCount = orders.filter((o) => o.status === 'completed').length
-  const itemsCount = orders.length
+
 
   return (
     <PageTransition>
