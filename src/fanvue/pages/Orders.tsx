@@ -39,7 +39,7 @@ export default function Orders() {
   const navigate = useNavigate()
   const lang = useStore((s) => s.lang)
   const allOrders = useStore((s) => s.orders)
-  const isAdmin = useStore((s) => s.isAdmin)
+  
   const [filter, setFilter] = useState<Filter>('all')
   const [openOrder, setOpenOrder] = useState<Order | null>(null)
 
