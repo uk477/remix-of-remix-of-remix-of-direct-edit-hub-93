@@ -140,22 +140,22 @@ export default function Orders() {
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
             <StatCard
-              label={lang === 'ru' ? 'Пополнено' : 'Inflow'}
-              value={`$${totalIn.toFixed(2)}`}
+              label={lang === 'ru' ? 'Заказов' : 'Orders'}
+              value={String(itemsCount)}
               accent={GREEN}
-              symbol="+"
+              symbol="#"
             />
             <StatCard
-              label={lang === 'ru' ? 'Потрачено' : 'Outflow'}
-              value={`$${totalOut.toFixed(2)}`}
+              label={lang === 'ru' ? 'Потрачено' : 'Spent'}
+              value={`$${totalSpent.toFixed(2)}`}
               accent="#fff"
-              symbol="−"
+              symbol="$"
             />
             <StatCard
-              label={lang === 'ru' ? 'В работе' : 'Pending'}
-              value={String(pendingCount)}
+              label={lang === 'ru' ? 'Закрыто' : 'Closed'}
+              value={String(closedCount)}
               accent="#ffd24a"
-              symbol="◷"
+              symbol="✓"
             />
           </div>
         </motion.div>
