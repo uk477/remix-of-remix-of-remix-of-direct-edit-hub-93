@@ -456,14 +456,15 @@ export default function Profile() {
         {/* Menu */}
         <div style={{ marginTop: 6, position: 'relative', zIndex: 2 }}>
           <Row num="01" label={lang === 'ru' ? 'История заказов' : 'Order History'} onClick={() => navigate('/orders')} />
+          <Row num="02" label={lang === 'ru' ? 'История пополнений' : 'Deposit History'} onClick={() => navigate('/deposits')} />
           <Row
-            num="02"
+            num="03"
             label={lang === 'ru' ? 'Мои рефералы' : 'My Referrals'}
             badge={user.ref_count}
             onClick={() => setShowReferrals(true)}
           />
           <Row
-            num="03"
+            num="04"
             label={lang === 'ru' ? 'Поддержка' : 'Support'}
             badge={supportUnread || undefined}
             onClick={() => navigate('/support')}
