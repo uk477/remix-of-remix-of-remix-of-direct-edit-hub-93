@@ -153,7 +153,13 @@ export default function Profile() {
         />
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'relative', zIndex: 2,
+          background: 'radial-gradient(120% 220% at 0% 50%, rgba(57,255,99,0.18) 0%, rgba(57,255,99,0.06) 30%, transparent 60%)',
+          padding: '6px 0',
+          margin: '-6px 0',
+        }}>
           <div className="shop-hero-brand" aria-label="Fanvue Profile">
             <img
               src={fanvueGlyph}
