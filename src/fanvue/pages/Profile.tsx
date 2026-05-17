@@ -39,8 +39,6 @@ export default function Profile() {
 
   if (!user) return null
 
-  const initials =
-    user.full_name.split(' ').map((p) => p[0]?.toUpperCase() ?? '').slice(0, 2).join('') || 'V'
   const refLink = `https://t.me/${CONFIG.botUsername}?start=ref${user.uid}`
   const [whole, cents] = user.balance.toFixed(2).split('.')
   const canWithdraw = user.ref_balance >= 10
