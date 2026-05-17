@@ -137,23 +137,25 @@ export default function ReferralList({ open, onClose }: Props) {
                 style={{
                   position: 'relative',
                   borderRadius: 18,
-                  padding: '22px 22px 24px',
-                  background: `radial-gradient(circle at 100% 0%, rgba(57,255,99,0.18), transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))`,
+                  padding: '20px 18px 22px',
+                  margin: '0 auto 22px',
+                  maxWidth: 320,
+                  background: `radial-gradient(circle at 50% 0%, rgba(57,255,99,0.18), transparent 65%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))`,
                   border: '1px solid rgba(57,255,99,0.22)',
                   overflow: 'hidden',
-                  marginBottom: 22,
+                  textAlign: 'center',
                 }}
               >
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', fontFamily: MONO }}>
                   {lang === 'ru' ? 'Всего заработано' : 'Total earned'}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6, marginTop: 8 }}>
                   <span style={{ fontSize: 18, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}>$</span>
                   <span style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-0.03em', color: GREEN, lineHeight: 1 }}>
                     {totalEarned.toFixed(2)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14 }}>
                   <div style={{
                     background: 'rgba(57,255,99,0.12)',
                     border: '1px solid rgba(57,255,99,0.25)',
