@@ -88,11 +88,6 @@ export default function Deposits() {
     { key: 'failed',  label: lang === 'ru' ? 'Отменены'   : 'Cancelled', count: deposits.filter((o) => statusBucket(o.status) === 'failed').length },
   ]
 
-  const totalIn = deposits
-    .filter((o) => statusBucket(o.status) === 'success')
-    .reduce((s, o) => s + o.amount, 0)
-  const successCount = deposits.filter((o) => statusBucket(o.status) === 'success').length
-  const pendingCount = deposits.filter((o) => statusBucket(o.status) === 'pending').length
 
   return (
     <PageTransition>
@@ -134,61 +129,16 @@ export default function Deposits() {
             </div>
           </div>
 
-          {/* HERO — total credited */}
-          <div
-            style={{
-              position: 'relative',
-              borderRadius: 22,
-              padding: '22px 22px 24px',
-              background:
-                'radial-gradient(120% 100% at 0% 0%, rgba(57,255,99,0.14) 0%, rgba(57,255,99,0.04) 35%, transparent 70%), rgba(255,255,255,0.025)',
-              border: '1px solid rgba(57,255,99,0.18)',
-              marginBottom: 12,
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{
-              fontFamily: MONO, fontSize: 10, fontWeight: 700,
-              letterSpacing: '0.2em', color: 'rgba(57,255,99,0.75)',
-              textTransform: 'uppercase',
-            }}>
-              {lang === 'ru' ? 'Всего зачислено' : 'Total credited'}
-            </div>
-            <div style={{
-              display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8,
-              fontFamily: DISPLAY, fontWeight: 800, color: GREEN,
-              letterSpacing: '-0.03em',
-            }}>
-              <span style={{ fontSize: 22, opacity: 0.6 }}>+$</span>
-              <span style={{ fontSize: 44, lineHeight: 1 }}>{totalIn.toFixed(2)}</span>
-            </div>
-            <div style={{
-              display: 'flex', gap: 18, marginTop: 16,
-              fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.55)',
-              letterSpacing: '0.1em', textTransform: 'uppercase',
-            }}>
-              <div>
-                <span style={{ color: GREEN, fontWeight: 700 }}>{successCount}</span>
-                <span style={{ marginLeft: 6 }}>{lang === 'ru' ? 'успешно' : 'success'}</span>
-              </div>
-              <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
-              <div>
-                <span style={{ color: AMBER, fontWeight: 700 }}>{pendingCount}</span>
-                <span style={{ marginLeft: 6 }}>{lang === 'ru' ? 'в ожидании' : 'pending'}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Title row */}
           <div style={{
             display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-            margin: '22px 0 12px',
+            margin: '4px 0 16px',
           }}>
             <h1 style={{
-              fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em',
+              fontSize: 28, fontWeight: 900, letterSpacing: '-0.02em',
               margin: 0, lineHeight: 1,
             }}>
-              {lang === 'ru' ? 'Транзакции' : 'Transactions'}
+              {lang === 'ru' ? 'Пополнения' : 'Deposits'}
             </h1>
             <div style={{
               fontFamily: MONO, fontSize: 10, fontWeight: 700,
