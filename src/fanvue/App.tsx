@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail'
 import Deposit from './pages/Deposit'
 import Profile from './pages/Profile'
 import Orders from './pages/Orders'
+import Deposits from './pages/Deposits'
 import Support from './pages/Support'
 import SupportHub from './pages/SupportHub'
 import Settings from './pages/Settings'
@@ -111,6 +112,7 @@ function AppInner() {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/deposits" element={<Deposits />} />
             <Route path="/support" element={<SupportHub />} />
             <Route path="/support/chat" element={<Support />} />
             <Route path="/settings" element={<Settings />} />
