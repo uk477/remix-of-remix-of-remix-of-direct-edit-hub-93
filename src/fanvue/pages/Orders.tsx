@@ -71,11 +71,7 @@ export default function Orders() {
         { key: 'paid',      label: 'Paid' },
       ]
 
-  const totalSpent = orders
-    .filter((o) => o.status === 'completed' || o.status === 'paid')
-    .reduce((s, o) => s + o.amount, 0)
-  const closedCount = orders.filter((o) => o.status === 'completed').length
-  const itemsCount = orders.length
+
 
   return (
     <PageTransition>
@@ -137,27 +133,6 @@ export default function Orders() {
             {lang === 'ru' ? 'История заказов' : 'Order History'}
           </h1>
 
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
-            <StatCard
-              label={lang === 'ru' ? 'Заказов' : 'Orders'}
-              value={String(itemsCount)}
-              accent={GREEN}
-              symbol="#"
-            />
-            <StatCard
-              label={lang === 'ru' ? 'Потрачено' : 'Spent'}
-              value={`$${totalSpent.toFixed(2)}`}
-              accent="#fff"
-              symbol="$"
-            />
-            <StatCard
-              label={lang === 'ru' ? 'Закрыто' : 'Closed'}
-              value={String(closedCount)}
-              accent="#ffd24a"
-              symbol="✓"
-            />
-          </div>
         </motion.div>
 
         {/* Filter pills */}
@@ -414,40 +389,3 @@ export default function Orders() {
   )
 }
 
-function StatCard({
-  label, value, accent, symbol,
-}: { label: string; value: string; accent: string; symbol: string }) {
-  return (
-    <div
-      style={{
-        position: 'relative',
-        background: 'rgba(255,255,255,0.025)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 14,
-        padding: '12px 12px 14px',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          fontFamily: MONO, fontSize: 9, fontWeight: 700,
-          letterSpacing: '0.18em', color: 'rgba(255,255,255,0.5)',
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
-        <span style={{ color: accent, fontSize: 12, fontWeight: 700, opacity: 0.85 }}>{symbol}</span>
-        <span
-          style={{
-            fontFamily: DISPLAY, fontSize: 17, fontWeight: 800,
-            letterSpacing: '-0.02em', color: accent,
-          }}
-        >
-          {value}
-        </span>
-      </div>
-    </div>
-  )
-}
