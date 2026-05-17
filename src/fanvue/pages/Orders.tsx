@@ -8,20 +8,19 @@ import { useStore, CRYPTO_OPTIONS } from '../store'
 import type { Order, OrderStatus, CryptoNetwork } from '../store/types'
 import CryptoLogo from '../components/CryptoLogo'
 
+const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
+const MONO = "'JetBrains Mono', ui-monospace, monospace"
+const GREEN = '#39ff63'
+const INK = '#0a0a0a'
+
 type Filter = 'all' | OrderStatus
 
-const STATUS_LABEL: Record<string, { ru: string; en: string }> = {
-  completed: { ru: 'Закрыт', en: 'Closed' },
-  paid:      { ru: 'Оплачен', en: 'Paid' },
-  pending:   { ru: 'Ожидание', en: 'Pending' },
-  failed:    { ru: 'Отменён', en: 'Cancelled' },
-  expired:   { ru: 'Истёк', en: 'Expired' },
-}
-
-function statusClass(s: OrderStatus): string {
-  if (s === 'completed' || s === 'paid') return 's-done'
-  if (s === 'pending') return 's-pending'
-  return 's-failed'
+const STATUS_META: Record<string, { ru: string; en: string; color: string; bg: string; border: string }> = {
+  completed: { ru: 'Закрыт',   en: 'Closed',    color: GREEN,              bg: 'rgba(57,255,99,0.10)',  border: 'rgba(57,255,99,0.28)' },
+  paid:      { ru: 'Оплачен',  en: 'Paid',      color: GREEN,              bg: 'rgba(57,255,99,0.10)',  border: 'rgba(57,255,99,0.28)' },
+  pending:   { ru: 'Ожидание', en: 'Pending',   color: '#ffd24a',          bg: 'rgba(255,210,74,0.10)', border: 'rgba(255,210,74,0.28)' },
+  failed:    { ru: 'Отменён',  en: 'Cancelled', color: '#ff6b6b',          bg: 'rgba(255,107,107,0.10)',border: 'rgba(255,107,107,0.28)' },
+  expired:   { ru: 'Истёк',    en: 'Expired',   color: 'rgba(255,255,255,0.55)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' },
 }
 
 function formatDate(iso: string, lang: string) {
@@ -30,10 +29,6 @@ function formatDate(iso: string, lang: string) {
   })
 }
 
-/**
- * VAULT — Ledger
- * Editorial transaction log. Filter rail + grouped rows.
- */
 export default function Orders() {
   const navigate = useNavigate()
   const lang = useStore((s) => s.lang)
@@ -77,146 +72,385 @@ export default function Orders() {
         { key: 'failed',    label: 'Cancelled' },
       ]
 
-  const totalIn = orders.filter((o) => o.kind === 'deposit' && o.status === 'completed').reduce((s, o) => s + o.amount, 0)
-  const totalOut = orders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid')).reduce((s, o) => s + o.amount, 0)
+  const totalIn = orders
+    .filter((o) => o.kind === 'deposit' && o.status === 'completed')
+    .reduce((s, o) => s + o.amount, 0)
+  const totalOut = orders
+    .filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid'))
+    .reduce((s, o) => s + o.amount, 0)
+  const pendingCount = orders.filter((o) => o.status === 'pending').length
 
   return (
     <PageTransition>
-      <div className="vault-page">
+      <div
+        style={{
+          minHeight: '100vh',
+          background: INK,
+          color: '#fff',
+          fontFamily: DISPLAY,
+          padding: 'max(18px, env(safe-area-inset-top, 18px) + 8px) 18px calc(var(--dock-h, 80px) + 64px)',
+        }}
+      >
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="vault-eyebrow">{lang === 'ru' ? 'Журнал' : 'The Ledger'}</div>
-          <h1 className="vault-h">
-            {lang === 'ru' ? <>Каждое <em>движение</em></> : <>Every <em>movement</em></>}
-          </h1>
-          <p className="vault-sub">
-            {lang === 'ru'
-              ? 'Полная хронология ваших сделок и пополнений хранилища.'
-              : 'A complete chronology of your settlements and inflows.'}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                width: 38, height: 38, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#fff', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              aria-label={lang === 'ru' ? 'Назад' : 'Back'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div
+              style={{
+                fontFamily: MONO, fontSize: 10, fontWeight: 700,
+                letterSpacing: '0.22em', color: 'rgba(255,255,255,0.45)',
+                textTransform: 'uppercase',
+              }}
+            >
+              /history
+            </div>
+          </div>
 
-          <div className="vault-stats">
-            <div className="vault-stat">
-              <div className="k">{lang === 'ru' ? 'Поступления' : 'Inflow'}</div>
-              <div className="v">${totalIn.toFixed(2)}</div>
-            </div>
-            <div className="vault-stat">
-              <div className="k">{lang === 'ru' ? 'Расход' : 'Outflow'}</div>
-              <div className="v">${totalOut.toFixed(2)}</div>
-            </div>
+          <div
+            style={{
+              fontFamily: MONO, fontSize: 10, fontWeight: 700,
+              letterSpacing: '0.22em', color: 'rgba(255,255,255,0.45)',
+              textTransform: 'uppercase', marginTop: 18,
+            }}
+          >
+            /01 · {lang === 'ru' ? 'Журнал операций' : 'Operations log'}
+          </div>
+          <h1
+            style={{
+              fontSize: 30, fontWeight: 900, letterSpacing: '-0.02em',
+              margin: '6px 0 16px', lineHeight: 1.05,
+            }}
+          >
+            {lang === 'ru' ? 'История заказов' : 'Order History'}
+          </h1>
+
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
+            <StatCard
+              label={lang === 'ru' ? 'Пополнено' : 'Inflow'}
+              value={`$${totalIn.toFixed(2)}`}
+              accent={GREEN}
+              symbol="+"
+            />
+            <StatCard
+              label={lang === 'ru' ? 'Потрачено' : 'Outflow'}
+              value={`$${totalOut.toFixed(2)}`}
+              accent="#fff"
+              symbol="−"
+            />
+            <StatCard
+              label={lang === 'ru' ? 'В работе' : 'Pending'}
+              value={String(pendingCount)}
+              accent="#ffd24a"
+              symbol="◷"
+            />
           </div>
         </motion.div>
 
-        <div className="vault-section">
-          <div style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
-            <div className="vault-seg" style={{ marginBottom: 6 }}>
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  className={filter === f.key ? 'is-active' : ''}
-                  onClick={() => setFilter(f.key)}
-                >
-                  {filter === f.key && <motion.span layoutId="seg-pill" className="seg-pill" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
-                  <span style={{ position: 'relative', zIndex: 1 }}>{f.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={filter}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{ marginTop: 24 }}
-            >
-              {filtered.length === 0 ? (
-                <div className="vault-empty">
-                  <div className="glyph">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 7h18M3 12h18M3 17h12"/>
-                    </svg>
-                  </div>
-                  <div className="ttl">
-                    {lang === 'ru' ? 'Журнал пуст' : 'The ledger is silent'}
-                  </div>
-                  <div className="sub">
-                    {lang === 'ru' ? 'Откройте хранилище' : 'Open the vault'}
-                  </div>
-                  <div style={{ marginTop: 24 }}>
-                    <button className="vault-cta-ghost" style={{ maxWidth: 240, margin: '0 auto' }} onClick={() => navigate('/')}>
-                      {lang === 'ru' ? 'В хранилище' : 'Enter the Vault'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-                  {groups.map(([day, items]) => (
-                    <div key={day}>
-                      <div className="vault-section-h" style={{ marginBottom: 10 }}>{day}</div>
-                      <motion.div
-                        style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-                        initial="hidden"
-                        animate="show"
-                        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
-                      >
-                        {items.map((o) => {
-                          const cryptoOpt = o.provider ? CRYPTO_OPTIONS.find((c) => c.id === (o.provider as CryptoNetwork)) : undefined
-                          const label = STATUS_LABEL[o.status]?.[lang as 'ru' | 'en'] ?? o.status
-                          const isDeposit = o.kind === 'deposit'
-                          return (
-                            <motion.button
-                              key={o.id}
-                              className="vault-row"
-                              onClick={() => setOpenOrder(o)}
-                              variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } }}
-                              whileTap={{ scale: 0.99 }}
-                              style={{ width: '100%', textAlign: 'left' }}
-                            >
-                              <div className="glyph">
-                                {cryptoOpt ? (
-                                  <CryptoLogo network={cryptoOpt.id} size={26} />
-                                ) : isDeposit ? (
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-                                ) : (
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7h18M5 7v13h14V7M9 11h6"/></svg>
-                                )}
-                              </div>
-                              <div className="body">
-                                <div className="ttl">
-                                  {isDeposit
-                                    ? (cryptoOpt ? `${lang === 'ru' ? 'Пополнение' : 'Inflow'} · ${cryptoOpt.name}` : (lang === 'ru' ? 'Пополнение' : 'Inflow'))
-                                    : (o.product_title ?? (lang === 'ru' ? 'Лот' : 'Lot'))}
-                                </div>
-                                <div className="meta">
-                                  {formatDate(o.created, lang)} · #{o.id.slice(0, 8)}
-                                </div>
-                              </div>
-                              <div className="right">
-                                <div className="price">
-                                  {isDeposit ? '+' : '−'}${o.amount.toFixed(2)}
-                                </div>
-                                <div className={`stat ${statusClass(o.status)}`}>{label}</div>
-                              </div>
-                            </motion.button>
-                          )
-                        })}
-                      </motion.div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
+        {/* Filter pills */}
+        <div
+          style={{
+            display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none',
+            marginBottom: 22, padding: '4px 0',
+          }}
+        >
+          {FILTERS.map((f) => {
+            const active = filter === f.key
+            return (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                style={{
+                  position: 'relative',
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  fontFamily: DISPLAY,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  background: active ? GREEN : 'rgba(255,255,255,0.04)',
+                  color: active ? INK : 'rgba(255,255,255,0.7)',
+                  border: `1px solid ${active ? GREEN : 'rgba(255,255,255,0.08)'}`,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  transition: 'background 160ms, color 160ms',
+                }}
+              >
+                {f.label}
+              </button>
+            )
+          })}
         </div>
+
+        {/* List */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={filter}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+          >
+            {filtered.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '64px 16px',
+                  border: '1px dashed rgba(255,255,255,0.08)',
+                  borderRadius: 16,
+                }}
+              >
+                <div
+                  style={{
+                    width: 56, height: 56, borderRadius: '50%',
+                    background: 'rgba(57,255,99,0.06)',
+                    border: '1px solid rgba(57,255,99,0.2)',
+                    color: GREEN,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 14px',
+                  }}
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 7h18M3 12h18M3 17h12"/>
+                  </svg>
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>
+                  {lang === 'ru' ? 'Здесь пока пусто' : 'Nothing here yet'}
+                </div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 18 }}>
+                  {lang === 'ru' ? 'Ваши заказы появятся в журнале' : 'Your orders will appear here'}
+                </div>
+                <button
+                  onClick={() => navigate('/')}
+                  style={{
+                    background: GREEN,
+                    color: INK,
+                    border: 'none',
+                    padding: '12px 22px',
+                    borderRadius: 999,
+                    fontFamily: DISPLAY,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {lang === 'ru' ? 'В маркет' : 'To market'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {groups.map(([day, items]) => (
+                  <div key={day}>
+                    <div
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        marginBottom: 10, paddingLeft: 2,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: MONO, fontSize: 10, fontWeight: 700,
+                          letterSpacing: '0.2em', color: 'rgba(255,255,255,0.55)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {day}
+                      </div>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+                      <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
+                        {items.length}
+                      </div>
+                    </div>
+
+                    <motion.div
+                      style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                      initial="hidden"
+                      animate="show"
+                      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.035 } } }}
+                    >
+                      {items.map((o) => {
+                        const cryptoOpt = o.provider
+                          ? CRYPTO_OPTIONS.find((c) => c.id === (o.provider as CryptoNetwork))
+                          : undefined
+                        const meta = STATUS_META[o.status] ?? STATUS_META.expired
+                        const label = meta[lang as 'ru' | 'en']
+                        const isDeposit = o.kind === 'deposit'
+
+                        return (
+                          <motion.button
+                            key={o.id}
+                            onClick={() => setOpenOrder(o)}
+                            variants={{
+                              hidden: { opacity: 0, y: 8 },
+                              show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
+                            }}
+                            whileTap={{ scale: 0.985 }}
+                            style={{
+                              width: '100%',
+                              textAlign: 'left',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: '14px 14px',
+                              background: 'rgba(255,255,255,0.025)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                              borderRadius: 14,
+                              cursor: 'pointer',
+                              color: '#fff',
+                            }}
+                          >
+                            {/* Icon */}
+                            <div
+                              style={{
+                                width: 42, height: 42, borderRadius: 12,
+                                background: isDeposit ? 'rgba(57,255,99,0.08)' : 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${isDeposit ? 'rgba(57,255,99,0.22)' : 'rgba(255,255,255,0.08)'}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: isDeposit ? GREEN : 'rgba(255,255,255,0.75)',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {cryptoOpt ? (
+                                <CryptoLogo network={cryptoOpt.id} size={24} />
+                              ) : isDeposit ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 19V5M5 12l7-7 7 7"/>
+                                </svg>
+                              ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"/>
+                                  <path d="M14 2v6h6"/>
+                                </svg>
+                              )}
+                            </div>
+
+                            {/* Body */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontSize: 14, fontWeight: 700, color: '#fff',
+                                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {isDeposit
+                                  ? (cryptoOpt
+                                      ? `${lang === 'ru' ? 'Пополнение' : 'Deposit'} · ${cryptoOpt.name}`
+                                      : (lang === 'ru' ? 'Пополнение' : 'Deposit'))
+                                  : (o.product_title ?? (lang === 'ru' ? 'Товар' : 'Item'))}
+                              </div>
+                              <div
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 6,
+                                  fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.45)',
+                                  marginTop: 4,
+                                }}
+                              >
+                                <span>{formatDate(o.created, lang)}</span>
+                                <span style={{ opacity: 0.4 }}>·</span>
+                                <span>#{o.id.slice(0, 8)}</span>
+                              </div>
+                            </div>
+
+                            {/* Right */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                              <div
+                                style={{
+                                  fontFamily: DISPLAY,
+                                  fontSize: 15, fontWeight: 800,
+                                  letterSpacing: '-0.01em',
+                                  color: isDeposit ? GREEN : '#fff',
+                                }}
+                              >
+                                {isDeposit ? '+' : '−'}${o.amount.toFixed(2)}
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: MONO,
+                                  fontSize: 9,
+                                  fontWeight: 700,
+                                  letterSpacing: '0.12em',
+                                  textTransform: 'uppercase',
+                                  color: meta.color,
+                                  background: meta.bg,
+                                  border: `1px solid ${meta.border}`,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                }}
+                              >
+                                {label}
+                              </div>
+                            </div>
+                          </motion.button>
+                        )
+                      })}
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <OrderDetailModal order={openOrder} onClose={() => setOpenOrder(null)} />
     </PageTransition>
+  )
+}
+
+function StatCard({
+  label, value, accent, symbol,
+}: { label: string; value: string; accent: string; symbol: string }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        background: 'rgba(255,255,255,0.025)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 14,
+        padding: '12px 12px 14px',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONO, fontSize: 9, fontWeight: 700,
+          letterSpacing: '0.18em', color: 'rgba(255,255,255,0.5)',
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
+        <span style={{ color: accent, fontSize: 12, fontWeight: 700, opacity: 0.85 }}>{symbol}</span>
+        <span
+          style={{
+            fontFamily: DISPLAY, fontSize: 17, fontWeight: 800,
+            letterSpacing: '-0.02em', color: accent,
+          }}
+        >
+          {value}
+        </span>
+      </div>
+    </div>
   )
 }
