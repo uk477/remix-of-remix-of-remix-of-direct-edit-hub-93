@@ -50,7 +50,7 @@ export default function Orders() {
   )
 
   const filtered = useMemo(() => {
-    const arr = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
+    const arr = filter === 'all' ? orders : orders.filter((o) => bucket(o.status) === filter)
     return arr.slice().sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
   }, [orders, filter])
 
@@ -69,13 +69,15 @@ export default function Orders() {
   const FILTERS: { key: Filter; label: string }[] = lang === 'ru'
     ? [
         { key: 'all',       label: 'Все' },
-        { key: 'completed', label: 'Закрытые' },
-        { key: 'paid',      label: 'Оплачены' },
+        { key: 'closed',    label: 'Закрытые' },
+        { key: 'pending',   label: 'В процессе' },
+        { key: 'cancelled', label: 'Отменённые' },
       ]
     : [
         { key: 'all',       label: 'All' },
-        { key: 'completed', label: 'Closed' },
-        { key: 'paid',      label: 'Paid' },
+        { key: 'closed',    label: 'Closed' },
+        { key: 'pending',   label: 'In progress' },
+        { key: 'cancelled', label: 'Cancelled' },
       ]
 
 
