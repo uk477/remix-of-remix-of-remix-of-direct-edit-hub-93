@@ -13,7 +13,13 @@ const MONO = "'JetBrains Mono', ui-monospace, monospace"
 const GREEN = '#39ff63'
 const INK = '#0a0a0a'
 
-type Filter = 'all' | OrderStatus
+type Filter = 'all' | 'closed' | 'pending' | 'cancelled'
+
+function bucket(s: OrderStatus): Exclude<Filter, 'all'> {
+  if (s === 'completed') return 'closed'
+  if (s === 'pending' || s === 'paid') return 'pending'
+  return 'cancelled'
+}
 
 const STATUS_META: Record<string, { ru: string; en: string; color: string; bg: string; border: string }> = {
   completed: { ru: 'Закрыт',   en: 'Closed',    color: GREEN,              bg: 'rgba(57,255,99,0.10)',  border: 'rgba(57,255,99,0.28)' },
