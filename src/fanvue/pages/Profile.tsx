@@ -131,8 +131,6 @@ export default function Profile() {
           flexDirection: 'column',
           gap: 16,
           fontFamily: BODY,
-          position: 'relative',
-          zIndex: 1,
         }}
       >
         {/* Header */}
