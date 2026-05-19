@@ -91,6 +91,7 @@ function AppInner() {
               <Route path="photos" element={<AdminPhotos />} />
               <Route path="more" element={<AdminMore />} />
               <Route path="referrals" element={<AdminReferrals />} />
+              <Route path="deposits" element={<AdminDeposits />} />
             </Route>
           </Routes>
         </Suspense>
