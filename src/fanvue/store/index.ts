@@ -43,7 +43,7 @@ const MOCK_PRODUCTS: Product[] = [
     id: 1, cat_id: 1,
     title: 'Готовый верифицированный аккаунт',
     title_en: 'Ready verified account',
-    description: 'Полностью готовый аккаунт Fanvue с пройденной верификацией. Чистая история, подтверждён 18+, разблокированы все способы монетизации (Subscriptions, PPV, Tips). Передача — смена e-mail и пароля под вашим контролем, средняя выдача 5–15 минут после оплаты. Никаких ожиданий, никаких рисков отказа.',
+    description: 'Полностью готовый аккаунт Fanvue с пройденной верификацией. Чистая история, подтверждён 18+, разблокированы все способы монетизации (Subscriptions, PPV, Tips). Передача — логин, пароль, почта, пароль от почты, инструкция. Средняя выдача 5–15 минут после оплаты. Никаких ожиданий, никаких рисков отказа.',
     desc_en: 'A fully ready Fanvue account with verification already passed. Clean history, age-confirmed (18+), all monetisation features unlocked (Subscriptions, PPV, Tips). Hand-off is e-mail & password change under your control, average delivery 5–15 minutes after payment. No waiting, no rejection risk.',
     price: 35.00, delivery: 'auto', stock: 14, active: true,
   },
