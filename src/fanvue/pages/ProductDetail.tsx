@@ -95,7 +95,7 @@ export default function ProductDetail() {
     haptic('success')
     const buyCount = orders.filter((o) => o.kind === 'buy').length + 1
     addOrder({
-      id: generateOrderId(buyCount),
+      id: generateOrderId('buy'),
       orderNum: buyCount,
       kind: 'buy',
       product_title: title,
@@ -125,7 +125,7 @@ export default function ProductDetail() {
       network: selectedNet,
     })
     const buyCount = orders.filter((o) => o.kind === 'buy').length + 1
-    const orderId = remote?.id ?? generateOrderId(buyCount)
+    const orderId = remote?.id ?? generateOrderId('buy')
     const uniqueAmount = remote ? total : generateUniqueAmount(total)
     addOrder({
       id: orderId,

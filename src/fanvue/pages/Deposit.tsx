@@ -102,7 +102,7 @@ export default function Deposit() {
     cancelPendingDeposits(network)
     const remote = await createOrder({ uid: user.uid, kind: 'deposit', amount_usd: numAmount, network })
     const depositCount = orders.filter((o) => o.kind === 'deposit').length + 1
-    const orderId = remote?.id ?? generateOrderId(depositCount)
+    const orderId = remote?.id ?? generateOrderId('deposit')
     const uniqueAmount = remote ? numAmount : generateUniqueAmount(numAmount)
     addOrder({ id: orderId, orderNum: depositCount, kind: 'deposit', amount: uniqueAmount, status: 'pending', provider: network, created: new Date().toISOString() })
     setPendingOrder({ id: orderId, uniqueAmount, createdAt: new Date().toISOString() })

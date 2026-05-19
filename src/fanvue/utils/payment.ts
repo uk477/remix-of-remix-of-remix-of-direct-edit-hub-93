@@ -1,15 +1,24 @@
 import { CONFIG, APPROX_RATES } from '../config'
 import type { CryptoNetwork, OrderStatus } from '../store/types'
 
-/** Generates a meaningful order ID: {orderNum}_{DDMMYYYYhhmm} */
-export function generateOrderId(orderNum: number): string {
-  const now = new Date()
-  const dd   = String(now.getDate()).padStart(2, '0')
-  const mm   = String(now.getMonth() + 1).padStart(2, '0')
-  const yyyy = String(now.getFullYear())
-  const hh   = String(now.getHours()).padStart(2, '0')
-  const min  = String(now.getMinutes()).padStart(2, '0')
-  return `${orderNum}_${dd}${mm}${yyyy}${hh}${min}`
+/**
+ * Уникальный ID на каждое действие.
+ * Формат: {PREFIX}-{base36(ts)}-{4 случайных символа}
+ * Пример: DEP-LX9K2A-9F7B, ORD-LX9K2A-K3M2
+ */
+export function generateOrderId(kind: 'buy' | 'deposit' = 'buy'): string {
+  const prefix = kind === 'deposit' ? 'DEP' : 'ORD'
+  const ts = Date.now().toString(36).toUpperCase()
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let rand = ''
+  const arr = new Uint8Array(4)
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(arr)
+  } else {
+    for (let i = 0; i < 4; i++) arr[i] = Math.floor(Math.random() * 256)
+  }
+  for (let i = 0; i < 4; i++) rand += alphabet[arr[i] % alphabet.length]
+  return `${prefix}-${ts}-${rand}`
 }
 
 /**
