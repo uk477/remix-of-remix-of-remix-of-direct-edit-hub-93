@@ -16,9 +16,10 @@ const Ic = {
   arrow:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>,
 }
 
-type Period = 'today' | 'week' | 'month'
+type Period = 'today' | 'week' | 'month' | 'all'
 
 function withinPeriod(ts: string, period: Period) {
+  if (period === 'all') return true
   const d   = new Date(ts).getTime()
   const now = Date.now()
   const day = 24 * 60 * 60 * 1000
@@ -27,6 +28,7 @@ function withinPeriod(ts: string, period: Period) {
   return now - d < 30 * day
 }
 function prevPeriod(ts: string, period: Period) {
+  if (period === 'all') return false
   const d   = new Date(ts).getTime()
   const now = Date.now()
   const day = 24 * 60 * 60 * 1000
@@ -153,7 +155,7 @@ export default function AdminDashboard() {
   const recent = logs.slice(0, 6)
 
   const periodLabel: Record<Period, string> = {
-    today: 'Сегодня', week: 'Неделя', month: 'Месяц',
+    today: 'Сегодня', week: 'Неделя', month: 'Месяц', all: 'Всё время',
   }
 
   return (
@@ -177,7 +179,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="adm2-segment">
-            {(['today', 'week', 'month'] as Period[]).map((p) => (
+            {(['today', 'week', 'month', 'all'] as Period[]).map((p) => (
               <button
                 key={p}
                 className={`adm2-seg-btn${period === p ? ' is-active' : ''}`}
@@ -195,8 +197,8 @@ export default function AdminDashboard() {
 
         {/* KPI grid */}
         <div className="adm2-kpi-grid mb-4">
-          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99" delta={revDelta}    spark={revSpark} delay={0}    />
-          <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={ordersDelta} spark={ordSpark} delay={0.05} />
+          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99"   delta={period === 'all' ? undefined : revDelta}    spark={revSpark} delay={0}    />
+          <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={period === 'all' ? undefined : ordersDelta} spark={ordSpark} delay={0.05} />
           <KpiCard Icon={Ic.users}   value={String(uniqueUsers)}     label={t('admin_total_users')}  accent="111,154,184" delay={0.10} />
           <KpiCard Icon={Ic.pending} value={String(pendingCount)}    label={t('admin_pending')}      accent="224,115,74"  delay={0.15} />
         </div>
