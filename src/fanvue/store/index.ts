@@ -582,6 +582,9 @@ export const useStore = create<AppStore>()(
       setCryptoAddress: (network, address) =>
         set((s) => ({ cryptoAddresses: { ...s.cryptoAddresses, [network]: address } })),
 
+      setSiteLink: (key, value) =>
+        set((s) => ({ siteLinks: { ...s.siteLinks, [key]: value } })),
+
       setQrOverride: (network, dataUri) =>
         set((s) => {
           const next = { ...s.qrOverrides }
