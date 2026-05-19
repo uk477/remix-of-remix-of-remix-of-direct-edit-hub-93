@@ -458,7 +458,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
 
             {/* Security instruction — opens external URL */}
             <motion.a
-              href={CONFIG.securityInstructionUrl}
+              href={securityUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => haptic('light')}
