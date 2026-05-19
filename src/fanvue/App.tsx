@@ -28,6 +28,7 @@ const AdminBroadcast = lazy(() => import('./admin/AdminBroadcast'))
 const AdminPhotos = lazy(() => import('./admin/AdminPhotos'))
 const AdminMore = lazy(() => import('./admin/AdminMore'))
 const AdminReferrals = lazy(() => import('./admin/AdminReferrals'))
+const AdminDeposits = lazy(() => import('./admin/AdminDeposits'))
 import { useStore } from './store'
 import { useTelegram } from './hooks/useTelegram'
 import { ToastProvider } from './components/Toast'
