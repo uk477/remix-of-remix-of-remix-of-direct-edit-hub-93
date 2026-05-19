@@ -608,6 +608,7 @@ export default function Support() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingDebounce = useRef<number | null>(null);
+  const triagePromptQueuedRef = useRef(false);
 
   // Active ticket = newest non-closed
   const activeTicket = useMemo(
@@ -685,8 +686,10 @@ export default function Support() {
   }, [messages]);
 
   useEffect(() => {
-    if (activeTicket) return;
-    if (hasOpenOrder) return; // открытый заказ — пишем напрямую, без триажа
+    if (activeTicket || hasOpenOrder) {
+      triagePromptQueuedRef.current = false;
+      return;
+    }
     const last = messages[messages.length - 1];
     const lastIsInteractive =
       last?.kind === "system" &&
@@ -697,6 +700,8 @@ export default function Support() {
     // Skip if user just answered a flow chip — next flow node is on its way.
     // But only if there's still an interactive prompt outstanding earlier in history.
     if (last?.sender === "user" && lastBotPrompt) return;
+    if (triagePromptQueuedRef.current) return;
+    triagePromptQueuedRef.current = true;
 
     if (messages.length === 0) {
       // initial greeting
