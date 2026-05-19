@@ -101,13 +101,13 @@ export default function ProductDetail() {
       kind: 'buy',
       product_title: title,
       amount: total,
-      status: 'completed',
+      status: 'paid',
       quantity: qty,
       created: new Date().toISOString(),
       paid_at: new Date().toISOString(),
     })
     updateBalance(-total)
-    toast.show(lang === 'ru' ? 'Покупка готова.' : 'Purchase ready.', 'success')
+    toast.show(lang === 'ru' ? 'Заказ оплачен.' : 'Order paid.', 'success')
     tgNotify(
       `🛍 Новый заказ (баланс)\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n📦 ${title} × ${qty}\n💵 $${total.toFixed(2)}`,
     )
