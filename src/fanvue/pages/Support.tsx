@@ -2137,12 +2137,12 @@ function Composer({
             borderRadius: 22,
             padding: "0 14px",
             display: "flex",
-            alignItems: "flex-end",
+            alignItems: "center",
           }}
         >
           <textarea
             ref={taRef}
-            placeholder={disabled ? t("Создайте заявку, чтобы написать", "Create a ticket to send a message") : t("Сообщение", "Message")}
+            placeholder={disabled ? t("Сначала создайте заявку", "Create a ticket first") : t("Сообщение", "Message")}
             value={text}
             disabled={disabled}
             onFocus={() => setFocused(true)}
