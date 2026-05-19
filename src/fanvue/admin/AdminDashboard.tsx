@@ -194,7 +194,7 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* KPI grid */}
-        <div className="grid-2 mb-4">
+        <div className="adm2-kpi-grid mb-4">
           <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="232,201,140" delta={revDelta}    spark={revSpark} delay={0}    />
           <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={ordersDelta} spark={ordSpark} delay={0.05} />
           <KpiCard Icon={Ic.users}   value={String(uniqueUsers)}     label={t('admin_total_users')}  accent="111,154,184" delay={0.10} />
