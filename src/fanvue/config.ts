@@ -22,6 +22,7 @@ export const CONFIG = {
     btc:      e.VITE_ADDR_BTC      ?? '',
     usdc_eth: e.VITE_ADDR_USDC_ETH ?? '',
     usdc_sol: e.VITE_ADDR_USDC_SOL ?? '',
+    ton:      e.VITE_ADDR_TON      ?? '',
   },
 
   paymentTimeoutMinutes: Number(e.VITE_PAYMENT_TIMEOUT_MINUTES ?? 30),
@@ -42,4 +43,5 @@ export const APPROX_RATES: Record<string, number> = {
   eth: 0.00031,
   sol: 0.0058,
   btc: 0.0000098,
+  ton: 0.18,
 }
