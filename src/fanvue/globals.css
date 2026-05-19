@@ -1881,6 +1881,7 @@ body::after { display: none; }
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent, rgba(3,3,3,0.92) 24%, var(--fv-black));
 }
+body.fv-game-open .fv-nav { display: none !important; }
 .fv-nav-inner {
   position: relative;
   overflow: hidden;
