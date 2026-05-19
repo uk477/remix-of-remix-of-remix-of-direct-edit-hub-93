@@ -59,19 +59,19 @@ const MOCK_PRODUCTS: Product[] = [
 
 const MOCK_ORDERS: Order[] = [
   {
-    id: '1_101032024_1422', kind: 'buy', orderNum: 1,
+    id: 'ORD-LSXG4A-K3M2', kind: 'buy', orderNum: 1,
     product_title: 'Fanvue Creator — Старт',
     amount: 18.00, status: 'completed',
     quantity: 1, created: '2024-03-10T14:22:00Z', paid_at: '2024-03-10T14:23:00Z',
   },
   {
-    id: '1_080320241005', kind: 'deposit', orderNum: 1,
+    id: 'DEP-LSUVK2-9F7B', kind: 'deposit', orderNum: 1,
     amount: 50.00, status: 'completed',
     provider: 'trc20', created: '2024-03-08T10:05:00Z', paid_at: '2024-03-08T10:07:00Z',
-    txid: '3EK9...mQ72',
+    txid: '3EK9a8f2c1b4d9e8f1a2b3c4d5e6f7g8h9i0j1k2l3mQ72',
   },
   {
-    id: '2_121220241800', kind: 'buy', orderNum: 2,
+    id: 'ORD-LT2N8P-X7QA', kind: 'buy', orderNum: 2,
     product_title: 'Верификация Создателя',
     amount: 45.00, status: 'completed',
     quantity: 1, created: '2024-03-12T18:00:00Z', paid_at: '2024-03-12T18:02:00Z',
