@@ -1004,9 +1004,16 @@ export default function Support() {
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
-            if (g.type === "system")
+            if (g.type === "system") {
+              if (g.msg.kind === "order_receipt" && g.msg.order_receipt) {
+                return (
+                  <div key={g.key} style={{ display: 'flex', justifyContent: 'center', padding: '8px 12px' }}>
+                    <OrderReceiptMessage payload={g.msg.order_receipt} />
+                  </div>
+                );
+              }
               return (
-              <SystemMessage
+                <SystemMessage
                   key={g.key}
                   msg={g.msg}
                   lang={lang}
@@ -1018,6 +1025,7 @@ export default function Support() {
                   onFlowBack={handleFlowBack}
                 />
               );
+            }
             return (
               <MessageGroup
                 key={g.key}
