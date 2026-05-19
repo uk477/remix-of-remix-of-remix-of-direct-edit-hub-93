@@ -35,6 +35,7 @@ const QUICK = [
   { path: '/admin/support',   label: 'Поддержка' },
   { path: '/admin/broadcast', label: 'Рассылка' },
   { path: '/admin/referrals', label: 'Реф. выводы' },
+  { path: '/admin/deposits',  label: 'Пополнения' },
   { path: '/admin/logs',      label: 'Логи' },
   { path: '/admin/photos',    label: 'Фото' },
   { path: '/admin/settings',  label: 'Настройки' },

@@ -28,6 +28,7 @@ const AdminBroadcast = lazy(() => import('./admin/AdminBroadcast'))
 const AdminPhotos = lazy(() => import('./admin/AdminPhotos'))
 const AdminMore = lazy(() => import('./admin/AdminMore'))
 const AdminReferrals = lazy(() => import('./admin/AdminReferrals'))
+const AdminDeposits = lazy(() => import('./admin/AdminDeposits'))
 import { useStore } from './store'
 import { useTelegram } from './hooks/useTelegram'
 import { ToastProvider } from './components/Toast'
@@ -90,6 +91,7 @@ function AppInner() {
               <Route path="photos" element={<AdminPhotos />} />
               <Route path="more" element={<AdminMore />} />
               <Route path="referrals" element={<AdminReferrals />} />
+              <Route path="deposits" element={<AdminDeposits />} />
             </Route>
           </Routes>
         </Suspense>
