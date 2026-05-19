@@ -545,6 +545,14 @@ export const useStore = create<AppStore>()(
         if (api.isEnabled()) api.adminPatchOrder(id, { status })
       },
 
+      setOrderDelivery: (id, deliveryData) => {
+        set((s) => ({
+          orders: s.orders.map((o) => o.id === id
+            ? { ...o, deliveryData, status: 'completed', paid_at: o.paid_at ?? new Date().toISOString() }
+            : o),
+        }))
+      },
+
       deleteOrder: (id) => {
         set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
         if (api.isEnabled()) api.adminDeleteOrder(id)
