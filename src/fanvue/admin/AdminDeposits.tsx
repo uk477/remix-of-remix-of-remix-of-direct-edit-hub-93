@@ -189,7 +189,7 @@ export default function AdminDeposits() {
             <div className="adm2-hero-eyebrow">История</div>
             <div className="adm2-hero-title">Пополнения</div>
             <div className="adm2-hero-sub">
-              {countSuccess} успешных · ${sumSuccess.toFixed(0)} · {countFailed} отменено · {countExpired} истекло
+              {countSuccess} успешных · ${sumSuccess.toFixed(0)} · {countPending} в ожидании · {countFailed} отменено · {countExpired} истекло
             </div>
           </div>
 
@@ -212,7 +212,7 @@ export default function AdminDeposits() {
 
         {/* status filter */}
         <div className="adm2-segment" style={{ marginTop: 12 }}>
-          {(['all', 'success', 'failed', 'expired'] as Filter[]).map((f) => (
+          {(['all', 'success', 'pending', 'failed', 'expired'] as Filter[]).map((f) => (
             <button
               key={f}
               className={`adm2-seg-btn${filter === f ? ' is-active' : ''}`}
