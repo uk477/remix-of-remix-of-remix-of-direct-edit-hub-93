@@ -581,6 +581,7 @@ export default function Support() {
   const setUserTyping = useStore((s) => s.setUserTyping);
   const openSupportTicket = useStore((s) => s.openSupportTicket);
   const closeSupportTicket = useStore((s) => s.closeSupportTicket);
+  const resolvePostDelivery = useStore((s) => s.resolvePostDelivery);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
   const orders = useStore((s) => s.orders);
