@@ -307,6 +307,40 @@ export default function AdminOrders() {
                 </motion.button>
               )}
 
+              {/* Delivery data — only for buy orders */}
+              {open.kind === 'buy' && (
+                <div className="card mt-4" style={{ padding: 14 }}>
+                  <div className="t-sm fw-bold mb-2">
+                    📦 {lang === 'ru' ? 'Данные для выдачи клиенту' : 'Delivery data for client'}
+                  </div>
+                  <div className="t-xs t-muted mb-2">
+                    {lang === 'ru'
+                      ? 'Заполните логин/пароль аккаунта и почты. Эти данные клиент увидит в своём заказе.'
+                      : 'Fill in account & email credentials. The client will see this in their order.'}
+                  </div>
+                  <textarea
+                    className="input"
+                    rows={10}
+                    placeholder={DELIVERY_PLACEHOLDER}
+                    value={deliveryDraft}
+                    onChange={(e) => setDeliveryDraft(e.target.value)}
+                    style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre' }}
+                  />
+                  <motion.button
+                    className="btn btn-primary mt-2"
+                    style={{ background: 'var(--g-success, #39ff63)', color: '#0a0a0a' }}
+                    onClick={() => handleIssueDelivery(open)}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {open.deliveryData
+                      ? (lang === 'ru' ? '💾 Обновить выдачу' : '💾 Update delivery')
+                      : (lang === 'ru' ? '🚀 Выдать клиенту' : '🚀 Issue to client')}
+                  </motion.button>
+                </div>
+              )}
+
+
+
               <motion.button
                 className="btn btn-secondary mt-3"
                 onClick={() => handleDelete(open)}
