@@ -234,6 +234,95 @@ function TerminalShell({ children }: { children: React.ReactNode }) {
 // DeliveryBlock — autofulfilled credentials
 // ============================================================
 
+function MailcomMark({ size = 26 }: { size?: number }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: 6,
+      background: 'linear-gradient(135deg, #00A4E4, #0077B6)',
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 4px 12px -4px rgba(0,164,228,0.5)',
+    }}>
+      <Mail size={size * 0.6} color="#fff" strokeWidth={2.2} />
+    </div>
+  )
+}
+
+function BrandCredCard({
+  brand, title, accent, rows, onCopy, delay = 0,
+}: {
+  brand: React.ReactNode
+  title: string
+  accent: string
+  rows: { key: string; value: string }[]
+  onCopy: (text: string, label: string) => void
+  delay?: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      style={{
+        background: '#0f0f0f',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 14, overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+        background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+        opacity: 0.7,
+      }} />
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '13px 14px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: `linear-gradient(180deg, ${accent}10, transparent)`,
+      }}>
+        {brand}
+        <div style={{
+          fontFamily: DISPLAY, fontSize: 13, fontWeight: 700, color: '#fff',
+          letterSpacing: '-0.01em',
+        }}>{title}</div>
+      </div>
+      <div>
+        {rows.map((row, ri) => (
+          <button
+            key={ri}
+            onClick={() => onCopy(row.value, row.key)}
+            style={{
+              width: '100%', textAlign: 'left',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 10, padding: '12px 14px',
+              background: 'transparent', color: '#fff', border: 'none',
+              borderTop: ri === 0 ? 'none' : '1px solid rgba(255,255,255,0.05)',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 }}>
+              <span style={{
+                fontFamily: MONO, fontSize: 9, color: 'rgba(255,255,255,0.4)',
+                letterSpacing: '0.2em', textTransform: 'uppercase',
+              }}>{row.key}</span>
+              <span style={{
+                fontFamily: MONO, fontSize: 13, fontWeight: 700, color: '#fff',
+                wordBreak: 'break-all',
+              }}>{row.value}</span>
+            </div>
+            <span style={{
+              padding: 7, borderRadius: 6, color: accent,
+              background: `${accent}1f`, display: 'inline-flex', flexShrink: 0,
+            }}>
+              <Copy size={13} strokeWidth={2} />
+            </span>
+          </button>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
 export default function DeliveryBlock({ data, orderId }: { data: string; orderId?: string }) {
   const lang = useStore((s) => s.lang)
   const toast = useToast()
