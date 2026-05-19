@@ -29,6 +29,7 @@ export const CONFIG = {
   bulkDiscountPct:       Number(e.VITE_BULK_DISCOUNT_PCT       ?? 5),
   bulkDiscountMinQty:    Number(e.VITE_BULK_DISCOUNT_MIN_QTY   ?? 3),
   pollIntervalMs:        Number(e.VITE_POLL_INTERVAL_MS        ?? 6000),
+  securityInstructionUrl: e.VITE_SECURITY_INSTRUCTION_URL ?? 'https://telegra.ph/Instrukciya-po-bezopasnosti-01-01',
 } as const
 
 // Курсы USD → крипто (ориентировочные, бэкенд должен вернуть точную сумму)

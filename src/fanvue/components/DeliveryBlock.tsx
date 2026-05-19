@@ -1,12 +1,24 @@
-import { useMemo, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useToast } from './Toast'
 import { useTelegram } from '../hooks/useTelegram'
 import { CONFIG } from '../config'
-import FanvueLogo from './FanvueLogo'
-import { Mail, ShieldCheck, ChevronDown, Copy } from 'lucide-react'
+import fanvueLogoUrl from '../assets/fanvue-logo.png'
+import { Mail, ShieldCheck, ArrowUpRight, Copy } from 'lucide-react'
+
+function FanvueMark({ size = 30 }: { size?: number }) {
+  return (
+    <img
+      src={fanvueLogoUrl}
+      alt="Fanvue"
+      width={size}
+      height={size}
+      style={{ borderRadius: 7, display: 'block', objectFit: 'cover' }}
+    />
+  )
+}
 
 const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, monospace"
@@ -292,14 +304,14 @@ function BrandCredCard({
       }} />
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '13px 14px',
+        padding: '14px 14px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         background: `linear-gradient(180deg, ${accent}10, transparent)`,
       }}>
         {brand}
         <div style={{
-          fontFamily: DISPLAY, fontSize: 13, fontWeight: 700, color: '#fff',
-          letterSpacing: '-0.01em',
+          fontFamily: DISPLAY, fontSize: 15, fontWeight: 800, color: '#fff',
+          letterSpacing: '-0.015em', lineHeight: 1.15,
         }}>{title}</div>
       </div>
       <div>
@@ -345,7 +357,6 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
   const { haptic } = useTelegram()
   const navigate = useNavigate()
   const parsed = useMemo(() => parseCreds(data), [data])
-  const [showInstr, setShowInstr] = useState(false)
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
 
   const hasAnyParsed =
@@ -353,22 +364,10 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
     !!parsed.mail.email || !!parsed.mail.password ||
     parsed.extras.length > 0
 
-  const defaultInstr = lang === 'ru'
-    ? 'Сразу после входа смените пароль от аккаунта и почты. Включите 2FA. Не сообщайте данные третьим лицам. При первом входе используйте чистый браузер / VPN, если требуется.'
-    : 'Right after login, change the account and mail passwords. Enable 2FA. Never share credentials. Use a clean browser / VPN on first login if required.'
-
-  const instrText = parsed.instructions.length ? parsed.instructions.join('\n') : defaultInstr
-
   const copy = async (text: string, label: string) => {
     try { await navigator.clipboard.writeText(text) } catch { }
     haptic('success')
     toast.show(`${label} ${lang === 'ru' ? 'скопирован' : 'copied'}`, 'success')
-  }
-
-  const copyAll = async () => {
-    try { await navigator.clipboard.writeText(data) } catch { }
-    haptic('success')
-    toast.show(lang === 'ru' ? 'Все данные скопированы' : 'All data copied', 'success')
   }
 
   return (
@@ -392,9 +391,9 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
         {!hasAnyParsed ? (
           <BrandCredCard
             delay={0.12}
-            brand={<FanvueLogo size={26} />}
+            brand={<FanvueMark size={30} />}
             title={lang === 'ru' ? 'Данные для входа Fanvue' : 'Fanvue login data'}
-            accent="#E8365D"
+            accent="#39ff63"
             rows={[{ key: lang === 'ru' ? 'Доступ' : 'Access', value: data.trim() }]}
             onCopy={copy}
           />
@@ -403,9 +402,9 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
             {(parsed.fanvue.login || parsed.fanvue.password) && (
               <BrandCredCard
                 delay={0.12}
-                brand={<FanvueLogo size={26} />}
+                brand={<FanvueMark size={30} />}
                 title={lang === 'ru' ? 'Данные для входа Fanvue' : 'Fanvue login data'}
-                accent="#E8365D"
+                accent="#39ff63"
                 rows={[
                   parsed.fanvue.login ? { key: lang === 'ru' ? 'Логин' : 'Login', value: parsed.fanvue.login } : null,
                   parsed.fanvue.password ? { key: lang === 'ru' ? 'Пароль' : 'Password', value: parsed.fanvue.password } : null,
@@ -439,80 +438,37 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
               />
             )}
 
-            {/* Security instruction toggle */}
-            <motion.div
+            {/* Security instruction — opens external URL */}
+            <motion.a
+              href={CONFIG.securityInstructionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => haptic('light')}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.26 }}
+              whileTap={{ scale: 0.98 }}
               style={{
-                border: `1px solid ${GREEN}33`,
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '14px 14px',
+                border: `1px solid ${GREEN}40`,
                 borderRadius: 12,
-                background: `${GREEN}0a`,
-                overflow: 'hidden',
+                background: `${GREEN}10`,
+                color: GREEN, textDecoration: 'none', cursor: 'pointer',
               }}
             >
-              <button
-                onClick={() => { setShowInstr((v) => !v); haptic('light') }}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '13px 14px', background: 'transparent', color: GREEN,
-                  border: 'none', cursor: 'pointer', textAlign: 'left',
-                }}
-              >
-                <ShieldCheck size={18} />
-                <span style={{
-                  flex: 1, fontFamily: DISPLAY, fontSize: 12, fontWeight: 700,
-                  letterSpacing: '0.14em', textTransform: 'uppercase', color: GREEN,
-                }}>
-                  {lang === 'ru' ? 'Инструкция по безопасности' : 'Security instructions'}
-                </span>
-                <motion.span animate={{ rotate: showInstr ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                  <ChevronDown size={16} />
-                </motion.span>
-              </button>
-              <AnimatePresence initial={false}>
-                {showInstr && (
-                  <motion.div
-                    key="instr"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <div style={{
-                      padding: '0 14px 14px',
-                      borderTop: `1px solid ${GREEN}22`,
-                      paddingTop: 12,
-                      fontFamily: DISPLAY, fontSize: 13, lineHeight: 1.6,
-                      color: 'rgba(255,255,255,0.82)', whiteSpace: 'pre-wrap',
-                    }}>{instrText}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              <ShieldCheck size={18} />
+              <span style={{
+                flex: 1, fontFamily: DISPLAY, fontSize: 13, fontWeight: 800,
+                letterSpacing: '0.12em', textTransform: 'uppercase', color: GREEN,
+              }}>
+                {lang === 'ru' ? 'Инструкция по безопасности' : 'Security instructions'}
+              </span>
+              <ArrowUpRight size={16} />
+            </motion.a>
           </>
         )}
       </div>
-
-      <button
-        onClick={copyAll}
-        style={{
-          alignSelf: 'flex-start',
-          background: 'transparent', color: GREEN,
-          border: `1px solid ${GREEN}44`,
-          borderRadius: 8, padding: '7px 12px',
-          fontFamily: MONO, fontSize: 10, fontWeight: 700,
-          letterSpacing: '0.18em', textTransform: 'uppercase',
-          cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" />
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-        </svg>
-        {lang === 'ru' ? 'Копировать всё' : 'Copy all'}
-      </button>
 
       <ActionButtons
         onChat={() => navigate('/support/chat')}
