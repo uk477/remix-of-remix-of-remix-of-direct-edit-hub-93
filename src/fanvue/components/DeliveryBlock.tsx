@@ -1,47 +1,46 @@
-import { useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useMemo, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useToast } from './Toast'
 import { useTelegram } from '../hooks/useTelegram'
 import { CONFIG } from '../config'
+import FanvueLogo from './FanvueLogo'
+import { Mail, ShieldCheck, ChevronDown, Copy } from 'lucide-react'
 
 const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, monospace"
 const GREEN = '#39ff63'
 
-interface Section {
-  title: string
-  rows: { key: string; value: string }[]
-  notes: string[]
+interface ParsedCreds {
+  fanvue: { login?: string; password?: string }
+  mail: { email?: string; password?: string }
+  instructions: string[]
+  extras: { key: string; value: string }[]
 }
 
-function parseDelivery(text: string): Section[] {
-  const lines = text.replace(/\r\n/g, '\n').split('\n')
-  const out: Section[] = []
-  let current: Section | null = null
+function parseCreds(text: string): ParsedCreds {
+  const fanvue: ParsedCreds['fanvue'] = {}
+  const mail: ParsedCreds['mail'] = {}
+  const instructions: string[] = []
+  const extras: ParsedCreds['extras'] = []
 
-  const pushCurrent = () => {
-    if (current && (current.rows.length || current.notes.length || current.title)) out.push(current)
-    current = null
-  }
-
-  for (const raw of lines) {
-    const line = raw.trimEnd()
-    if (!line.trim()) continue
-    const isHeading = /[/:：]\s*$/.test(line) && !/^[^:]+:\s+\S/.test(line)
-    if (isHeading) {
-      pushCurrent()
-      current = { title: line.replace(/[/:：]\s*$/, '').trim(), rows: [], notes: [] }
-      continue
-    }
-    if (!current) current = { title: '', rows: [], notes: [] }
+  for (const raw of text.replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
     const m = line.match(/^([^:：]+)[:：]\s*(.+)$/)
-    if (m) current.rows.push({ key: m[1].trim(), value: m[2].trim() })
-    else current.notes.push(line.trim())
+    if (!m) { instructions.push(line); continue }
+    const k = m[1].trim()
+    const v = m[2].trim()
+    const lk = k.toLowerCase()
+    if (/инструкц|instruct|примеч|^note|safety|безопасн/.test(lk)) { instructions.push(v); continue }
+    if (/(почт|mail|email).*парол|парол.*(почт|mail|email)|mail[ _-]?pass|email[ _-]?pass/.test(lk)) { mail.password = v; continue }
+    if (/^(почт|email|e[-_ ]?mail|mail)\b/.test(lk)) { mail.email = v; continue }
+    if (/^(логин|login|username|user)\b/.test(lk)) { fanvue.login = v; continue }
+    if (/^(пароль|password|pass)\b/.test(lk)) { fanvue.password = v; continue }
+    extras.push({ key: k, value: v })
   }
-  pushCurrent()
-  return out
+  return { fanvue, mail, instructions, extras }
 }
 
 // ============================================================
