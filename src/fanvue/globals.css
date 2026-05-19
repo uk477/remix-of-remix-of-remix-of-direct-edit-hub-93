@@ -7306,6 +7306,8 @@ body::after { display: none; }
   background: radial-gradient(120% 80% at 50% 0%, #14110d 0%, #08070a 60%);
   position: relative;
   overflow: hidden;
+  height: 100dvh;
+  min-height: 0;
 }
 .adm2-aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .adm2-aurora span {
@@ -7391,7 +7393,16 @@ body::after { display: none; }
 }
 
 /* scroll area */
-.adm2-scroll { position: relative; z-index: 1; }
+.admin-shell.adm2 .scroll-area.adm2-scroll {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
 
 /* bottom nav v2 */
 .adm2-nav {
