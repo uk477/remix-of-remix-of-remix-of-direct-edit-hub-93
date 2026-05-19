@@ -346,6 +346,44 @@ export const useStore = create<AppStore>()(
               : s.supportMessages.map((m) => (m.id === id ? { ...m, deleted_for: 'user' } : m)),
         })),
 
+      sendOrderReceipt: (payload) => {
+        const s = get()
+        const exists = s.supportMessages.some(
+          (m) => m.kind === 'order_receipt' && m.order_receipt?.orderId === payload.orderId,
+        )
+        if (exists) return false
+        const msg: SupportMessage = {
+          id: Date.now(),
+          sender: 'bot',
+          kind: 'order_receipt',
+          text: `order_receipt:${payload.orderId}`,
+          created: new Date().toISOString(),
+          order_receipt: payload,
+        }
+        set((st) => ({
+          supportMessages: [...st.supportMessages, msg],
+          supportUnread: st.supportUnread + 1,
+        }))
+        return true
+      },
+
+      setOrderReceiptStage: (orderId, stage) =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            m.kind === 'order_receipt' && m.order_receipt?.orderId === orderId
+              ? {
+                  ...m,
+                  order_receipt: {
+                    ...m.order_receipt,
+                    stage,
+                    deliveredAt: stage === 'delivered' ? new Date().toISOString() : m.order_receipt.deliveredAt,
+                  },
+                }
+              : m,
+          ),
+        })),
+
+
       markUserMessagesReadByAdmin: () =>
         set((s) => ({
           supportMessages: s.supportMessages.map((m) =>
