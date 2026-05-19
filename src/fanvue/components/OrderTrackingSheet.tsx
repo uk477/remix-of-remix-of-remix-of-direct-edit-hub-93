@@ -108,6 +108,10 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
   const isCompleted  = order.status === 'completed'
   const isPaid       = order.status === 'paid'
 
+  const productTitle = order.product_title ?? ''
+  const isVerification =
+    productTitle === 'Верификация вашего аккаунта' || productTitle === 'Verify your account'
+
   const paidAt = order.paid_at ? new Date(order.paid_at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
   const qtyStr = order.quantity && order.quantity > 1 ? ` × ${order.quantity}` : ''
 
@@ -243,27 +247,37 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
 
                   <div className="t-sm fw-bold mb-3">{lang === 'ru' ? 'Получить товар' : 'Get my order'}</div>
                   <div className="col gap-3">
-                    <motion.button
-                      onClick={() => setShowSupportPreview(true)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 14,
-                        padding: '16px 18px',
-                        background: 'var(--surface-2)',
-                        border: '1.5px solid var(--b-default)',
-                        borderRadius: 16, textAlign: 'left',
-                      }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(var(--brand-rgb),0.12)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>💬</div>
-                      <div>
-                        <div className="t-sm fw-bold">{lang === 'ru' ? 'Написать в поддержку' : 'Write to Support'}</div>
-                        <div className="t-xs t-muted mt-1">{lang === 'ru' ? 'Чат прямо в этом боте' : 'Chat right here in the bot'}</div>
-                      </div>
-                    </motion.button>
+                    {!isVerification && (
+                      <motion.button
+                        onClick={() => setShowSupportPreview(true)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          padding: '16px 18px',
+                          background: 'var(--surface-2)',
+                          border: '1.5px solid var(--b-default)',
+                          borderRadius: 16, textAlign: 'left',
+                        }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(var(--brand-rgb),0.12)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>💬</div>
+                        <div>
+                          <div className="t-sm fw-bold">{lang === 'ru' ? 'Написать в поддержку' : 'Write to Support'}</div>
+                          <div className="t-xs t-muted mt-1">{lang === 'ru' ? 'Чат прямо в этом боте' : 'Chat right here in the bot'}</div>
+                        </div>
+                      </motion.button>
+                    )}
 
                     <motion.button
                       onClick={handleTelegram}
-                      style={{
+                      style={isVerification ? {
+                        display: 'flex', alignItems: 'center', gap: 14,
+                        padding: '16px 18px',
+                        background: 'linear-gradient(135deg, #2AABEE 0%, #229ED9 100%)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 16, textAlign: 'left',
+                        color: '#fff',
+                        boxShadow: '0 10px 28px rgba(34,158,217,0.35)',
+                      } : {
                         display: 'flex', alignItems: 'center', gap: 14,
                         padding: '16px 18px',
                         background: 'var(--surface-2)',
@@ -272,10 +286,19 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
                       }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,136,204,0.12)', color: '#0088cc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>✈️</div>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 12,
+                        background: isVerification ? 'rgba(255,255,255,0.18)' : 'rgba(0,136,204,0.12)',
+                        color: isVerification ? '#fff' : '#0088cc',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
+                      }}>✈️</div>
                       <div>
-                        <div className="t-sm fw-bold">{lang === 'ru' ? 'Написать напрямую в Telegram' : 'Message Directly on Telegram'}</div>
-                        <div className="t-xs t-muted mt-1">@{CONFIG.adminUsername}</div>
+                        <div className="t-sm fw-bold" style={isVerification ? { color: '#fff' } : undefined}>
+                          {lang === 'ru' ? 'Написать в Telegram' : 'Message on Telegram'}
+                        </div>
+                        <div className="t-xs mt-1" style={{ color: isVerification ? 'rgba(255,255,255,0.85)' : 'var(--t-muted)' }}>
+                          @{CONFIG.adminUsername}
+                        </div>
                       </div>
                     </motion.button>
                   </div>
