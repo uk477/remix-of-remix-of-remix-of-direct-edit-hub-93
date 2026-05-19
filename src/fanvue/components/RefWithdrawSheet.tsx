@@ -596,7 +596,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       {lang === 'ru' ? 'Выберите сеть' : 'Select network'}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-                      {CRYPTO_OPTIONS.map((opt) => {
+                      {CRYPTO_OPTIONS.filter((o) => (['bep20','erc20','sol','eth'] as const).includes(o.id as 'bep20'|'erc20'|'sol'|'eth')).map((opt) => {
                         const active = network === opt.id
                         return (
                           <button
