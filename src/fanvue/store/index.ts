@@ -186,6 +186,10 @@ interface AppStore {
   toggleMaintenance: () => void
   setOrderStatus: (id: string, status: Order['status']) => void
   setOrderDelivery: (id: string, deliveryData: string) => void
+  /** Если у заказа есть product_id и товар на автовыдаче — забирает первую
+   *  запись из autoItems пула, привязывает к заказу и помечает completed.
+   *  Возвращает true, если автовыдача прошла. */
+  tryAutoFulfill: (orderId: string) => boolean
   resolvePostDelivery: (orderId: string, choice: 'close' | 'continue') => void
   deleteOrder: (id: string) => void
   upsertProduct: (p: Product) => void
