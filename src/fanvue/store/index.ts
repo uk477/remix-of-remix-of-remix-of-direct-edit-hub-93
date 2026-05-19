@@ -673,7 +673,6 @@ export const useStore = create<AppStore>()(
 
       resolvePostDelivery: (orderId, choice) => {
         const state = get()
-        void 0
         // 1. side-effects on tickets
         if (choice === 'close') {
           const open = state.supportTickets.find((t) => t.status !== 'closed')
@@ -698,6 +697,28 @@ export const useStore = create<AppStore>()(
       deleteOrder: (id) => {
         set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
         if (api.isEnabled()) api.adminDeleteOrder(id)
+      },
+
+      tryAutoFulfill: (orderId) => {
+        const state = get()
+        const order = state.orders.find((o) => o.id === orderId)
+        if (!order || !order.product_id || order.deliveryData) return false
+        const product = state.products.find((p) => p.id === order.product_id)
+        if (!product || product.delivery !== 'auto') return false
+        const pool = product.autoItems ?? []
+        if (pool.length === 0) return false
+        const [nextItem, ...rest] = pool
+        // 1) убираем выданную запись из пула + синхронизируем stock
+        set((s) => ({
+          products: s.products.map((p) =>
+            p.id === product.id
+              ? { ...p, autoItems: rest, stock: rest.length }
+              : p,
+          ),
+        }))
+        // 2) привязываем данные к заказу и помечаем completed (это уже умеет setOrderDelivery)
+        get().setOrderDelivery(orderId, nextItem)
+        return true
       },
 
       upsertProduct: (p) =>
