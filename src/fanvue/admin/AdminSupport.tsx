@@ -116,7 +116,17 @@ export default function AdminSupport() {
   }, [openUid, unreadCount, markRead])
 
   useEffect(() => {
-    if (openUid) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80)
+    if (!openUid) return
+    // jump instantly to bottom on open, then again after layout settles
+    const jump = () => {
+      const el = scrollRef.current
+      if (el) el.scrollTop = el.scrollHeight
+      bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
+    }
+    jump()
+    const r1 = requestAnimationFrame(jump)
+    const t1 = setTimeout(jump, 120)
+    return () => { cancelAnimationFrame(r1); clearTimeout(t1) }
   }, [openUid, messages.length])
 
   useEffect(() => {
