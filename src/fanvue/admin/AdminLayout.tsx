@@ -99,25 +99,15 @@ export default function AdminLayout() {
 
         <div className="adm2-title">
           <span className="adm2-badge">ADMIN</span>
-          <motion.span
-            key={pageTitle}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="adm2-title-text"
-          >
-            {pageTitle}
-          </motion.span>
         </div>
 
         <div className="adm2-actions">
           <button
-            className="adm2-search"
+            className="adm2-iconbtn"
             onClick={() => setPaletteOpen(true)}
             aria-label="Поиск"
           >
             <I.search />
-            <span className="adm2-kbd">⌘K</span>
           </button>
 
           <button
@@ -138,9 +128,8 @@ export default function AdminLayout() {
             )}
           </button>
 
-          <button className="adm2-exit" onClick={() => navigate('/')}>
+          <button className="adm2-iconbtn adm2-iconbtn--danger" onClick={() => navigate('/')} aria-label="Выйти">
             <I.exit />
-            <span>Выйти</span>
           </button>
         </div>
       </div>
