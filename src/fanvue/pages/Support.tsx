@@ -583,6 +583,7 @@ export default function Support() {
   const closeSupportTicket = useStore((s) => s.closeSupportTicket);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
+  const orders = useStore((s) => s.orders);
 
   const t = (ru: string, en: string) => (lang === "ru" ? ru : en);
 
