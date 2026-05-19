@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
 import type { SupportMessage, SupportTicket } from '../store/types'
+import OrderReceiptMessage from '../components/OrderReceiptMessage'
 
 /* ─────────── tokens ─────────── */
 const C = {
@@ -85,6 +86,7 @@ export default function AdminSupport() {
   const [balanceInput, setBalanceInput] = useState('')
   const [balanceSent, setBalanceSent] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const realUid = user?.uid ?? 0
@@ -114,7 +116,17 @@ export default function AdminSupport() {
   }, [openUid, unreadCount, markRead])
 
   useEffect(() => {
-    if (openUid) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80)
+    if (!openUid) return
+    // jump instantly to bottom on open, then again after layout settles
+    const jump = () => {
+      const el = scrollRef.current
+      if (el) el.scrollTop = el.scrollHeight
+      bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
+    }
+    jump()
+    const r1 = requestAnimationFrame(jump)
+    const t1 = setTimeout(jump, 120)
+    return () => { cancelAnimationFrame(r1); clearTimeout(t1) }
   }, [openUid, messages.length])
 
   useEffect(() => {
@@ -494,7 +506,7 @@ export default function AdminSupport() {
               </div>
 
               {/* ── Messages ── */}
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 2px 12px' }}>
+              <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 2px 12px' }}>
                 <AnimatePresence initial={false}>
                   {visibleMessages.map((m, i) => {
                     const right = m.sender === 'admin'
@@ -528,6 +540,18 @@ export default function AdminSupport() {
                             borderRadius: 999, border: `1px solid ${accent ? 'rgba(61,255,102,0.2)' : C.line}`,
                             fontWeight: 600, fontFamily: MONO, letterSpacing: '0.02em',
                           }}>{label}</div>
+                        </motion.div>
+                      )
+                    }
+
+                    if (m.kind === 'order_receipt' && m.order_receipt) {
+                      return (
+                        <motion.div key={m.id}
+                          initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.14 }}
+                          style={{ display: 'flex', justifyContent: 'center', padding: '8px 4px' }}
+                        >
+                          <OrderReceiptMessage payload={m.order_receipt} />
                         </motion.div>
                       )
                     }

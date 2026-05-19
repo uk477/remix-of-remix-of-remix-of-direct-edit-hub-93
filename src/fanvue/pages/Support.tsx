@@ -583,6 +583,7 @@ export default function Support() {
   const closeSupportTicket = useStore((s) => s.closeSupportTicket);
   const lang = useStore((s) => s.lang);
   const user = useStore((s) => s.user);
+  const orders = useStore((s) => s.orders);
 
   const t = (ru: string, en: string) => (lang === "ru" ? ru : en);
 
@@ -612,6 +613,15 @@ export default function Support() {
     () => tickets.find((t) => t.status !== "closed") ?? null,
     [tickets],
   );
+
+  // Открытый заказ (оплачен, ещё не завершён) разрешает писать без тикета
+  const hasOpenOrder = useMemo(
+    () => orders.some((o) => o.status === "paid"),
+    [orders],
+  );
+  const canWrite = !!activeTicket || hasOpenOrder;
+
+
 
   // Mark admin/bot messages as read on entry + when new arrive
   useEffect(() => {
@@ -670,6 +680,7 @@ export default function Support() {
 
   useEffect(() => {
     if (activeTicket) return;
+    if (hasOpenOrder) return; // открытый заказ — пишем напрямую, без триажа
     const last = messages[messages.length - 1];
     // Skip if user just answered a flow chip — next flow node is on its way
     if (last?.sender === "user") return;
@@ -1070,7 +1081,7 @@ export default function Support() {
         replyTo={replyTo}
         cancelReply={() => setReplyTo(null)}
         t={t}
-        disabled={!activeTicket}
+        disabled={!canWrite}
       />
 
       {/* Action sheet for message */}
