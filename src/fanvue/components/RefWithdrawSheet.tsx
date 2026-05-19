@@ -551,6 +551,28 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                                 >
                                   {formatDate(w.createdAt)}
                                 </div>
+                                {w.status === 'rejected' && w.rejectReason && (
+                                  <div
+                                    style={{
+                                      marginTop: 6,
+                                      padding: '6px 8px',
+                                      background: 'rgba(255,80,80,0.08)',
+                                      border: '1px solid rgba(255,80,80,0.25)',
+                                      borderRadius: 6,
+                                      fontFamily: BODY,
+                                      fontSize: 11,
+                                      lineHeight: 1.35,
+                                      color: 'rgba(255,180,180,0.95)',
+                                      whiteSpace: 'normal',
+                                      wordBreak: 'break-word',
+                                    }}
+                                  >
+                                    <span style={{ color: '#ff8080', fontWeight: 700 }}>
+                                      {lang === 'ru' ? 'Комментарий: ' : 'Comment: '}
+                                    </span>
+                                    {w.rejectReason}
+                                  </div>
+                                )}
                               </div>
                               <StatusLabel status={w.status} lang={lang} />
                               <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 18, marginLeft: 4 }}>›</span>
