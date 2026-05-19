@@ -230,8 +230,30 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       }
       ctx.globalAlpha = 1
 
+      // motion blur trail behind hero while plunging
+      if (st.phase === 'egg_fall' && st.heroVy > 200) {
+        const trails = 6
+        for (let i = 1; i <= trails; i++) {
+          const k = i / trails
+          ctx.globalAlpha = 0.18 * (1 - k)
+          drawHero(
+            ctx,
+            st.heroX,
+            groundY + st.heroY - st.heroVy * 0.012 * k,
+            st.heroRot - 28 * k,
+            st.walkPhase, st.capWobble, false, 'scared',
+          )
+        }
+        ctx.globalAlpha = 1
+      }
+
       // hero
-      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
+      const heroMode: HeroMode =
+        st.phase === 'egg_stumble' ? 'stumble' :
+        st.phase === 'egg_fall'    ? 'scared'  :
+        st.phase === 'egg_land'    ? 'dizzy'   :
+        st.phase === 'walking'     ? 'walk'    : 'idle'
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking', heroMode)
 
       ctx.restore()
 
@@ -308,7 +330,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
             st.eggDone = true
             st.heroVy = 0; st.heroY = 0; st.heroRot = 0
             st.eggT = 0
-            st.phase = 'egg_fall'
+            st.phase = 'egg_stumble'
             haptic('warning')
           } else {
             animateCamera(st, () => {
@@ -324,21 +346,75 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         }
       } else if (st.phase === 'camera') {
         cameraTween(st, dt)
+      } else if (st.phase === 'egg_stumble') {
+        // teeter on the edge — losing balance, arms flailing
+        st.eggT += dt
+        const wobble = Math.sin(st.eggT * 22)
+        st.heroRot = wobble * 12 * Math.min(1, st.eggT * 2)
+        st.heroX = (st.cur.x + st.cur.w - HERO_W) + wobble * 1.6
+        st.shake = Math.max(st.shake, 0.25)
+        // tiny dust puffs at feet
+        if (Math.random() < 0.4) {
+          emitParticles(st.heroX + HERO_W/2, groundY - 1, 'rgba(180,200,180,0.6)', 1)
+        }
+        if (st.eggT > 0.85) {
+          // tip over — start the real plunge
+          st.eggT = 0
+          st.heroVy = -260 // little hop up first for drama
+          st.heroRot = -18
+          st.phase = 'egg_fall'
+          haptic('warning')
+          // big dust burst on platform edge
+          for (let i = 0; i < 16; i++) {
+            const a = -Math.PI/2 + (Math.random() - 0.5) * Math.PI
+            const sp = 60 + Math.random() * 120
+            st.particles.push({
+              x: st.heroX + HERO_W/2, y: groundY,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 0, max: 0.7 + Math.random() * 0.4,
+              color: i % 3 === 0 ? '#39ff63' : 'rgba(200,210,200,0.85)',
+              size: 1.5 + Math.random() * 2.5,
+            })
+          }
+        }
       } else if (st.phase === 'egg_fall') {
-        // looks like real fall, but instead of game-over we trigger flip
-        st.heroVy += 1800 * dt
+        // dramatic plunge — strong gravity, spin, trail, growing shake
+        st.eggT += dt
+        st.heroVy += 2200 * dt
         st.heroY += st.heroVy * dt
-        st.heroRot += 220 * dt
-        if (st.heroY > 200) {
+        st.heroRot += 460 * dt
+        st.shake = Math.max(st.shake, Math.min(1.2, 0.2 + st.eggT * 0.9))
+        // trail of green sparks
+        if (Math.random() < 0.8) {
+          st.particles.push({
+            x: st.heroX + HERO_W/2 + (Math.random() - 0.5) * 6,
+            y: groundY + st.heroY - 12 + (Math.random() - 0.5) * 6,
+            vx: (Math.random() - 0.5) * 40, vy: -st.heroVy * 0.15,
+            life: 0, max: 0.4 + Math.random() * 0.3,
+            color: Math.random() < 0.5 ? '#39ff63' : '#7bffb8',
+            size: 1 + Math.random() * 1.8,
+          })
+        }
+        if (st.heroY > 260) {
+          st.phase = 'egg_impact'
+          st.eggT = 0
+          st.perfectFlash = 1.4
+          st.shake = 1
+          haptic('heavy')
+        }
+      } else if (st.phase === 'egg_impact') {
+        // brief white-out, then world flips
+        st.eggT += dt
+        if (st.eggT > 0.18) {
           st.phase = 'egg_flip'
           st.eggT = 0
           setFlipped(true)
           haptic('medium')
         }
       } else if (st.phase === 'egg_flip') {
-        // hold flipped state briefly while hero "rests" off-screen
+        // hold the upside-down world a beat
         st.eggT += dt
-        if (st.eggT > 0.9) {
+        if (st.eggT > 1.1) {
           setFlipped(false)
           st.phase = 'egg_unflip'
           st.eggT = 0
@@ -346,10 +422,32 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       } else if (st.phase === 'egg_unflip') {
         st.eggT += dt
         if (st.eggT > 0.55) {
-          // restore hero on current platform & continue normally
+          // hero "lands" back on the platform with a puff
           st.heroY = 0; st.heroVy = 0; st.heroRot = 0
           st.heroX = st.cur.x + st.cur.w - HERO_W
+          st.shake = 0.6
+          // landing dust ring
+          for (let i = 0; i < 14; i++) {
+            const a = -Math.PI/2 + (Math.random() - 0.5) * Math.PI * 0.9
+            const sp = 50 + Math.random() * 100
+            st.particles.push({
+              x: st.heroX + HERO_W/2, y: groundY,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6,
+              life: 0, max: 0.55 + Math.random() * 0.3,
+              color: 'rgba(200,210,200,0.8)',
+              size: 1.4 + Math.random() * 2,
+            })
+          }
           haptic('success')
+          st.eggT = 0
+          st.phase = 'egg_land'
+        }
+      } else if (st.phase === 'egg_land') {
+        // dizzy beat, then continue
+        st.eggT += dt
+        st.heroRot = Math.sin(st.eggT * 8) * 4 * Math.max(0, 1 - st.eggT * 1.2)
+        if (st.eggT > 0.7) {
+          st.heroRot = 0
           animateCamera(st, () => {
             st.cur = { ...st.next }
             st.heroX = st.cur.x + st.cur.w - HERO_W
