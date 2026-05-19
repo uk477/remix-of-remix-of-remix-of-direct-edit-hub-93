@@ -85,7 +85,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
     : order.status === 'pending' ? Math.min(confirmationsNeeded - 1, hashSeed % confirmationsNeeded)
     : 0
   const blockHeight = (order.provider === 'btc' ? 850_000 : 19_500_000) + (hashSeed % 250_000)
-  const networkFee = ((hashSeed % 420) / 100 + 0.08)
+  
 
   const processedMs = order.paid_at ? new Date(order.paid_at).getTime() - new Date(order.created).getTime() : 0
   const processedLabel = processedMs > 0
@@ -413,14 +413,8 @@ export default function OrderDetailModal({ order, onClose }: Props) {
                 />
               )}
 
-              {/* Network fee */}
-              {cryptoOpt && (
-                <SpecCell
-                  label={lang === 'ru' ? 'КОМИССИЯ' : 'NETWORK FEE'}
-                  value={`$${networkFee.toFixed(2)}`}
-                  borderTop
-                />
-              )}
+
+
 
               {/* TXID — full width */}
               {order.txid && order.provider && EXPLORER[order.provider as CryptoNetwork] && (
