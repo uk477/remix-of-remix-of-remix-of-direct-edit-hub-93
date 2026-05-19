@@ -100,12 +100,22 @@ export default function AdminUsers() {
 
   return (
     <PageTransition>
-      <div className="page">
-        <div className="row-between mb-4" style={{ gap: 8 }}>
-          <SearchBar value={search} onChange={setSearch} placeholder={t('admin_user_search')} />
+      <div className="page adm2-page">
+        {/* HERO */}
+        <div className="adm2-hero">
+          <div>
+            <div className="adm2-hero-eyebrow">{lang === 'ru' ? 'Сообщество' : 'Community'}</div>
+            <div className="adm2-hero-title">
+              {lang === 'ru' ? 'Пользо' : 'Users '}<span>{lang === 'ru' ? 'ватели' : 'list'}</span>
+            </div>
+            <div className="adm2-hero-sub">
+              {filtered.length} {lang === 'ru' ? 'всего · ' : 'total · '}
+              {filtered.filter((u) => u.purchases > 0).length} {lang === 'ru' ? 'активных' : 'active'}
+            </div>
+          </div>
           <motion.button
-            className="btn btn-ghost btn-sm"
-            style={{ flexShrink: 0, fontSize: 11 }}
+            className="adm2-iconbtn"
+            style={{ width: 'auto', padding: '0 12px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', gap: 6, color: '#e8c98c' }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               const header = 'UID,Username,Name,Balance,Spent,Purchases,Ref Earned,Ref Count\n'
@@ -118,20 +128,20 @@ export default function AdminUsers() {
               toast.show(lang === 'ru' ? `Экспорт: ${filtered.length}` : `Exported ${filtered.length}`, 'success')
             }}
           >
-            📊 CSV
+            ↓ CSV
           </motion.button>
         </div>
 
-        <div className="t-xs t-muted mb-3">
-          {filtered.length} {lang === 'ru' ? 'пользователей' : 'users'}
+        <div className="mb-3">
+          <SearchBar value={search} onChange={setSearch} placeholder={t('admin_user_search')} />
         </div>
 
         <div className="col gap-3">
           {filtered.map((u, i) => (
             <motion.div
               key={u.uid}
-              className="card"
-              style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+              className="adm2-att-row"
+              style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', borderColor: u.isReal ? 'rgba(232,201,140,0.35)' : undefined }}
               onClick={() => { setSelected(u); setBalAmt(''); setRefAmt('') }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -140,25 +150,26 @@ export default function AdminUsers() {
             >
               <div style={{
                 width: 40, height: 40, borderRadius: '50%',
-                background: u.isReal ? 'var(--g-brand)' : 'var(--surface-2)',
-                border: u.isReal ? 'none' : '1.5px solid var(--b-default)',
-                color: u.isReal ? 'white' : 'var(--t-primary)',
+                background: u.isReal ? 'linear-gradient(135deg, #e8c98c, #d9b27a)' : 'rgba(255,255,255,0.04)',
+                border: u.isReal ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                color: u.isReal ? '#1a1208' : 'var(--t-primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 14, fontWeight: 800, flexShrink: 0,
+                boxShadow: u.isReal ? '0 4px 14px rgba(232,201,140,0.35)' : 'none',
               }}>
                 {initials(u.full_name)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="t-sm fw-bold" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {u.full_name}
-                  {u.isReal && <span style={{ fontSize: 9, fontWeight: 800, background: 'var(--g-brand)', color: 'white', borderRadius: 4, padding: '1px 5px' }}>YOU</span>}
+                  {u.isReal && <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg, #e8c98c, #d9b27a)', color: '#1a1208', borderRadius: 4, padding: '2px 5px', letterSpacing: '0.06em' }}>YOU</span>}
                 </div>
                 <div className="t-xs t-muted">@{u.username} · {u.uid}</div>
               </div>
               <div className="col" style={{ alignItems: 'flex-end', gap: 2 }}>
-                <div className="t-sm fw-black t-gold">${u.balance.toFixed(0)}</div>
+                <div className="t-sm fw-black" style={{ color: '#e8c98c' }}>${u.balance.toFixed(0)}</div>
                 {u.ref_balance > 0 && (
-                  <div className="t-xs fw-bold" style={{ color: 'var(--brand)' }}>
+                  <div className="t-xs fw-bold" style={{ color: '#94c592' }}>
                     ref: ${u.ref_balance.toFixed(0)}
                   </div>
                 )}
