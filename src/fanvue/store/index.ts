@@ -123,6 +123,7 @@ interface AppStore {
   qrOverrides: Partial<Record<CryptoNetwork, string>>
   photos: Record<string, string>
   siteContent: SiteContent
+  siteLinks: SiteLinks
 
   notifications: PaymentNotification[]
   refReward: RefReward
@@ -169,6 +170,7 @@ interface AppStore {
 
   // Admin actions
   setCryptoAddress: (network: CryptoNetwork, address: string) => void
+  setSiteLink: (key: keyof SiteLinks, value: string) => void
   setQrOverride: (network: CryptoNetwork, dataUri: string | null) => void
   setPhoto: (key: string, dataUri: string | null) => void
   toggleMaintenance: () => void
