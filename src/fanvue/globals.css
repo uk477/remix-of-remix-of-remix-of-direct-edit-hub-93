@@ -6,6 +6,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap');
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 :root {
@@ -514,8 +515,6 @@ input:focus, textarea:focus, select:focus {
    Full-screen lot deck, gesture dock, ledger strip, scrim transitions
    Adds: graphite + brass refinement on top of editorial noir tokens
    ═══════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap');
 
 :root {
   --graphite:   #0b0b0d;
