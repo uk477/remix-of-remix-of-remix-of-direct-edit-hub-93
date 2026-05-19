@@ -372,6 +372,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
   const navigate = useNavigate()
   const parsed = useMemo(() => parseCreds(data), [data])
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
+  const securityUrl = useStore((s) => s.siteLinks?.securityInstructionUrl) || CONFIG.securityInstructionUrl
 
   const hasAnyParsed =
     !!parsed.fanvue.login || !!parsed.fanvue.password ||
