@@ -174,6 +174,7 @@ interface AppStore {
   toggleMaintenance: () => void
   setOrderStatus: (id: string, status: Order['status']) => void
   setOrderDelivery: (id: string, deliveryData: string) => void
+  resolvePostDelivery: (orderId: string, choice: 'close' | 'continue') => void
   deleteOrder: (id: string) => void
   upsertProduct: (p: Product) => void
   deleteProduct: (id: number) => void
