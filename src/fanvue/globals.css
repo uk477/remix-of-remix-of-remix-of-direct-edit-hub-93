@@ -3497,6 +3497,9 @@ body::after { display: none; }
   font-variant-numeric: tabular-nums;
   color: var(--fv-text, #fff);
   display: inline-flex; align-items: baseline; gap: 3px;
+  /* Reserve space for up to 7 chars ($XXX.XX) so 4-digit and 5-digit balances
+     keep the same layout width and the topup button doesn't reflow. */
+  min-width: 7ch;
 }
 .shop-hero-bal-num i {
   font-style: normal;
@@ -6389,6 +6392,7 @@ body::after { display: none; }
 .home-topup {
   position: relative;
   flex: 0 0 auto;
+  margin-left: auto;
   display: inline-flex;
   align-items: stretch;
   height: auto;
