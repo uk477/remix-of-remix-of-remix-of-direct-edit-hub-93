@@ -55,6 +55,7 @@ export function qrCodeUrl(data: string, size = 220): string {
 export function paymentUri(network: CryptoNetwork, address: string, amount: number): string {
   if (network === 'btc') return `bitcoin:${address}?amount=${amount}`
   if (network === 'eth') return `ethereum:${address}?value=${amount}`
+  if (network === 'ton') return `ton://transfer/${address}?amount=${Math.round(amount * 1e9)}`
   return address // USDT/SOL — раздельным полем
 }
 
