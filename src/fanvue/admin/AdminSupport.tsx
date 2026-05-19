@@ -117,16 +117,27 @@ export default function AdminSupport() {
 
   useEffect(() => {
     if (!openUid) return
-    // jump instantly to bottom on open, then again after layout settles
     const jump = () => {
       const el = scrollRef.current
-      if (el) el.scrollTop = el.scrollHeight
-      bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
+      if (el) el.scrollTop = el.scrollHeight + 9999
     }
     jump()
-    const r1 = requestAnimationFrame(jump)
-    const t1 = setTimeout(jump, 120)
-    return () => { cancelAnimationFrame(r1); clearTimeout(t1) }
+    const r1 = requestAnimationFrame(() => { jump(); requestAnimationFrame(jump) })
+    const timers = [50, 150, 300, 600].map((d) => setTimeout(jump, d))
+    // следим за ростом контента (анимации появления, лениво посчитанная высота)
+    const el = scrollRef.current
+    let ro: ResizeObserver | null = null
+    if (el && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => { el.scrollTop = el.scrollHeight + 9999 })
+      Array.from(el.children).forEach((c) => ro!.observe(c as Element))
+      // отключаем наблюдатель через секунду — дальше скроллим только при новых сообщениях
+      setTimeout(() => ro?.disconnect(), 900)
+    }
+    return () => {
+      cancelAnimationFrame(r1)
+      timers.forEach(clearTimeout)
+      ro?.disconnect()
+    }
   }, [openUid, messages.length])
 
   useEffect(() => {
