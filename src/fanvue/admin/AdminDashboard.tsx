@@ -14,6 +14,7 @@ const Ic = {
   up:      () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 15 12 9 18 15"/></svg>,
   down:    () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
   arrow:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>,
+  dl:      () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 }
 
 type Period = 'today' | 'week' | 'month' | 'all'
@@ -92,6 +93,7 @@ export default function AdminDashboard() {
   const refW     = useStore((s) => s.refWithdrawals)
 
   const [period, setPeriod] = useState<Period>('today')
+  const [exportOpen, setExportOpen] = useState(false)
 
   const buys = useMemo(
     () => orders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid')),
@@ -158,6 +160,96 @@ export default function AdminDashboard() {
     today: 'Сегодня', week: 'Неделя', month: 'Месяц', all: 'Всё время',
   }
 
+  /* ───── export sales ───── */
+  const findBuyer = (o: typeof buys[number]) => {
+    const ot = new Date(o.created).getTime()
+    const candidates = logs.filter(
+      (l) => l.kind === 'buy' && l.product === o.product_title && Math.abs(l.amount - o.amount) < 0.01 && l.username !== 'manual',
+    )
+    if (candidates.length === 0) return { username: '—', uid: '—' as number | string }
+    candidates.sort((a, b) => Math.abs(new Date(a.ts).getTime() - ot) - Math.abs(new Date(b.ts).getTime() - ot))
+    return { username: candidates[0].username, uid: candidates[0].uid }
+  }
+
+  const downloadFile = (content: string, filename: string, mime: string) => {
+    const blob = new Blob([content], { type: mime })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const fmtDate = (ts: string) =>
+    new Date(ts).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  const exportRows = () => cur.map((o, i) => {
+    const b = findBuyer(o)
+    return {
+      n: i + 1,
+      orderId: o.id,
+      orderNum: o.orderNum ?? '',
+      date: fmtDate(o.created),
+      paidAt: o.paid_at ? fmtDate(o.paid_at) : '',
+      buyer: b.username,
+      uid: String(b.uid),
+      product: o.product_title ?? '—',
+      qty: o.quantity ?? 1,
+      price: o.amount.toFixed(2),
+      status: o.status,
+      provider: o.provider ?? '',
+      txid: o.txid ?? '',
+    }
+  })
+
+  const handleExportCSV = () => {
+    const rows = exportRows()
+    const headers = ['№','ID заказа','Номер','Дата создания','Дата оплаты','Покупатель','UID','Товар','Кол-во','Цена ($)','Статус','Метод оплаты','TxID']
+    const esc = (v: unknown) => {
+      const s = String(v ?? '')
+      return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const lines = [headers.join(';')]
+    for (const r of rows) {
+      lines.push([r.n, r.orderId, r.orderNum, r.date, r.paidAt, r.buyer, r.uid, r.product, r.qty, r.price, r.status, r.provider, r.txid].map(esc).join(';'))
+    }
+    lines.push('')
+    lines.push(['','','','','','','','ИТОГО:', cur.length, sumCur.toFixed(2),'','',''].map(esc).join(';'))
+    // BOM for proper UTF-8 recognition by Google Sheets / Excel
+    downloadFile('\uFEFF' + lines.join('\n'), `sales_${period}_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8')
+    setExportOpen(false)
+  }
+
+  const handleExportTXT = () => {
+    const rows = exportRows()
+    const lines: string[] = []
+    lines.push('═══════════════════════════════════════════')
+    lines.push(`  ОТЧЁТ ПО ПРОДАЖАМ — ${periodLabel[period]}`)
+    lines.push(`  Сформирован: ${fmtDate(new Date().toISOString())}`)
+    lines.push('═══════════════════════════════════════════')
+    lines.push('')
+    rows.forEach((r) => {
+      lines.push(`#${r.n}  Заказ ${r.orderId}${r.orderNum ? ` (№${r.orderNum})` : ''}`)
+      lines.push(`  Дата:        ${r.date}`)
+      if (r.paidAt) lines.push(`  Оплачен:     ${r.paidAt}`)
+      lines.push(`  Покупатель:  @${r.buyer} (UID: ${r.uid})`)
+      lines.push(`  Товар:       ${r.product}`)
+      lines.push(`  Кол-во:      ${r.qty}`)
+      lines.push(`  Сумма:       $${r.price}`)
+      lines.push(`  Статус:      ${r.status}`)
+      if (r.provider) lines.push(`  Оплата:      ${r.provider}`)
+      if (r.txid)     lines.push(`  TxID:        ${r.txid}`)
+      lines.push('-------------------------------------------')
+    })
+    lines.push('')
+    lines.push(`ВСЕГО ЗАКАЗОВ: ${cur.length}`)
+    lines.push(`ОБЩАЯ СУММА:   $${sumCur.toFixed(2)}`)
+    lines.push('═══════════════════════════════════════════')
+    downloadFile(lines.join('\n'), `sales_${period}_${new Date().toISOString().slice(0,10)}.txt`, 'text/plain;charset=utf-8')
+    setExportOpen(false)
+  }
+
   return (
     <PageTransition>
       <div className="page adm2-page">
@@ -194,6 +286,59 @@ export default function AdminDashboard() {
             ))}
           </div>
         </motion.div>
+
+        {/* export sales */}
+        <div style={{ position: 'relative', marginTop: 12 }}>
+          <button
+            className="adm2-iconbtn"
+            onClick={() => setExportOpen((v) => !v)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#39ff63' }}
+            disabled={cur.length === 0}
+          >
+            <Ic.dl />
+            <span>Скачать продажи · {periodLabel[period]} ({cur.length})</span>
+          </button>
+          <AnimatePresence>
+            {exportOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 20,
+                  background: 'rgba(20,22,26,0.98)',
+                  border: '1px solid rgba(57,255,99,0.25)',
+                  borderRadius: 12, padding: 6, minWidth: 220,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+                }}
+              >
+                <button
+                  className="adm2-att-row"
+                  style={{ width: '100%', textAlign: 'left' }}
+                  onClick={handleExportCSV}
+                >
+                  <div className="adm2-att-dot" style={{ background: '#39ff63' }} />
+                  <div className="adm2-att-body">
+                    <div className="t-sm fw-bold">Google Таблицы (CSV)</div>
+                    <div className="t-xs t-muted">Откроется в Google Sheets / Excel</div>
+                  </div>
+                </button>
+                <button
+                  className="adm2-att-row"
+                  style={{ width: '100%', textAlign: 'left', marginTop: 4 }}
+                  onClick={handleExportTXT}
+                >
+                    <div className="adm2-att-dot" style={{ background: '#9788c4' }} />
+                  <div className="adm2-att-body">
+                    <div className="t-sm fw-bold">Текстовый файл (.txt)</div>
+                    <div className="t-xs t-muted">Простой читаемый отчёт</div>
+                  </div>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* KPI grid */}
         <div className="adm2-kpi-grid mb-4">
