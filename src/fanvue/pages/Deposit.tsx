@@ -45,6 +45,8 @@ const COIN_GROUPS: CoinGroup[] = [
   },
   { coin: 'eth', label: 'Ethereum', symbol: 'ETH', color: '#627EEA',
     networks: [{ id: 'eth', label: 'Ethereum', tag: 'ERC20', tagEn: 'ERC20' }] },
+  { coin: 'ton', label: 'Toncoin', symbol: 'TON', color: '#0098EA',
+    networks: [{ id: 'ton', label: 'TON', tag: 'The Open Network · быстро и дёшево', tagEn: 'The Open Network · fast & cheap' }] },
   { coin: 'sol', label: 'Solana', symbol: 'SOL', color: '#14F195',
     networks: [{ id: 'sol', label: 'Solana', tag: 'SPL · очень быстро', tagEn: 'SPL · very fast' }] },
   { coin: 'btc', label: 'Bitcoin', symbol: 'BTC', color: '#F7931A',
