@@ -441,7 +441,6 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
               color: row.accent ? GREEN : '#fff',
               letterSpacing: '0.06em', textTransform: 'uppercase',
             }}>{row.v}</span>
-            {arr.length}
           </div>
         ))}
       </motion.div>
