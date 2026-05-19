@@ -17,6 +17,7 @@ const LINK_FIELDS: { key: keyof SiteLinks; label: string; hint: string }[] = [
   { key: 'channelUrl',   label: 'Канал с новостями',         hint: 'https://t.me/your_channel' },
   { key: 'reviewsUrl',   label: 'Отзывы',                    hint: 'https://t.me/your_reviews' },
   { key: 'botUrl',       label: 'Бот',                       hint: 'https://t.me/your_bot' },
+  { key: 'securityInstructionUrl', label: 'Инструкция по безопасности (в блоке выдачи)', hint: 'https://example.com/safety' },
 ]
 
 function LinkRow({ field }: { field: typeof LINK_FIELDS[number] }) {
