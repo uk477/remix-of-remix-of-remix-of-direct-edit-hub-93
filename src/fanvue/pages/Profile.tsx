@@ -129,7 +129,7 @@ export default function Profile() {
         style={{
           minHeight: '100%',
           color: '#fff',
-          background: INK,
+          background: 'transparent',
           padding: '20px 18px 120px',
           display: 'flex',
           flexDirection: 'column',
@@ -149,22 +149,6 @@ export default function Profile() {
             pointerEvents: 'none',
             mixBlendMode: 'overlay',
             zIndex: 1,
-          }}
-        />
-
-        {/* Fixed top green glow — always visible while scrolling */}
-        <div
-          aria-hidden
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 320,
-            pointerEvents: 'none',
-            zIndex: 0,
-            background:
-              'radial-gradient(80% 100% at 50% 0%, rgba(57,255,99,0.22) 0%, rgba(57,255,99,0.08) 35%, transparent 70%)',
           }}
         />
 
