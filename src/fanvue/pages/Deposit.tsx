@@ -126,7 +126,7 @@ export default function Deposit() {
 
   const goBack = () => {
     if (step === 'amount') navigate(-1)
-    else if (step === 'pay') { cancelDeposit(); setStep('network') }
+    else if (step === 'pay') navigate('/profile') // keep order pending — only "Cancel" button or 30-min timer cancels it
     else if (step === 'success') navigate('/profile')
     else setStep('amount')
   }
