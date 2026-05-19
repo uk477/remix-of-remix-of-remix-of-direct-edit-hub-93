@@ -149,48 +149,70 @@ export default function AdminReferrals() {
 
   return (
     <PageTransition>
-      <div className="page">
-        <div className="t-lg fw-black mb-4">
-          {lang === 'ru' ? '💸 Реферальные выводы' : '💸 Referral Payouts'}
+      <div className="page adm2-page">
+        {/* HERO */}
+        <div className="adm2-hero">
+          <div>
+            <div className="adm2-hero-eyebrow">{lang === 'ru' ? 'Финансы' : 'Finance'}</div>
+            <div className="adm2-hero-title">
+              {lang === 'ru' ? 'Реф. ' : 'Ref '}<span>{lang === 'ru' ? 'выводы' : 'payouts'}</span>
+            </div>
+            <div className="adm2-hero-sub">
+              {lang === 'ru' ? 'Обработайте заявки рефералов' : 'Process referral requests'}
+            </div>
+          </div>
         </div>
 
-        <div className="grid-2 mb-4 gap-3">
-          <div className="stat-card">
-            <div className="stat-value" style={{ color: '#F0B90B' }}>{pending.length}</div>
-            <div className="stat-label">{lang === 'ru' ? 'Ожидают' : 'Pending'}</div>
+        {/* KPI */}
+        <div className="adm2-kpi-grid mb-4">
+          <div className="adm2-kpi" style={{ ['--kpi-accent' as never]: '232,201,140' }}>
+            <div className="adm2-kpi-top">
+              <div className="adm2-kpi-ic">⏳</div>
+            </div>
+            <div className="adm2-kpi-val">{pending.length}</div>
+            <div className="adm2-kpi-lbl">{lang === 'ru' ? 'Ожидают' : 'Pending'}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-value t-brand">${totalOut.toFixed(2)}</div>
-            <div className="stat-label">{lang === 'ru' ? 'К выплате' : 'To Pay'}</div>
+          <div className="adm2-kpi" style={{ ['--kpi-accent' as never]: '118,163,116' }}>
+            <div className="adm2-kpi-top">
+              <div className="adm2-kpi-ic">💰</div>
+            </div>
+            <div className="adm2-kpi-val">${totalOut.toFixed(2)}</div>
+            <div className="adm2-kpi-lbl">{lang === 'ru' ? 'К выплате' : 'To pay'}</div>
           </div>
         </div>
 
         {user && user.ref_balance > 0 && (
-          <div className="card mb-4" style={{ padding: '14px 16px' }}>
-            <div className="row-between">
-              <div>
-                <div className="t-xs t-muted">
-                  {lang === 'ru' ? 'Реф. баланс пользователя' : 'User ref balance'}
-                </div>
-                <div className="t-md fw-black t-brand">${user.ref_balance.toFixed(2)}</div>
+          <div className="adm2-att-row mb-3" style={{ cursor: 'default' }}>
+            <span className="adm2-att-dot" style={{ background: '#94c592' }} />
+            <div className="adm2-att-body">
+              <div className="t-xs t-muted">
+                {lang === 'ru' ? 'Реф. баланс пользователя' : 'User ref balance'}
               </div>
-              <div style={{ fontSize: 28 }}>💰</div>
+              <div className="t-md fw-black" style={{ color: '#e8c98c' }}>
+                ${user.ref_balance.toFixed(2)}
+              </div>
             </div>
           </div>
         )}
 
-        <div className="row gap-2 mb-4">
-          {(['pending', 'all'] as Tab[]).map((t) => (
-            <motion.button
-              key={t}
-              className={`btn btn-sm ${tab === t ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setTab(t)}
-              whileTap={{ scale: 0.95 }}
+        {/* Segmented tabs */}
+        <div className="adm2-segment mb-4" style={{ display: 'flex', width: '100%' }}>
+          {(['pending', 'all'] as Tab[]).map((tb) => (
+            <button
+              key={tb}
+              className={`adm2-seg-btn${tab === tb ? ' is-active' : ''}`}
+              onClick={() => setTab(tb)}
+              style={{ flex: 1, position: 'relative' }}
             >
-              {t === 'pending'
-                ? `${lang === 'ru' ? 'Ожидают' : 'Pending'} (${pending.length})`
-                : `${lang === 'ru' ? 'Все' : 'All'} (${refWithdrawals.length})`}
-            </motion.button>
+              {tab === tb && (
+                <motion.span className="adm2-seg-pill" layoutId="adm2-refseg" transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
+              )}
+              <span style={{ position: 'relative', zIndex: 1 }}>
+                {tb === 'pending'
+                  ? `${lang === 'ru' ? 'Ожидают' : 'Pending'} (${pending.length})`
+                  : `${lang === 'ru' ? 'Все' : 'All'} (${refWithdrawals.length})`}
+              </span>
+            </button>
           ))}
         </div>
 
@@ -206,8 +228,8 @@ export default function AdminReferrals() {
               {list.map((w, i) => (
                 <motion.div
                   key={w.id}
-                  className="card"
-                  style={{ padding: '14px 16px' }}
+                  className="adm2-att-row"
+                  style={{ padding: '14px 16px', cursor: 'default', display: 'block' }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
