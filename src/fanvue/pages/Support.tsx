@@ -1347,6 +1347,7 @@ function SystemMessage({
   onPickCategory,
   onFlowAnswer,
   onFlowBack,
+  onResolveDelivery,
 }: {
   msg: SupportMessage;
   lang: string;
@@ -1356,6 +1357,7 @@ function SystemMessage({
   onPickCategory: (cat: (typeof CATEGORIES)[number]) => void;
   onFlowAnswer: (flowKey: string, opt: FlowOption) => void;
   onFlowBack: (currentKey: string) => void;
+  onResolveDelivery: (orderId: string, choice: 'close' | 'continue') => void;
 }) {
   if (msg.text === "triage_prompt") {
     if (!isLastMessage) return null;
