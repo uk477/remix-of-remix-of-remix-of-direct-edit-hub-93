@@ -181,19 +181,19 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     setStep('done')
   }
 
-  const pointerStartRef = useRef<{ id: number; startX: number; startOffset: number } | null>(null)
+  const pointerStartRef = useRef<{ id: number; startX: number; startOffset: number; trackW: number } | null>(null)
 
-  function applySwipeX(nextX: number) {
-    const clamped = Math.min(Math.max(nextX, 0), maxX)
-    swipeProgressRef.current = maxX > 0 ? clamped / maxX : 0
-    setSwipeX(clamped)
+  function getMaxX(width: number) {
+    return Math.max(width - thumbW - 8, 0)
   }
 
   function handleSwipePointerDown(e: PointerEvent<HTMLDivElement>) {
     e.stopPropagation()
-    e.preventDefault()
-    ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
-    pointerStartRef.current = { id: e.pointerId, startX: e.clientX, startOffset: swipeX }
+    const el = e.currentTarget as HTMLDivElement
+    const width = el.offsetWidth
+    if (width !== trackW) setTrackW(width)
+    try { el.setPointerCapture(e.pointerId) } catch {}
+    pointerStartRef.current = { id: e.pointerId, startX: e.clientX, startOffset: swipeX, trackW: width }
     setIsSwiping(true)
   }
 
@@ -201,7 +201,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     const start = pointerStartRef.current
     if (!start || start.id !== e.pointerId) return
     e.stopPropagation()
-    applySwipeX(start.startOffset + (e.clientX - start.startX))
+    const localMax = getMaxX(start.trackW)
+    const next = Math.min(Math.max(start.startOffset + (e.clientX - start.startX), 0), localMax)
+    swipeProgressRef.current = localMax > 0 ? next / localMax : 0
+    setSwipeX(next)
   }
 
   function handleSwipePointerEnd(e: PointerEvent<HTMLDivElement>) {
@@ -211,15 +214,17 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
     try { (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId) } catch {}
     pointerStartRef.current = null
     setIsSwiping(false)
-    if (swipeProgressRef.current >= 0.62) {
+    if (swipeProgressRef.current >= 0.6) {
+      const localMax = getMaxX(start.trackW)
       swipeProgressRef.current = 1
-      setSwipeX(maxX)
+      setSwipeX(localMax)
       handleSubmit()
     } else {
       swipeProgressRef.current = 0
       setSwipeX(0)
     }
   }
+
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
