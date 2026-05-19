@@ -703,6 +703,10 @@ export const useStore = create<AppStore>()(
         const state = get()
         const order = state.orders.find((o) => o.id === orderId)
         if (!order || !order.product_id || order.deliveryData) return false
+        // Если в одном заказе больше одного товара — авто-выдача отключена,
+        // даже если в пуле достаточно аккаунтов. Эти аккаунты резервируются
+        // для других пользователей, а покупатель отправляется в саппорт.
+        if ((order.quantity ?? 1) > 1) return false
         const product = state.products.find((p) => p.id === order.product_id)
         if (!product || product.delivery !== 'auto') return false
         const pool = product.autoItems ?? []
