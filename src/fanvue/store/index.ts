@@ -831,6 +831,7 @@ export const useStore = create<AppStore>()(
         maintenance: s.maintenance,
         notifications: s.notifications,
         siteContent: s.siteContent,
+        siteLinks: s.siteLinks,
         refReward: s.refReward,
         refWithdrawals: s.refWithdrawals,
         refDailyLog: s.refDailyLog,
