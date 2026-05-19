@@ -1605,6 +1605,173 @@ function SystemMessage({
   if (msg.text.startsWith("ticket_closed:")) {
     return <SysPill text={t("Заявка закрыта", "Ticket closed")} />;
   }
+  if (msg.text.startsWith("verification_intake")) {
+    const ru = lang === "ru";
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.36, ease }}
+        style={{
+          alignSelf: "stretch",
+          margin: "10px 0 8px",
+          padding: "16px 16px 14px",
+          borderRadius: 18,
+          border: `1px solid rgba(57,255,99,0.28)`,
+          background:
+            "linear-gradient(180deg, rgba(57,255,99,0.10) 0%, rgba(57,255,99,0.03) 60%, rgba(255,255,255,0.02) 100%)",
+          boxShadow: "0 6px 24px rgba(57,255,99,0.06)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: 11, display: "grid", placeItems: "center",
+              background: "rgba(57,255,99,0.16)", color: C.green,
+              border: "1px solid rgba(57,255,99,0.32)",
+              fontSize: 17,
+            }}
+          >
+            🛡️
+          </span>
+          <div style={{ minWidth: 0, lineHeight: 1.2 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, letterSpacing: "-0.01em" }}>
+              {ru ? "Заявка на верификацию принята" : "Verification request received"}
+            </div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }}>
+              {ru
+                ? "Несколько простых шагов — и аккаунт будет готов"
+                : "A few simple steps and your account will be ready"}
+            </div>
+          </div>
+        </div>
+
+        {/* Step 1 — email */}
+        <div
+          style={{
+            display: "flex", gap: 11, padding: "11px 12px", borderRadius: 13,
+            background: C.surface, border: `1px solid ${C.border}`, marginBottom: 8,
+          }}
+        >
+          <span
+            style={{
+              flexShrink: 0, width: 22, height: 22, borderRadius: "50%",
+              background: C.greenBubble, color: C.greenInk,
+              display: "grid", placeItems: "center",
+              fontSize: 11.5, fontWeight: 800,
+            }}
+          >
+            1
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.3 }}>
+              {ru ? "Отправьте e-mail от Fanvue" : "Send your Fanvue e-mail"}
+            </div>
+            <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.45, marginTop: 4 }}>
+              {ru
+                ? "Прямо в этот чат — только адрес, без пароля. Пароль от почты нам не нужен, e-mail используется только для входа в Fanvue."
+                : "Right here in this chat — just the address, no password. We don't need your e-mail password; the address is used only to sign in to Fanvue."}
+            </div>
+          </div>
+        </div>
+
+        {/* Step 2 — wait */}
+        <div
+          style={{
+            display: "flex", gap: 11, padding: "11px 12px", borderRadius: 13,
+            background: C.surface, border: `1px solid ${C.border}`, marginBottom: 8,
+          }}
+        >
+          <span
+            style={{
+              flexShrink: 0, width: 22, height: 22, borderRadius: "50%",
+              background: "rgba(255,255,255,0.06)", color: C.text,
+              display: "grid", placeItems: "center",
+              fontSize: 11.5, fontWeight: 800,
+              border: `1px solid ${C.border}`,
+            }}
+          >
+            2
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.3 }}>
+              {ru ? "Мы проводим верификацию" : "We run the verification"}
+            </div>
+            <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.45, marginTop: 4 }}>
+              {ru
+                ? "Подберём чистые документы, пройдём face-match и разблокируем монетизацию. Среднее время — 2–6 часов, мы напишем сюда, как только всё готово."
+                : "We supply clean documents, pass the face-match and unlock monetisation. Typically 2–6 hours — we'll message you here the moment it's done."}
+            </div>
+          </div>
+        </div>
+
+        {/* Step 3 — secure */}
+        <div
+          style={{
+            display: "flex", gap: 11, padding: "11px 12px", borderRadius: 13,
+            background: C.surface, border: `1px solid ${C.border}`,
+          }}
+        >
+          <span
+            style={{
+              flexShrink: 0, width: 22, height: 22, borderRadius: "50%",
+              background: "rgba(255,255,255,0.06)", color: C.text,
+              display: "grid", placeItems: "center",
+              fontSize: 11.5, fontWeight: 800,
+              border: `1px solid ${C.border}`,
+            }}
+          >
+            3
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.3 }}>
+              {ru ? "Зайдите в Fanvue и закройте аккаунт на замок" : "Log into Fanvue and lock it down"}
+            </div>
+            <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.45, marginTop: 4 }}>
+              {ru
+                ? "Когда верификация пройдена — войдите в свой Fanvue и максимально обезопасьте аккаунт:"
+                : "Once verification is done — sign in to Fanvue and secure the account as much as possible:"}
+            </div>
+            <ul
+              style={{
+                margin: "8px 0 0", padding: 0, listStyle: "none",
+                display: "flex", flexDirection: "column", gap: 5,
+              }}
+            >
+              {[
+                ru ? "Привяжите свой номер телефона" : "Add your phone number",
+                ru ? "Включите двухфакторную аутентификацию (2FA)" : "Turn on two-factor authentication (2FA)",
+                ru ? "Смените пароль на новый, известный только вам" : "Change the password to a new one only you know",
+                ru ? "Выйдите со всех чужих устройств в настройках сессий" : "Log out all other devices from session settings",
+              ].map((line, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: "flex", alignItems: "flex-start", gap: 8,
+                    fontSize: 12, color: C.text, lineHeight: 1.4,
+                  }}
+                >
+                  <span style={{ color: C.green, fontSize: 13, lineHeight: 1.2, marginTop: 1 }}>✓</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 12, fontSize: 11, color: C.muted, textAlign: "center",
+            letterSpacing: "-0.005em",
+          }}
+        >
+          {ru
+            ? "Так аккаунт останется только вашим — никто из посторонних не сможет в него войти."
+            : "That way the account stays only yours — nobody else can get in."}
+        </div>
+      </motion.div>
+    );
+  }
   return null;
 }
 
