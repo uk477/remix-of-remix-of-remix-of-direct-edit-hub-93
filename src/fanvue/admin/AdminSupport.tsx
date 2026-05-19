@@ -544,6 +544,18 @@ export default function AdminSupport() {
                       )
                     }
 
+                    if (m.kind === 'order_receipt' && m.order_receipt) {
+                      return (
+                        <motion.div key={m.id}
+                          initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.14 }}
+                          style={{ display: 'flex', justifyContent: 'center', padding: '8px 4px' }}
+                        >
+                          <OrderReceiptMessage payload={m.order_receipt} />
+                        </motion.div>
+                      )
+                    }
+
                     const R = 16, S = 5
                     const radius = right
                       ? `${R}px ${isFirst ? R : S}px ${isLast ? S : S}px ${R}px`
