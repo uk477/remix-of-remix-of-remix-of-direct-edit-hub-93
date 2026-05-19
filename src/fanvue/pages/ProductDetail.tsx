@@ -418,7 +418,7 @@ export default function ProductDetail() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(event) => {
-              if (event.target === event.currentTarget && payStep !== 'crypto_pay') setShowPayment(false)
+              if (event.target === event.currentTarget) setShowPayment(false)
             }}
           >
             <motion.div
@@ -431,7 +431,12 @@ export default function ProductDetail() {
               dragConstraints={{ top: 0 }}
               dragElastic={{ top: 0, bottom: 0.28 }}
               onDragEnd={(_, info) => {
-                if (info.offset.y > 90 && payStep !== 'crypto_pay') setShowPayment(false)
+                const sheetH =
+                  (info.point.y && info.point.y - info.offset.y) ||
+                  window.innerHeight * 0.88
+                if (info.offset.y > sheetH * 0.15 || info.velocity.y > 500) {
+                  setShowPayment(false)
+                }
               }}
             >
               <div className="fv-sheet-handle" />
