@@ -1081,7 +1081,7 @@ export default function Support() {
         replyTo={replyTo}
         cancelReply={() => setReplyTo(null)}
         t={t}
-        disabled={!activeTicket}
+        disabled={!canWrite}
       />
 
       {/* Action sheet for message */}
