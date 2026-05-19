@@ -64,6 +64,17 @@ export default function Deposit() {
   const cancelPendingDeposits = useStore((s) => s.cancelPendingDeposits)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
 
+  // Auto-expire any pending deposit older than the timeout when opening the page
+  useEffect(() => {
+    const timeoutMs = CONFIG.paymentTimeoutMinutes * 60 * 1000
+    const now = Date.now()
+    useStore.getState().orders.forEach((o) => {
+      if (o.kind === 'deposit' && o.status === 'pending' && now - new Date(o.created).getTime() > timeoutMs) {
+        useStore.getState().setOrderStatus(o.id, 'expired')
+      }
+    })
+  }, [])
+
   const existingPending = orders.find((o) => o.kind === 'deposit' && o.status === 'pending')
   const [step, setStep] = useState<Step>(() => existingPending ? 'pay' : 'amount')
   const [amount, setAmount] = useState(() => existingPending ? String(existingPending.amount) : '')
@@ -71,14 +82,9 @@ export default function Deposit() {
   const [pendingOrder, setPendingOrder] = useState<{ id: string; uniqueAmount: number; createdAt: string } | null>(() =>
     existingPending ? { id: existingPending.id, uniqueAmount: existingPending.amount, createdAt: existingPending.created } : null,
   )
-
-  const stepRef = useRef(step); stepRef.current = step
-  useEffect(() => () => {
-    if (stepRef.current === 'pay') {
-      const pending = useStore.getState().orders.find((o) => o.kind === 'deposit' && o.status === 'pending')
-      if (pending) useStore.getState().setOrderStatus(pending.id, 'failed')
-    }
-  }, [])
+  // NOTE: leaving the page does NOT cancel the pending deposit. The order keeps
+  // its 30-minute timer; it only gets cancelled when the user taps "Cancel",
+  // when the timer expires, or when a new deposit is created with another coin.
 
   const numAmount = parseFloat(amount) || 0
   const isValidAmount = numAmount >= 5
@@ -120,7 +126,7 @@ export default function Deposit() {
 
   const goBack = () => {
     if (step === 'amount') navigate(-1)
-    else if (step === 'pay') { cancelDeposit(); setStep('network') }
+    else if (step === 'pay') navigate('/profile') // keep order pending — only "Cancel" button or 30-min timer cancels it
     else if (step === 'success') navigate('/profile')
     else setStep('amount')
   }
@@ -475,6 +481,17 @@ export function PayPanel({
     const iv = window.setInterval(() => setTimer((p) => (p <= 1 ? 0 : p - 1)), 1000)
     return () => clearInterval(iv)
   }, [])
+
+  // Auto-expire when the 30-minute window closes
+  const expiredRef = useRef(false)
+  useEffect(() => {
+    if (timer === 0 && !expiredRef.current && status === 'pending') {
+      expiredRef.current = true
+      useStore.getState().setOrderStatus(orderId, 'expired')
+      setStatus('expired')
+      haptic('error')
+    }
+  }, [timer, status, orderId, haptic])
 
   // step reflects real status: 0 = waiting, 1 = detected/confirming, 2 = credited
 
