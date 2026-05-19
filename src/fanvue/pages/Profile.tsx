@@ -182,7 +182,7 @@ export default function Profile() {
         </div>
 
         {/* Hero balance */}
-        <div style={{ position: 'relative', marginTop: 18, zIndex: 2 }}>
+        <div style={{ position: 'relative', marginTop: -2, zIndex: 2 }}>
           <div style={{ position: 'relative' }}>
             <div style={eyebrow}>
               {lang === 'ru' ? 'Ваш баланс' : 'Your Balance'}
