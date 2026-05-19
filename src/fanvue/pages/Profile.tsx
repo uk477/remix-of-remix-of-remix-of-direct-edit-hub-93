@@ -119,39 +119,20 @@ export default function Profile() {
     </button>
   )
 
-  // noise SVG data URL
-  const noise =
-    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"
-
   return (
     <PageTransition>
       <div
+        className="page"
         style={{
           minHeight: '100%',
           color: '#fff',
-          background: 'transparent',
-          padding: '20px 18px 120px',
+          paddingBottom: 120,
           display: 'flex',
           flexDirection: 'column',
           gap: 16,
           fontFamily: BODY,
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        {/* Film grain overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url("${noise}")`,
-            opacity: 0.06,
-            pointerEvents: 'none',
-            mixBlendMode: 'overlay',
-            zIndex: 1,
-          }}
-        />
-
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -160,7 +141,7 @@ export default function Profile() {
           margin: '-6px 0',
         }}>
 
-          <div className="shop-hero-brand" aria-label="Fanvue Profile">
+          <div className="shop-hero-brand profile-brand-clean" aria-label="Fanvue Profile">
             <img
               src={fanvueGlyph}
               alt=""
@@ -202,25 +183,6 @@ export default function Profile() {
 
         {/* Hero balance */}
         <div style={{ position: 'relative', marginTop: 18, zIndex: 2 }}>
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              left: -16,
-              top: -10,
-              fontFamily: DISPLAY,
-              fontSize: 200,
-              fontWeight: 700,
-              fontStyle: 'italic',
-              color: 'rgba(57,255,99,0.06)',
-              lineHeight: 1,
-              pointerEvents: 'none',
-              userSelect: 'none',
-              letterSpacing: '-0.08em',
-            }}
-          >
-            $
-          </div>
           <div style={{ position: 'relative' }}>
             <div style={eyebrow}>
               {lang === 'ru' ? 'Ваш баланс' : 'Your Balance'}
@@ -264,7 +226,7 @@ export default function Profile() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                boxShadow: '0 8px 32px rgba(57,255,99,0.22)',
+                boxShadow: 'none',
               }}
             >
               <span>{lang === 'ru' ? 'Пополнить' : 'Top up'}</span>
