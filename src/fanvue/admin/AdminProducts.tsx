@@ -41,12 +41,7 @@ export default function AdminProducts() {
       toast.show(lang === 'ru' ? 'Заполните название и цену' : 'Fill title and price', 'error')
       return
     }
-    // Для авто-выдачи: stock = кол-во заготовленных записей в пуле
-    const finalProduct =
-      editing.delivery === 'auto'
-        ? { ...editing, stock: (editing.autoItems ?? []).length }
-        : editing
-    upsert(finalProduct)
+    upsert(editing)
     toast.show(lang === 'ru' ? 'Сохранено' : 'Saved', 'success')
     haptic('success')
     setEditing(null)
