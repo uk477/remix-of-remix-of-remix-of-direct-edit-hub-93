@@ -621,7 +621,6 @@ export default function Settings() {
     { key: (lang === 'ru' ? 'offer_ru'          : 'offer_en')          as keyof SiteContent, label: t('settings_offer')    },
     { key: (lang === 'ru' ? 'rules_ru'          : 'rules_en')          as keyof SiteContent, label: t('settings_rules')    },
     { key: (lang === 'ru' ? 'referral_rules_ru' : 'referral_rules_en') as keyof SiteContent, label: t('settings_referral') },
-    { key: (lang === 'ru' ? 'contacts_ru'       : 'contacts_en')       as keyof SiteContent, label: t('settings_contact')  },
   ]
 
 
