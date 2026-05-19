@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                   style={{ width: '100%', textAlign: 'left', marginTop: 4 }}
                   onClick={handleExportTXT}
                 >
-                  <div className="adm2-att-dot" style={{ background: '#97 88c4'.replace(' ', '') }} />
+                    <div className="adm2-att-dot" style={{ background: '#9788c4' }} />
                   <div className="adm2-att-body">
                     <div className="t-sm fw-bold">Текстовый файл (.txt)</div>
                     <div className="t-xs t-muted">Простой читаемый отчёт</div>
