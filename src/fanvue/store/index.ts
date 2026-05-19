@@ -15,6 +15,7 @@ export const CRYPTO_OPTIONS: CryptoOption[] = [
   { id: 'usdc_eth', name: 'USDC ERC20',  symbol: 'USDC', color: '#2775CA', icon: '$', address: CONFIG.addresses.usdc_eth },
   { id: 'usdc_sol', name: 'USDC SPL',    symbol: 'USDC', color: '#9945FF', icon: '$', address: CONFIG.addresses.usdc_sol },
   { id: 'eth',      name: 'Ethereum',    symbol: 'ETH',  color: '#627EEA', icon: 'Ξ', address: CONFIG.addresses.eth },
+  { id: 'ton',      name: 'Toncoin',     symbol: 'TON',  color: '#0098EA', icon: '💎', address: CONFIG.addresses.ton },
   { id: 'sol',      name: 'Solana',      symbol: 'SOL',  color: '#9945FF', icon: '◎', address: CONFIG.addresses.sol },
   { id: 'btc',      name: 'Bitcoin',     symbol: 'BTC',  color: '#F7931A', icon: '₿', address: CONFIG.addresses.btc },
 ]
