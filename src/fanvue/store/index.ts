@@ -581,6 +581,12 @@ export const useStore = create<AppStore>()(
           orders: s.orders.map((o) => o.id === id
             ? { ...o, status, paid_at: status === 'completed' || status === 'paid' ? new Date().toISOString() : o.paid_at }
             : o),
+          supportMessages: status === 'completed'
+            ? s.supportMessages.map((m) =>
+                m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+                  ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
+                  : m)
+            : s.supportMessages,
         }))
         if (api.isEnabled()) api.adminPatchOrder(id, { status })
       },
@@ -590,8 +596,13 @@ export const useStore = create<AppStore>()(
           orders: s.orders.map((o) => o.id === id
             ? { ...o, deliveryData, status: 'completed', paid_at: o.paid_at ?? new Date().toISOString() }
             : o),
+          supportMessages: s.supportMessages.map((m) =>
+            m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+              ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
+              : m),
         }))
       },
+
 
       deleteOrder: (id) => {
         set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
