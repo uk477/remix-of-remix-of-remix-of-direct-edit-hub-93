@@ -20,6 +20,7 @@ export default function AdminOrders() {
   const lang = useStore((s) => s.lang)
   const orders = useStore((s) => s.orders)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
+  const setOrderDelivery = useStore((s) => s.setOrderDelivery)
   const deleteOrder = useStore((s) => s.deleteOrder)
   const addLog = useStore((s) => s.addLog)
   const toast = useToast()
@@ -30,7 +31,38 @@ export default function AdminOrders() {
   const [confirmDelete, setConfirmDelete] = useState<Order | null>(null)
   const [balAmt, setBalAmt]   = useState('')
   const [balSent, setBalSent] = useState(false)
+  const [deliveryDraft, setDeliveryDraft] = useState('')
   const updateBalance = useStore((s) => s.updateBalance)
+
+  // Sync draft when opening a different order
+  useMemo(() => {
+    setDeliveryDraft(open?.deliveryData ?? '')
+    return null
+  }, [open?.id, open?.deliveryData])
+
+  const DELIVERY_PLACEHOLDER = `fanvue/\nЛогин: \nПароль: \n\nПочта/\nЛогин: \nПароль: \n\nИнструкция по работе с аккаунтом:\n`
+
+  const handleIssueDelivery = (o: Order) => {
+    const txt = deliveryDraft.trim()
+    if (!txt) {
+      toast.show(lang === 'ru' ? 'Заполните данные выдачи' : 'Fill delivery data', 'error')
+      return
+    }
+    haptic('success')
+    setOrderDelivery(o.id, txt)
+    addLog({
+      ts: new Date().toISOString(),
+      uid: 0,
+      username: 'manual',
+      kind: o.kind,
+      amount: o.amount,
+      network: o.provider as never,
+      status: 'success',
+      product: o.product_title,
+    })
+    toast.show(lang === 'ru' ? 'Данные выданы клиенту' : 'Delivery issued', 'success')
+    setOpen(null)
+  }
 
   const filtered = useMemo(() => {
     let list = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
