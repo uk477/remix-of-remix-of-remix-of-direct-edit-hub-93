@@ -174,6 +174,7 @@ interface AppStore {
   toggleMaintenance: () => void
   setOrderStatus: (id: string, status: Order['status']) => void
   setOrderDelivery: (id: string, deliveryData: string) => void
+  resolvePostDelivery: (orderId: string, choice: 'close' | 'continue') => void
   deleteOrder: (id: string) => void
   upsertProduct: (p: Product) => void
   deleteProduct: (id: number) => void
@@ -577,29 +578,90 @@ export const useStore = create<AppStore>()(
       toggleMaintenance: () => set((s) => ({ maintenance: !s.maintenance })),
 
       setOrderStatus: (id, status) => {
-        set((s) => ({
-          orders: s.orders.map((o) => o.id === id
-            ? { ...o, status, paid_at: status === 'completed' || status === 'paid' ? new Date().toISOString() : o.paid_at }
-            : o),
-          supportMessages: status === 'completed'
-            ? s.supportMessages.map((m) =>
-                m.kind === 'order_receipt' && m.order_receipt?.orderId === id
-                  ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
-                  : m)
-            : s.supportMessages,
-        }))
+        set((s) => {
+          const becameCompleted = status === 'completed'
+          const hasReceipt = s.supportMessages.some(
+            (m) => m.kind === 'order_receipt' && m.order_receipt?.orderId === id,
+          )
+          const alreadyHasActions = s.supportMessages.some(
+            (m) => m.kind === 'system' &&
+              (m.text === `post_delivery_actions:${id}` || m.text.startsWith(`post_delivery_resolved:${id}:`)),
+          )
+          const shouldAddActions = becameCompleted && hasReceipt && !alreadyHasActions
+          return {
+            orders: s.orders.map((o) => o.id === id
+              ? { ...o, status, paid_at: status === 'completed' || status === 'paid' ? new Date().toISOString() : o.paid_at }
+              : o),
+            supportMessages: becameCompleted
+              ? [
+                  ...s.supportMessages.map((m) =>
+                    m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+                      ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered' as const, deliveredAt: new Date().toISOString() } }
+                      : m),
+                  ...(shouldAddActions ? [{
+                    id: Date.now() + 1,
+                    sender: 'bot' as const,
+                    kind: 'system' as const,
+                    text: `post_delivery_actions:${id}`,
+                    created: new Date().toISOString(),
+                  }] : []),
+                ]
+              : s.supportMessages,
+          }
+        })
         if (api.isEnabled()) api.adminPatchOrder(id, { status })
       },
 
       setOrderDelivery: (id, deliveryData) => {
+        set((s) => {
+          const hasReceipt = s.supportMessages.some(
+            (m) => m.kind === 'order_receipt' && m.order_receipt?.orderId === id,
+          )
+          const alreadyHasActions = s.supportMessages.some(
+            (m) => m.kind === 'system' &&
+              (m.text === `post_delivery_actions:${id}` || m.text.startsWith(`post_delivery_resolved:${id}:`)),
+          )
+          const shouldAddActions = hasReceipt && !alreadyHasActions
+          return {
+            orders: s.orders.map((o) => o.id === id
+              ? { ...o, deliveryData, status: 'completed' as const, paid_at: o.paid_at ?? new Date().toISOString() }
+              : o),
+            supportMessages: [
+              ...s.supportMessages.map((m) =>
+                m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+                  ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered' as const, deliveredAt: new Date().toISOString() } }
+                  : m),
+              ...(shouldAddActions ? [{
+                id: Date.now() + 1,
+                sender: 'bot' as const,
+                kind: 'system' as const,
+                text: `post_delivery_actions:${id}`,
+                created: new Date().toISOString(),
+              }] : []),
+            ],
+          }
+        })
+      },
+
+      resolvePostDelivery: (orderId, choice) => {
+        const state = get()
+        // 1. side-effects on tickets
+        if (choice === 'close') {
+          const open = state.supportTickets.find((t) => t.status !== 'closed')
+          if (open) get().closeSupportTicket(open.id, 'user')
+        } else {
+          const open = state.supportTickets.find((t) => t.status !== 'closed')
+          if (!open) {
+            get().openSupportTicket('operator', 'Follow-up after order')
+          }
+        }
+        // 2. mark the action card as resolved
         set((s) => ({
-          orders: s.orders.map((o) => o.id === id
-            ? { ...o, deliveryData, status: 'completed', paid_at: o.paid_at ?? new Date().toISOString() }
-            : o),
           supportMessages: s.supportMessages.map((m) =>
-            m.kind === 'order_receipt' && m.order_receipt?.orderId === id
-              ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
-              : m),
+            m.kind === 'system' && m.text === `post_delivery_actions:${orderId}`
+              ? { ...m, text: `post_delivery_resolved:${orderId}:${choice}`, created: new Date().toISOString() }
+              : m,
+          ),
         }))
       },
 

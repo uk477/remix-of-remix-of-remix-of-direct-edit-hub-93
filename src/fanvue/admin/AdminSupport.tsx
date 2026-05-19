@@ -245,11 +245,8 @@ export default function AdminSupport() {
   }
   const handleMarkDelivered = () => {
     if (!chatOrder) return
-    haptic('success'); setOrderStatus(chatOrder.id, 'completed')
-    const deliveryMsg = lang === 'ru'
-      ? `✅ Заказ #${chatOrder.id} выдан!\n\nСпасибо за покупку в Fanvue Market 🙏`
-      : `✅ Order #${chatOrder.id} delivered!\n\nThank you for shopping at Fanvue Market 🙏`
-    addMsg({ id: Date.now(), sender: 'admin', kind: 'text', text: deliveryMsg, created: new Date().toISOString() })
+    haptic('success')
+    setOrderStatus(chatOrder.id, 'completed')
     tgNotify(`🎉 Ваш заказ выдан!\n\n📦 ${chatOrder.product_title ?? chatOrder.id}\n💵 $${chatOrder.amount.toFixed(2)}\n🆔 #${chatOrder.id}`, openUid ?? undefined)
   }
 
@@ -536,6 +533,27 @@ export default function AdminSupport() {
 
                     if (isSystem) {
                       const [type, id, reason] = m.text.split(':')
+                      // user-facing action card — don't render on admin
+                      if (type === 'post_delivery_actions') return null
+                      if (type === 'post_delivery_resolved') {
+                        const choice = reason
+                        const label = choice === 'close'
+                          ? (lang === 'ru' ? `Пользователь закрыл обращение по #${(id ?? '').slice(-6)}` : `User closed ticket for #${(id ?? '').slice(-6)}`)
+                          : (lang === 'ru' ? `Пользователь продолжает диалог по #${(id ?? '').slice(-6)}` : `User wants to keep chatting about #${(id ?? '').slice(-6)}`)
+                        return (
+                          <motion.div key={m.id}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                            style={{ display: 'flex', justifyContent: 'center', margin: '14px 0' }}
+                          >
+                            <div style={{
+                              fontSize: 10.5, color: C.muted, padding: '4px 11px',
+                              background: 'rgba(255,255,255,0.03)',
+                              borderRadius: 999, border: `1px solid ${C.line}`,
+                              fontWeight: 600, fontFamily: MONO, letterSpacing: '0.02em',
+                            }}>{label}</div>
+                          </motion.div>
+                        )
+                      }
                       const tk = tickets.find((x) => x.id === id)
                       const label = type === 'ticket_opened'
                         ? (lang === 'ru'
