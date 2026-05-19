@@ -5,7 +5,7 @@ import { api } from './api'
 import type {
   Lang, User, Category, Product, Order, SupportMessage, CartItem, CryptoOption,
   CryptoNetwork, PaymentLog, Broadcast, PaymentNotification, RefReward, RefWithdrawal,
-  SupportTicket, SupportTicketCategory, AdminPresence,
+  SupportTicket, SupportTicketCategory, AdminPresence, OrderReceiptPayload,
 } from './types'
 
 export const CRYPTO_OPTIONS: CryptoOption[] = [
@@ -142,6 +142,8 @@ interface AppStore {
   addSupportMessage: (msg: SupportMessage) => void
   updateSupportMessage: (id: number, updates: Partial<SupportMessage>) => void
   deleteSupportMessage: (id: number, mode: 'user' | 'all') => void
+  sendOrderReceipt: (payload: OrderReceiptPayload) => boolean
+  setOrderReceiptStage: (orderId: string, stage: OrderReceiptPayload['stage']) => void
   markUserMessagesReadByAdmin: () => void
   markAdminMessagesReadByUser: () => void
   setUserTyping: (v: boolean) => void
@@ -344,6 +346,44 @@ export const useStore = create<AppStore>()(
               : s.supportMessages.map((m) => (m.id === id ? { ...m, deleted_for: 'user' } : m)),
         })),
 
+      sendOrderReceipt: (payload) => {
+        const s = get()
+        const exists = s.supportMessages.some(
+          (m) => m.kind === 'order_receipt' && m.order_receipt?.orderId === payload.orderId,
+        )
+        if (exists) return false
+        const msg: SupportMessage = {
+          id: Date.now(),
+          sender: 'bot',
+          kind: 'order_receipt',
+          text: `order_receipt:${payload.orderId}`,
+          created: new Date().toISOString(),
+          order_receipt: payload,
+        }
+        set((st) => ({
+          supportMessages: [...st.supportMessages, msg],
+          supportUnread: st.supportUnread + 1,
+        }))
+        return true
+      },
+
+      setOrderReceiptStage: (orderId, stage) =>
+        set((s) => ({
+          supportMessages: s.supportMessages.map((m) =>
+            m.kind === 'order_receipt' && m.order_receipt?.orderId === orderId
+              ? {
+                  ...m,
+                  order_receipt: {
+                    ...m.order_receipt,
+                    stage,
+                    deliveredAt: stage === 'delivered' ? new Date().toISOString() : m.order_receipt.deliveredAt,
+                  },
+                }
+              : m,
+          ),
+        })),
+
+
       markUserMessagesReadByAdmin: () =>
         set((s) => ({
           supportMessages: s.supportMessages.map((m) =>
@@ -541,6 +581,12 @@ export const useStore = create<AppStore>()(
           orders: s.orders.map((o) => o.id === id
             ? { ...o, status, paid_at: status === 'completed' || status === 'paid' ? new Date().toISOString() : o.paid_at }
             : o),
+          supportMessages: status === 'completed'
+            ? s.supportMessages.map((m) =>
+                m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+                  ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
+                  : m)
+            : s.supportMessages,
         }))
         if (api.isEnabled()) api.adminPatchOrder(id, { status })
       },
@@ -550,8 +596,13 @@ export const useStore = create<AppStore>()(
           orders: s.orders.map((o) => o.id === id
             ? { ...o, deliveryData, status: 'completed', paid_at: o.paid_at ?? new Date().toISOString() }
             : o),
+          supportMessages: s.supportMessages.map((m) =>
+            m.kind === 'order_receipt' && m.order_receipt?.orderId === id
+              ? { ...m, order_receipt: { ...m.order_receipt, stage: 'delivered', deliveredAt: new Date().toISOString() } }
+              : m),
         }))
       },
+
 
       deleteOrder: (id) => {
         set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))

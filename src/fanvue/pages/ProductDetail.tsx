@@ -647,7 +647,12 @@ export default function ProductDetail() {
                     {delivered && lastOrder?.deliveryData ? (
                       <DeliveryBlock data={lastOrder.deliveryData} orderId={lastOrder.id} />
                     ) : (
-                      <ManualDeliveryBlock orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'} />
+                      <ManualDeliveryBlock
+                        orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'}
+                        productTitle={lastOrder?.product_title}
+                        amount={lastOrder?.amount}
+                        createdAt={lastOrder?.created}
+                      />
                     )}
 
                     <motion.button

@@ -6,6 +6,7 @@ import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
 import { CONFIG } from "../config";
 import ConfirmSheet from "../components/ConfirmSheet";
+import OrderReceiptMessage from "../components/OrderReceiptMessage";
 import type {
   SupportMessage,
   SupportAttachment,
@@ -912,6 +913,11 @@ export default function Support() {
         lastDay = day;
         cur = null;
       }
+      if (m.kind === "order_receipt") {
+        out.push({ type: "system", key: "r-" + m.id, msg: m });
+        cur = null;
+        return;
+      }
       if (m.kind === "system") {
         // Dedupe consecutive identical system pills (e.g. multiple "ticket_closed:")
         const prev = out[out.length - 1];
@@ -999,9 +1005,16 @@ export default function Support() {
         <AnimatePresence initial={false}>
           {groups.map((g) => {
             if (g.type === "day") return <DaySeparator key={g.key} label={g.label} />;
-            if (g.type === "system")
+            if (g.type === "system") {
+              if (g.msg.kind === "order_receipt" && g.msg.order_receipt) {
+                return (
+                  <div key={g.key} style={{ display: 'flex', justifyContent: 'center', padding: '8px 12px' }}>
+                    <OrderReceiptMessage payload={g.msg.order_receipt} />
+                  </div>
+                );
+              }
               return (
-              <SystemMessage
+                <SystemMessage
                   key={g.key}
                   msg={g.msg}
                   lang={lang}
@@ -1013,6 +1026,7 @@ export default function Support() {
                   onFlowBack={handleFlowBack}
                 />
               );
+            }
             return (
               <MessageGroup
                 key={g.key}

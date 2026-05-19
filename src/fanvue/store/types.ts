@@ -84,7 +84,19 @@ export interface SupportAttachment {
   dataUrl: string
 }
 
-export type SupportMessageKind = 'text' | 'image' | 'file' | 'system' | 'quick_form'
+export type SupportMessageKind = 'text' | 'image' | 'file' | 'system' | 'quick_form' | 'order_receipt'
+
+export type OrderReceiptStage = 'created' | 'processing' | 'delivered'
+
+export interface OrderReceiptPayload {
+  orderId: string
+  productTitle: string
+  amount: number
+  currency?: string
+  createdAt: string
+  stage: OrderReceiptStage
+  deliveredAt?: string
+}
 
 export interface SupportMessage {
   id: number
@@ -98,6 +110,7 @@ export interface SupportMessage {
   reply_to?: number
   deleted_for?: 'user' | 'all'
   ticket_id?: string
+  order_receipt?: OrderReceiptPayload
 }
 
 export type SupportTicketStatus = 'triage' | 'open' | 'closed'

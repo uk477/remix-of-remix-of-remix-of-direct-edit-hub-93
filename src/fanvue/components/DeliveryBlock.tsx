@@ -378,11 +378,22 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
 // ManualDeliveryBlock — pending manual fulfillment
 // ============================================================
 
-export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
+export function ManualDeliveryBlock({
+  orderId,
+  productTitle,
+  amount,
+  createdAt,
+}: {
+  orderId: string
+  productTitle?: string
+  amount?: number
+  createdAt?: string
+}) {
   const lang = useStore((s) => s.lang)
   const toast = useToast()
   const { haptic } = useTelegram()
   const navigate = useNavigate()
+  const sendOrderReceipt = useStore((s) => s.sendOrderReceipt)
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
 
   const copyId = async () => {
@@ -394,6 +405,20 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
   const time = new Date().toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
   })
+
+  const handleOpenChat = () => {
+    if (orderId && orderId !== '—' && productTitle && typeof amount === 'number') {
+      sendOrderReceipt({
+        orderId,
+        productTitle,
+        amount,
+        currency: 'USD',
+        createdAt: createdAt ?? new Date().toISOString(),
+        stage: 'processing',
+      })
+    }
+    navigate('/support/chat')
+  }
 
   return (
     <TerminalShell>
@@ -423,7 +448,7 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
           { k: 'Status', v: '0x24_QUEUED', accent: true },
           { k: 'Timestamp', v: time },
           { k: 'Channel', v: lang === 'ru' ? 'Оператор / TG' : 'Operator / TG' },
-        ].map((row, i, arr) => (
+        ].map((row, i) => (
           <div
             key={row.k}
             style={{
@@ -455,7 +480,7 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
       </p>
 
       <ActionButtons
-        onChat={() => navigate('/support/chat')}
+        onChat={handleOpenChat}
         tgUrl={tgUrl}
         chatLabel={lang === 'ru' ? 'Написать в чат поддержки' : 'Open support chat'}
         tgLabel="Telegram"
@@ -463,3 +488,4 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
     </TerminalShell>
   )
 }
+
