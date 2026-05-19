@@ -25,7 +25,23 @@ function parseCreds(text: string): ParsedCreds {
   const instructions: string[] = []
   const extras: ParsedCreds['extras'] = []
 
-  for (const raw of text.replace(/\r\n/g, '\n').split('\n')) {
+  const normalized = text.replace(/\r\n/g, '\n').trim()
+
+  // Compact single-line format: login:password:email:emailpass:instruction
+  // (matches when there are no key:value pairs and no newlines)
+  if (!/\n/.test(normalized) && !/^[^:\n]+:\s+\S/.test(normalized)) {
+    const parts = normalized.split(':').map((s) => s.trim()).filter(Boolean)
+    if (parts.length >= 2) {
+      if (parts[0]) fanvue.login = parts[0]
+      if (parts[1]) fanvue.password = parts[1]
+      if (parts[2]) mail.email = parts[2]
+      if (parts[3]) mail.password = parts[3]
+      if (parts.slice(4).length) instructions.push(parts.slice(4).join(': '))
+      return { fanvue, mail, instructions, extras }
+    }
+  }
+
+  for (const raw of normalized.split('\n')) {
     const line = raw.trim()
     if (!line) continue
     const m = line.match(/^([^:：]+)[:：]\s*(.+)$/)
