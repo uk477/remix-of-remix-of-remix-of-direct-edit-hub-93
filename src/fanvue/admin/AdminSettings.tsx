@@ -7,6 +7,68 @@ import { useToast } from '../components/Toast'
 import { useTelegram } from '../hooks/useTelegram'
 import CryptoLogo from '../components/CryptoLogo'
 import type { CryptoNetwork } from '../store/types'
+import type { SiteLinks } from '../store'
+
+const LINK_FIELDS: { key: keyof SiteLinks; label: string; hint: string }[] = [
+  { key: 'supportUrl',   label: 'Поддержка / связь со мной', hint: 'https://t.me/your_support' },
+  { key: 'adminUrl',     label: 'Админ (контакт)',           hint: 'https://t.me/your_admin' },
+  { key: 'chatUrl',      label: 'Общий чат',                 hint: 'https://t.me/your_chat' },
+  { key: 'communityUrl', label: 'Сообщество',                hint: 'https://t.me/your_community' },
+  { key: 'channelUrl',   label: 'Канал с новостями',         hint: 'https://t.me/your_channel' },
+  { key: 'reviewsUrl',   label: 'Отзывы',                    hint: 'https://t.me/your_reviews' },
+  { key: 'botUrl',       label: 'Бот',                       hint: 'https://t.me/your_bot' },
+]
+
+function LinkRow({ field }: { field: typeof LINK_FIELDS[number] }) {
+  const lang     = useStore((s) => s.lang)
+  const links    = useStore((s) => s.siteLinks)
+  const setLink  = useStore((s) => s.setSiteLink)
+  const toast    = useToast()
+  const { haptic } = useTelegram()
+  const [value, setValue] = useState(links[field.key])
+  const [editing, setEditing] = useState(false)
+
+  const save = () => {
+    setLink(field.key, value.trim())
+    toast.show(lang === 'ru' ? 'Ссылка сохранена' : 'Link saved', 'success')
+    haptic('success')
+    setEditing(false)
+  }
+
+  return (
+    <motion.div className="card mb-3" style={{ padding: 14 }} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="t-sm fw-bold mb-1">{field.label}</div>
+      {editing ? (
+        <div className="col gap-2">
+          <input
+            className="input"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={field.hint}
+            style={{ fontSize: 12, fontFamily: 'monospace' }}
+          />
+          <div className="row gap-2">
+            <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={save}>
+              {lang === 'ru' ? 'Сохранить' : 'Save'}
+            </button>
+            <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => { setValue(links[field.key]); setEditing(false) }}>
+              {lang === 'ru' ? 'Отмена' : 'Cancel'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="address-text" style={{ padding: 10, background: 'var(--surface)', borderRadius: 10, fontSize: 11, marginBottom: 10, wordBreak: 'break-all' }}>
+            {links[field.key] || (lang === 'ru' ? '— не задано —' : '— not set —')}
+          </div>
+          <button className="btn btn-secondary btn-sm" style={{ width: '100%' }} onClick={() => setEditing(true)}>
+            {lang === 'ru' ? 'Изменить' : 'Edit'}
+          </button>
+        </>
+      )}
+    </motion.div>
+  )
+}
 
 function AddressRow({ network }: { network: typeof CRYPTO_OPTIONS[number] }) {
   const t = useT()
@@ -197,6 +259,17 @@ export default function AdminSettings() {
         {CRYPTO_OPTIONS.map((opt) => (
           <AddressRow key={opt.id} network={opt} />
         ))}
+
+        {/* Site links */}
+        <div className="section-title mt-5 mb-2">
+          {lang === 'ru' ? 'Ссылки и контакты' : 'Links & contacts'}
+        </div>
+        <div className="t-xs t-muted mb-3">
+          {lang === 'ru'
+            ? 'Чат, отзывы, канал, связь со мной — меняй в любое время, изменения видны сразу.'
+            : 'Chat, reviews, channel, contact — edit anytime, changes apply instantly.'}
+        </div>
+        {LINK_FIELDS.map((f) => <LinkRow key={f.key} field={f} />)}
       </div>
     </PageTransition>
   )
