@@ -86,6 +86,7 @@ export default function AdminSupport() {
   const [balanceInput, setBalanceInput] = useState('')
   const [balanceSent, setBalanceSent] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const realUid = user?.uid ?? 0
