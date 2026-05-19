@@ -538,6 +538,7 @@ export function ManualDeliveryBlock({
   const navigate = useNavigate()
   const sendOrderReceipt = useStore((s) => s.sendOrderReceipt)
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
+  const isVerification = isVerificationProduct(productTitle)
 
   const copyId = async () => {
     try { await navigator.clipboard.writeText(orderId) } catch { }
@@ -617,16 +618,21 @@ export function ManualDeliveryBlock({
         margin: 0, fontFamily: DISPLAY, fontSize: 13, lineHeight: 1.55,
         color: 'rgba(255,255,255,0.6)',
       }}>
-        {lang === 'ru'
+        {isVerification
+          ? (lang === 'ru'
+            ? 'Свяжитесь с нами в Telegram — оператор подскажет, какие данные нужны для аккуратной верификации аккаунта.'
+            : 'Contact us in Telegram — an operator will tell you what data is needed for careful account verification.')
+          : lang === 'ru'
           ? 'Напишите нам в чат поддержки или в Telegram — мы выдадим данные заказа вручную в течение нескольких минут.'
           : 'Message support chat or Telegram — we will deliver the credentials manually within a few minutes.'}
       </p>
 
       <ActionButtons
-        onChat={handleOpenChat}
+        onChat={isVerification ? undefined : handleOpenChat}
         tgUrl={tgUrl}
         chatLabel={lang === 'ru' ? 'Написать в чат поддержки' : 'Open support chat'}
         tgLabel="Telegram"
+        telegramPrimary={isVerification}
       />
     </TerminalShell>
   )
