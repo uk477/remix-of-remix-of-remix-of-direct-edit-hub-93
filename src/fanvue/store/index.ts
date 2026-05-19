@@ -795,10 +795,12 @@ export const useStore = create<AppStore>()(
     }),
     {
       name: 'fanvue-app-v7',
-      version: 9,
+      version: 10,
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
+        // ensure newly added crypto networks (e.g. ton) get default empty addresses
+        s.cryptoAddresses = { ...CONFIG.addresses, ...(s.cryptoAddresses ?? {}) } as typeof s.cryptoAddresses
         if (Array.isArray(s.products)) {
           const defaultStocks = new Map(MOCK_PRODUCTS.map((p) => [p.id, p.stock]))
           s.products = s.products.map((p) => {
