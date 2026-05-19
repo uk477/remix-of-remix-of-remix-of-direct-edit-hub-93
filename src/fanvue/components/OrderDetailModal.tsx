@@ -295,7 +295,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
 
             {/* Delivery payload — only for buy orders */}
             {!isDeposit && order.deliveryData && (
-              <DeliveryBlock data={order.deliveryData} />
+              <DeliveryBlock data={order.deliveryData} orderId={order.id} />
             )}
             {!isDeposit && !order.deliveryData && !isFailed && (
               <ManualDeliveryBlock orderId={order.id} />
