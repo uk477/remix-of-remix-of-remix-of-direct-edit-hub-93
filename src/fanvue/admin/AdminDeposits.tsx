@@ -12,7 +12,7 @@ const Ic = {
 
 const NETWORK_LABEL: Record<string, string> = {
   trc20: 'USDT TRC20', erc20: 'USDT ERC20', bep20: 'USDT BEP20',
-  eth: 'ETH', sol: 'SOL', btc: 'BTC', usdc_eth: 'USDC ERC20', usdc_sol: 'USDC SOL',
+  eth: 'ETH', sol: 'SOL', btc: 'BTC', ton: 'TON', usdc_eth: 'USDC ERC20', usdc_sol: 'USDC SOL',
 }
 
 const STATUS_LABEL: Record<string, string> = {
