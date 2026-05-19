@@ -245,11 +245,8 @@ export default function AdminSupport() {
   }
   const handleMarkDelivered = () => {
     if (!chatOrder) return
-    haptic('success'); setOrderStatus(chatOrder.id, 'completed')
-    const deliveryMsg = lang === 'ru'
-      ? `✅ Заказ #${chatOrder.id} выдан!\n\nСпасибо за покупку в Fanvue Market 🙏`
-      : `✅ Order #${chatOrder.id} delivered!\n\nThank you for shopping at Fanvue Market 🙏`
-    addMsg({ id: Date.now(), sender: 'admin', kind: 'text', text: deliveryMsg, created: new Date().toISOString() })
+    haptic('success')
+    setOrderStatus(chatOrder.id, 'completed')
     tgNotify(`🎉 Ваш заказ выдан!\n\n📦 ${chatOrder.product_title ?? chatOrder.id}\n💵 $${chatOrder.amount.toFixed(2)}\n🆔 #${chatOrder.id}`, openUid ?? undefined)
   }
 
