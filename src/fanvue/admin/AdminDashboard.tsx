@@ -16,9 +16,10 @@ const Ic = {
   arrow:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>,
 }
 
-type Period = 'today' | 'week' | 'month'
+type Period = 'today' | 'week' | 'month' | 'all'
 
 function withinPeriod(ts: string, period: Period) {
+  if (period === 'all') return true
   const d   = new Date(ts).getTime()
   const now = Date.now()
   const day = 24 * 60 * 60 * 1000
@@ -27,6 +28,7 @@ function withinPeriod(ts: string, period: Period) {
   return now - d < 30 * day
 }
 function prevPeriod(ts: string, period: Period) {
+  if (period === 'all') return false
   const d   = new Date(ts).getTime()
   const now = Date.now()
   const day = 24 * 60 * 60 * 1000
@@ -153,7 +155,7 @@ export default function AdminDashboard() {
   const recent = logs.slice(0, 6)
 
   const periodLabel: Record<Period, string> = {
-    today: 'Сегодня', week: 'Неделя', month: 'Месяц',
+    today: 'Сегодня', week: 'Неделя', month: 'Месяц', all: 'Всё время',
   }
 
   return (
@@ -177,7 +179,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="adm2-segment">
-            {(['today', 'week', 'month'] as Period[]).map((p) => (
+            {(['today', 'week', 'month', 'all'] as Period[]).map((p) => (
               <button
                 key={p}
                 className={`adm2-seg-btn${period === p ? ' is-active' : ''}`}
