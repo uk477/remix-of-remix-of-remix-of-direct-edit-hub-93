@@ -152,14 +152,30 @@ export default function Profile() {
           }}
         />
 
+        {/* Fixed top green glow — always visible while scrolling */}
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 320,
+            pointerEvents: 'none',
+            zIndex: 0,
+            background:
+              'radial-gradient(80% 100% at 50% 0%, rgba(57,255,99,0.22) 0%, rgba(57,255,99,0.08) 35%, transparent 70%)',
+          }}
+        />
+
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'relative', zIndex: 2,
-          background: 'radial-gradient(120% 220% at 0% 50%, rgba(57,255,99,0.18) 0%, rgba(57,255,99,0.06) 30%, transparent 60%)',
           padding: '6px 0',
           margin: '-6px 0',
         }}>
+
           <div className="shop-hero-brand" aria-label="Fanvue Profile">
             <img
               src={fanvueGlyph}
