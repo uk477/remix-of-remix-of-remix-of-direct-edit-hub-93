@@ -239,6 +239,15 @@ export const useStore = create<AppStore>()(
         contacts_ru: '', contacts_en: '',
         referral_rules_ru: '', referral_rules_en: '',
       },
+      siteLinks: {
+        supportUrl:   `https://t.me/${CONFIG.supportUsername}`,
+        adminUrl:     `https://t.me/${CONFIG.adminUsername}`,
+        chatUrl:      `https://t.me/${CONFIG.communityUsername}`,
+        communityUrl: `https://t.me/${CONFIG.communityUsername}`,
+        channelUrl:   `https://t.me/${CONFIG.channelUsername}`,
+        reviewsUrl:   '',
+        botUrl:       `https://t.me/${CONFIG.botUsername}`,
+      },
 
       setLang: (lang) => set({ lang, langUserSet: true }),
 
