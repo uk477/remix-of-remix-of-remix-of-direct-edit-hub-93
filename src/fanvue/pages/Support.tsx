@@ -912,6 +912,11 @@ export default function Support() {
         lastDay = day;
         cur = null;
       }
+      if (m.kind === "order_receipt") {
+        out.push({ type: "system", key: "r-" + m.id, msg: m });
+        cur = null;
+        return;
+      }
       if (m.kind === "system") {
         // Dedupe consecutive identical system pills (e.g. multiple "ticket_closed:")
         const prev = out[out.length - 1];
