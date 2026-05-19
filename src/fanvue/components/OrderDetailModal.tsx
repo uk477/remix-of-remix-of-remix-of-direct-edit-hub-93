@@ -298,7 +298,12 @@ export default function OrderDetailModal({ order, onClose }: Props) {
               <DeliveryBlock data={order.deliveryData} orderId={order.id} />
             )}
             {!isDeposit && !order.deliveryData && !isFailed && (
-              <ManualDeliveryBlock orderId={order.id} />
+              <ManualDeliveryBlock
+                orderId={order.id}
+                productTitle={order.product_title}
+                amount={order.amount}
+                createdAt={order.created}
+              />
             )}
 
             {/* Specimen data grid */}
