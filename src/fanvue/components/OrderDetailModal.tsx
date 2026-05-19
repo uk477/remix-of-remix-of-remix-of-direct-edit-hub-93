@@ -4,6 +4,7 @@ import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { useToast } from './Toast'
 import CryptoLogo from './CryptoLogo'
+import DeliveryBlock, { ManualDeliveryBlock } from './DeliveryBlock'
 import type { Order, CryptoNetwork } from '../store/types'
 
 interface Props { order: Order | null; onClose: () => void }
