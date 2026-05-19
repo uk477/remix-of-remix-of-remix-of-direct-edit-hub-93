@@ -1,53 +1,82 @@
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import PageTransition from '../components/PageTransition'
 
-const UsersIcon   = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-const BoxIcon     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-const RevenueIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-const ClockIcon   = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-const CheckIcon   = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-const BroadIcon   = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="9" width="14" height="6" rx="1"/></svg>
-const WalletIcon  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12V22H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16v4"/><path d="M20 12a2 2 0 0 0-2 2 2 2 0 0 0 2 2h4v-4h-4Z"/></svg>
-const LogsIcon    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-const UserIcon    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-const ShopIcon    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-const RefIcon     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg>
+/* ───── icons ───── */
+const Ic = {
+  users:   () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  box:     () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>,
+  rev:     () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+  pending: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  up:      () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 15 12 9 18 15"/></svg>,
+  down:    () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+  arrow:   () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>,
+}
 
-function StatCard({ Icon, value, label, color, delay = 0 }: {
-  Icon: () => JSX.Element; value: string; label: string; color: string; delay?: number
-}) {
+type Period = 'today' | 'week' | 'month'
+
+function withinPeriod(ts: string, period: Period) {
+  const d   = new Date(ts).getTime()
+  const now = Date.now()
+  const day = 24 * 60 * 60 * 1000
+  if (period === 'today') return now - d < day
+  if (period === 'week')  return now - d < 7 * day
+  return now - d < 30 * day
+}
+function prevPeriod(ts: string, period: Period) {
+  const d   = new Date(ts).getTime()
+  const now = Date.now()
+  const day = 24 * 60 * 60 * 1000
+  const span = period === 'today' ? day : period === 'week' ? 7 * day : 30 * day
+  return now - d >= span && now - d < 2 * span
+}
+
+function Sparkline({ points, color }: { points: number[]; color: string }) {
+  if (points.length < 2) return null
+  const w = 70, h = 22
+  const max = Math.max(...points, 1)
+  const min = Math.min(...points, 0)
+  const step = w / (points.length - 1)
+  const norm = (v: number) => h - ((v - min) / (max - min || 1)) * h
+  const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${i * step} ${norm(p)}`).join(' ')
   return (
-    <motion.div
-      className="card"
-      style={{ padding: '16px', position: 'relative', overflow: 'hidden' }}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.3 }}
-    >
-      <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: `radial-gradient(circle, ${color}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-      <div style={{ color, marginBottom: 8 }}><Icon /></div>
-      <div className="t-xl" style={{ color, fontSize: 24 }}>{value}</div>
-      <div className="t-xs t-muted mt-1" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-    </motion.div>
+    <svg width={w} height={h} style={{ overflow: 'visible' }}>
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 
-function QuickAction({ Icon, label, onClick, color = 'var(--brand)' }: {
-  Icon: () => JSX.Element; label: string; onClick: () => void; color?: string
+function KpiCard({ Icon, value, label, accent, delta, spark, delay = 0 }: {
+  Icon: () => JSX.Element; value: string; label: string; accent: string;
+  delta?: number; spark?: number[]; delay?: number
 }) {
+  const up = (delta ?? 0) >= 0
   return (
-    <motion.button
-      className="card"
-      style={{ padding: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}
-      onClick={onClick}
-      whileTap={{ scale: 0.97 }}
+    <motion.div
+      className="adm2-kpi"
+      style={{ ['--kpi-accent' as never]: accent }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -2 }}
     >
-      <span style={{ color }}><Icon /></span>
-      <span className="t-xs fw-bold" style={{ color }}>{label}</span>
-    </motion.button>
+      <div className="adm2-kpi-top">
+        <span className="adm2-kpi-ic"><Icon /></span>
+        {typeof delta === 'number' && (
+          <span className={`adm2-kpi-delta ${up ? 'up' : 'down'}`}>
+            {up ? <Ic.up /> : <Ic.down />}{Math.abs(delta).toFixed(0)}%
+          </span>
+        )}
+      </div>
+      <div className="adm2-kpi-val">{value}</div>
+      <div className="adm2-kpi-row">
+        <span className="adm2-kpi-lbl">{label}</span>
+        {spark && <Sparkline points={spark} color={`rgb(${accent})`} />}
+      </div>
+    </motion.div>
   )
 }
 
@@ -56,52 +85,251 @@ export default function AdminDashboard() {
   const t        = useT()
   const orders   = useStore((s) => s.orders)
   const logs     = useStore((s) => s.logs)
+  const tickets  = useStore((s) => s.supportTickets)
+  const products = useStore((s) => s.products)
+  const refW     = useStore((s) => s.refWithdrawals)
 
-  const totalRevenue = orders.filter((o) => o.status === 'completed' && o.kind === 'buy').reduce((s, o) => s + o.amount, 0)
-  const pendingCount = orders.filter((o) => o.status === 'pending').length
-  const totalOrders  = orders.length
+  const [period, setPeriod] = useState<Period>('today')
+
+  const buys = useMemo(
+    () => orders.filter((o) => o.kind === 'buy' && (o.status === 'completed' || o.status === 'paid')),
+    [orders],
+  )
+
+  const cur = buys.filter((o) => withinPeriod(o.created, period))
+  const prv = buys.filter((o) => prevPeriod(o.created, period))
+
+  const sumCur = cur.reduce((s, o) => s + o.amount, 0)
+  const sumPrv = prv.reduce((s, o) => s + o.amount, 0)
+  const revDelta = sumPrv === 0 ? (sumCur > 0 ? 100 : 0) : ((sumCur - sumPrv) / sumPrv) * 100
+
+  const ordersDelta = prv.length === 0
+    ? (cur.length > 0 ? 100 : 0)
+    : ((cur.length - prv.length) / prv.length) * 100
+
+  /* sparkline — последние 7 баков по дням */
+  const days = 7
+  const dayMs = 24 * 60 * 60 * 1000
+  const now = Date.now()
+  const revSpark = Array.from({ length: days }, (_, i) => {
+    const from = now - (days - i) * dayMs
+    const to   = now - (days - i - 1) * dayMs
+    return buys
+      .filter((o) => {
+        const d = new Date(o.created).getTime()
+        return d >= from && d < to
+      })
+      .reduce((s, o) => s + o.amount, 0)
+  })
+  const ordSpark = Array.from({ length: days }, (_, i) => {
+    const from = now - (days - i) * dayMs
+    const to   = now - (days - i - 1) * dayMs
+    return buys.filter((o) => {
+      const d = new Date(o.created).getTime()
+      return d >= from && d < to
+    }).length
+  })
+
   const uniqueUsers  = new Set(logs.map((l) => l.uid)).size + 12
-  const recent       = logs.slice(0, 5)
+  const pendingCount = orders.filter((o) => o.status === 'pending').length
+
+  /* attention */
+  const openTickets = tickets.filter((tk) => tk.status === 'open' || tk.status === 'triage').length
+  const pendingRefW = refW.filter((w) => w.status === 'pending').length
+
+  /* top products */
+  const topProducts = useMemo(() => {
+    const map = new Map<string, { title: string; count: number; revenue: number }>()
+    for (const o of buys) {
+      const k = o.product_title ?? '—'
+      const cur = map.get(k) ?? { title: k, count: 0, revenue: 0 }
+      cur.count += o.quantity ?? 1
+      cur.revenue += o.amount
+      map.set(k, cur)
+    }
+    return [...map.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 4)
+  }, [buys])
+
+  const recent = logs.slice(0, 6)
+
+  const periodLabel: Record<Period, string> = {
+    today: 'Сегодня', week: 'Неделя', month: 'Месяц',
+  }
 
   return (
     <PageTransition>
-      <div className="page">
+      <div className="page adm2-page">
+        {/* hero */}
+        <motion.div
+          className="adm2-hero"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32 }}
+        >
+          <div>
+            <div className="adm2-hero-eyebrow">Панель управления</div>
+            <div className="adm2-hero-title">
+              Привет, <span>админ</span>
+            </div>
+            <div className="adm2-hero-sub">
+              {cur.length} {cur.length === 1 ? 'продажа' : 'продаж'} · ${sumCur.toFixed(0)} за {periodLabel[period].toLowerCase()}
+            </div>
+          </div>
+
+          <div className="adm2-segment">
+            {(['today', 'week', 'month'] as Period[]).map((p) => (
+              <button
+                key={p}
+                className={`adm2-seg-btn${period === p ? ' is-active' : ''}`}
+                onClick={() => setPeriod(p)}
+              >
+                {period === p && (
+                  <motion.span className="adm2-seg-pill" layoutId="seg-pill"
+                    transition={{ type: 'spring', stiffness: 380, damping: 28 }} />
+                )}
+                <span style={{ position: 'relative' }}>{periodLabel[p]}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* KPI grid */}
         <div className="grid-2 mb-4">
-          <StatCard Icon={UsersIcon}   value={String(uniqueUsers)}           label={t('admin_total_users')}  color="var(--brand)"  delay={0}    />
-          <StatCard Icon={BoxIcon}     value={String(totalOrders)}           label={t('admin_total_orders')} color="var(--purple)" delay={0.05} />
-          <StatCard Icon={RevenueIcon} value={`$${totalRevenue.toFixed(0)}`} label={t('admin_revenue')}      color="var(--gold)"   delay={0.1}  />
-          <StatCard Icon={ClockIcon}   value={String(pendingCount)}          label={t('admin_pending')}      color="var(--orange)" delay={0.15} />
+          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="232,201,140" delta={revDelta}    spark={revSpark} delay={0}    />
+          <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={ordersDelta} spark={ordSpark} delay={0.05} />
+          <KpiCard Icon={Ic.users}   value={String(uniqueUsers)}     label={t('admin_total_users')}  accent="111,154,184" delay={0.10} />
+          <KpiCard Icon={Ic.pending} value={String(pendingCount)}    label={t('admin_pending')}      accent="224,115,74"  delay={0.15} />
         </div>
 
-        <div className="section-title mb-3">{t('admin_quick')}</div>
-        <div className="grid-3 mb-5">
-          <QuickAction Icon={CheckIcon}  label={t('admin_verify_payment')} onClick={() => navigate('/admin/orders')}    color="var(--green)"  />
-          <QuickAction Icon={BroadIcon}  label={t('admin_broadcast')}      onClick={() => navigate('/admin/broadcast')} color="var(--pink)"   />
-          <QuickAction Icon={WalletIcon} label={t('admin_addresses')}      onClick={() => navigate('/admin/settings')}  color="var(--brand)"  />
-          <QuickAction Icon={LogsIcon}   label={t('admin_logs')}           onClick={() => navigate('/admin/logs')}      color="var(--purple)" />
-          <QuickAction Icon={UserIcon}   label={t('admin_users')}          onClick={() => navigate('/admin/users')}     color="var(--gold)"   />
-          <QuickAction Icon={ShopIcon}   label={t('admin_products')}       onClick={() => navigate('/admin/products')}  color="var(--orange)" />
-          <QuickAction Icon={RefIcon}    label="Реф. выводы"               onClick={() => navigate('/admin/referrals')} color="var(--cyan)"   />
+        {/* attention */}
+        <AnimatePresence>
+          {(pendingCount + openTickets + pendingRefW) > 0 && (
+            <motion.div
+              className="adm2-attention"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="section-title mb-2">⚡ Требует внимания</div>
+              <div className="col gap-2">
+                {pendingCount > 0 && (
+                  <button className="adm2-att-row" onClick={() => navigate('/admin/orders')}>
+                    <div className="adm2-att-dot" style={{ background: 'var(--orange)' }} />
+                    <div className="adm2-att-body">
+                      <div className="t-sm fw-bold">{pendingCount} {pendingCount === 1 ? 'заказ ждёт' : 'заказов ждут'} подтверждения оплаты</div>
+                      <div className="t-xs t-muted">Перейти к заказам</div>
+                    </div>
+                    <Ic.arrow />
+                  </button>
+                )}
+                {openTickets > 0 && (
+                  <button className="adm2-att-row" onClick={() => navigate('/admin/support')}>
+                    <div className="adm2-att-dot" style={{ background: 'var(--green)' }} />
+                    <div className="adm2-att-body">
+                      <div className="t-sm fw-bold">{openTickets} {openTickets === 1 ? 'открытое обращение' : 'открытых обращений'}</div>
+                      <div className="t-xs t-muted">Ответить пользователям</div>
+                    </div>
+                    <Ic.arrow />
+                  </button>
+                )}
+                {pendingRefW > 0 && (
+                  <button className="adm2-att-row" onClick={() => navigate('/admin/referrals')}>
+                    <div className="adm2-att-dot" style={{ background: 'var(--cyan)' }} />
+                    <div className="adm2-att-body">
+                      <div className="t-sm fw-bold">{pendingRefW} реф. выводов в обработке</div>
+                      <div className="t-xs t-muted">Обработать выплаты</div>
+                    </div>
+                    <Ic.arrow />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* quick actions */}
+        <div className="section-title mt-4 mb-3">{t('admin_quick')}</div>
+        <div className="adm2-quick">
+          {[
+            { label: 'Заказы',       to: '/admin/orders',    accent: '151,136,196' },
+            { label: 'Товары',       to: '/admin/products',  accent: '224,115,74'  },
+            { label: 'Пользователи', to: '/admin/users',     accent: '232,201,140' },
+            { label: 'Рассылка',     to: '/admin/broadcast', accent: '192,138,159' },
+            { label: 'Реф. выводы',  to: '/admin/referrals', accent: '111,154,184' },
+            { label: 'Настройки',    to: '/admin/settings',  accent: '118,163,116' },
+          ].map((q, i) => (
+            <motion.button
+              key={q.to}
+              className="adm2-quick-btn"
+              style={{ ['--qa' as never]: q.accent }}
+              onClick={() => navigate(q.to)}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.05 + i * 0.03 }}
+              whileTap={{ scale: 0.96 }}
+            >
+              {q.label}
+            </motion.button>
+          ))}
         </div>
 
+        {/* top products */}
+        {topProducts.length > 0 && (
+          <>
+            <div className="section-title mt-5 mb-3">🔥 Топ товары</div>
+            <div className="col gap-2 mb-4">
+              {topProducts.map((p, i) => {
+                const max = topProducts[0].revenue
+                const pct = (p.revenue / max) * 100
+                return (
+                  <motion.div
+                    key={p.title}
+                    className="adm2-top-row"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                  >
+                    <div className="adm2-top-rank">#{i + 1}</div>
+                    <div className="adm2-top-body">
+                      <div className="t-sm fw-bold" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</div>
+                      <div className="adm2-top-bar"><div style={{ width: `${pct}%` }} /></div>
+                    </div>
+                    <div className="adm2-top-val">
+                      <div className="t-sm fw-black">${p.revenue.toFixed(0)}</div>
+                      <div className="t-xs t-muted">{p.count} шт</div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </>
+        )}
+
+        {/* recent activity */}
         <div className="section-title mb-3">{t('admin_recent_activity')}</div>
         <div className="col gap-2">
           {recent.length === 0 && (
             <div className="t-xs t-muted text-center" style={{ padding: 20 }}>{t('admin_no_logs')}</div>
           )}
           {recent.map((log, i) => (
-            <motion.div key={log.id} className="card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: log.status === 'success' ? 'rgba(0,201,141,0.14)' : 'rgba(240,64,96,0.14)', color: log.status === 'success' ? 'var(--green)' : 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <motion.div
+              key={log.id}
+              className="adm2-log"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.04 }}
+            >
+              <div className={`adm2-log-ic ${log.status === 'success' ? 'ok' : 'bad'}`}>
                 {log.status === 'success'
-                  ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                }
+                  ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="t-sm fw-bold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  @{log.username} · {log.kind === 'buy' ? log.product ?? 'Purchase' : 'Deposit'}
+                  @{log.username} · {log.kind === 'buy' ? log.product ?? 'Покупка' : 'Депозит'}
                 </div>
-                <div className="t-xs t-muted">{new Date(log.ts).toLocaleString()}</div>
+                <div className="t-xs t-muted">{new Date(log.ts).toLocaleString('ru-RU', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
               </div>
               <div className="t-sm fw-black" style={{ color: log.kind === 'deposit' ? 'var(--green)' : 'var(--t-primary)' }}>
                 {log.kind === 'deposit' ? '+' : ''}${log.amount.toFixed(2)}
@@ -109,6 +337,8 @@ export default function AdminDashboard() {
             </motion.div>
           ))}
         </div>
+
+        <div style={{ height: 12 }} />
       </div>
     </PageTransition>
   )
