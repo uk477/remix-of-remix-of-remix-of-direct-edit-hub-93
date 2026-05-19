@@ -688,14 +688,15 @@ export default function Support() {
     if (activeTicket) return;
     if (hasOpenOrder) return; // открытый заказ — пишем напрямую, без триажа
     const last = messages[messages.length - 1];
-    // Skip if user just answered a flow chip — next flow node is on its way
-    if (last?.sender === "user") return;
     const lastIsInteractive =
       last?.kind === "system" &&
       (last.text === "triage_prompt" ||
         last.text.startsWith("flow:") ||
         last.text.startsWith("post_delivery_actions:"));
     if (lastIsInteractive) return;
+    // Skip if user just answered a flow chip — next flow node is on its way.
+    // But only if there's still an interactive prompt outstanding earlier in history.
+    if (last?.sender === "user" && lastBotPrompt) return;
 
     if (messages.length === 0) {
       // initial greeting
