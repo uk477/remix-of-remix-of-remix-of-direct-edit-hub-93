@@ -663,9 +663,9 @@ export default function ProductDetail() {
                     ) : (
                       <ManualDeliveryBlock
                         orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'}
-                        productTitle={lastOrder?.product_title}
-                        amount={lastOrder?.amount}
-                        createdAt={lastOrder?.created}
+                        productTitle={lastOrder?.product_title ?? title}
+                        amount={lastOrder?.amount ?? total}
+                        createdAt={lastOrder?.created ?? new Date().toISOString()}
                       />
                     )}
 
