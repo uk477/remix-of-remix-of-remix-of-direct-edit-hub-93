@@ -239,8 +239,20 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
   const toast = useToast()
   const { haptic } = useTelegram()
   const navigate = useNavigate()
-  const sections = useMemo(() => parseDelivery(data), [data])
+  const parsed = useMemo(() => parseCreds(data), [data])
+  const [showInstr, setShowInstr] = useState(false)
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
+
+  const hasAnyParsed =
+    !!parsed.fanvue.login || !!parsed.fanvue.password ||
+    !!parsed.mail.email || !!parsed.mail.password ||
+    parsed.extras.length > 0
+
+  const defaultInstr = lang === 'ru'
+    ? 'Сразу после входа смените пароль от аккаунта и почты. Включите 2FA. Не сообщайте данные третьим лицам. При первом входе используйте чистый браузер / VPN, если требуется.'
+    : 'Right after login, change the account and mail passwords. Enable 2FA. Never share credentials. Use a clean browser / VPN on first login if required.'
+
+  const instrText = parsed.instructions.length ? parsed.instructions.join('\n') : defaultInstr
 
   const copy = async (text: string, label: string) => {
     try { await navigator.clipboard.writeText(text) } catch { }
@@ -270,78 +282,110 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
         />
       )}
 
-      {/* Credentials */}
+      {/* Branded credentials */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {sections.length === 0 ? (
+        {!hasAnyParsed ? (
           <pre style={{
             margin: 0, background: '#111', border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 10, padding: 12,
             fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.85)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word',
           }}>{data}</pre>
-        ) : sections.map((sec, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 + 0.05 * i }}
-          >
-            {sec.title && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: GREEN, boxShadow: `0 0 6px ${GREEN}` }} />
-                <span style={{
-                  fontFamily: MONO, fontSize: 9, fontWeight: 700,
-                  color: GREEN, letterSpacing: '0.22em', textTransform: 'uppercase',
-                }}>{sec.title}</span>
-                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GREEN}55, transparent)` }} />
-              </div>
+        ) : (
+          <>
+            {(parsed.fanvue.login || parsed.fanvue.password) && (
+              <BrandCredCard
+                delay={0.12}
+                brand={<FanvueLogo size={26} />}
+                title={lang === 'ru' ? 'Данные для входа Fanvue' : 'Fanvue login data'}
+                accent="#E8365D"
+                rows={[
+                  parsed.fanvue.login ? { key: lang === 'ru' ? 'Логин' : 'Login', value: parsed.fanvue.login } : null,
+                  parsed.fanvue.password ? { key: lang === 'ru' ? 'Пароль' : 'Password', value: parsed.fanvue.password } : null,
+                ].filter(Boolean) as { key: string; value: string }[]}
+                onCopy={copy}
+              />
             )}
-            <div style={{
-              border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, overflow: 'hidden',
-              background: '#111',
-            }}>
-              {sec.rows.map((row, ri) => (
-                <button
-                  key={ri}
-                  onClick={() => copy(row.value, row.key)}
-                  style={{
-                    width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    gap: 10, padding: '11px 12px',
-                    background: 'transparent', color: '#fff', border: 'none',
-                    borderTop: ri === 0 ? 'none' : '1px solid rgba(255,255,255,0.05)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-                    <span style={{
-                      fontFamily: MONO, fontSize: 9, color: 'rgba(255,255,255,0.4)',
-                      letterSpacing: '0.2em', textTransform: 'uppercase',
-                    }}>{row.key}</span>
-                    <span style={{
-                      fontFamily: MONO, fontSize: 13, fontWeight: 700, color: '#fff',
-                      wordBreak: 'break-all',
-                    }}>{row.value}</span>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}>
-                    <rect x="8" y="8" width="14" height="14" rx="2" />
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                  </svg>
-                </button>
-              ))}
-              {sec.notes.length > 0 && (
-                <div style={{
-                  padding: '11px 12px',
-                  borderTop: sec.rows.length ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                  fontFamily: DISPLAY, fontSize: 13, lineHeight: 1.55,
-                  color: 'rgba(255,255,255,0.78)', whiteSpace: 'pre-wrap',
-                }}>{sec.notes.join('\n')}</div>
-              )}
-            </div>
-          </motion.div>
-        ))}
+
+            {(parsed.mail.email || parsed.mail.password) && (
+              <BrandCredCard
+                delay={0.18}
+                brand={<MailcomMark size={26} />}
+                title={lang === 'ru' ? 'Данные для входа mail.com' : 'mail.com login data'}
+                accent="#00A4E4"
+                rows={[
+                  parsed.mail.email ? { key: lang === 'ru' ? 'Почта' : 'Email', value: parsed.mail.email } : null,
+                  parsed.mail.password ? { key: lang === 'ru' ? 'Пароль' : 'Password', value: parsed.mail.password } : null,
+                ].filter(Boolean) as { key: string; value: string }[]}
+                onCopy={copy}
+              />
+            )}
+
+            {parsed.extras.length > 0 && (
+              <BrandCredCard
+                delay={0.22}
+                brand={null}
+                title={lang === 'ru' ? 'Дополнительно' : 'Additional'}
+                accent={GREEN}
+                rows={parsed.extras}
+                onCopy={copy}
+              />
+            )}
+
+            {/* Security instruction toggle */}
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.26 }}
+              style={{
+                border: `1px solid ${GREEN}33`,
+                borderRadius: 12,
+                background: `${GREEN}0a`,
+                overflow: 'hidden',
+              }}
+            >
+              <button
+                onClick={() => { setShowInstr((v) => !v); haptic('light') }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '13px 14px', background: 'transparent', color: GREEN,
+                  border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <ShieldCheck size={18} />
+                <span style={{
+                  flex: 1, fontFamily: DISPLAY, fontSize: 12, fontWeight: 700,
+                  letterSpacing: '0.14em', textTransform: 'uppercase', color: GREEN,
+                }}>
+                  {lang === 'ru' ? 'Инструкция по безопасности' : 'Security instructions'}
+                </span>
+                <motion.span animate={{ rotate: showInstr ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown size={16} />
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {showInstr && (
+                  <motion.div
+                    key="instr"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{
+                      padding: '0 14px 14px',
+                      borderTop: `1px solid ${GREEN}22`,
+                      paddingTop: 12,
+                      fontFamily: DISPLAY, fontSize: 13, lineHeight: 1.6,
+                      color: 'rgba(255,255,255,0.82)', whiteSpace: 'pre-wrap',
+                    }}>{instrText}</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </>
+        )}
       </div>
 
       <button
