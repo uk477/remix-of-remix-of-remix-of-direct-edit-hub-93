@@ -614,6 +614,15 @@ export default function Support() {
     [tickets],
   );
 
+  // Открытый заказ (оплачен, ещё не завершён) разрешает писать без тикета
+  const hasOpenOrder = useMemo(
+    () => orders.some((o) => o.status === "paid"),
+    [orders],
+  );
+  const canWrite = !!activeTicket || hasOpenOrder;
+
+
+
   // Mark admin/bot messages as read on entry + when new arrive
   useEffect(() => {
     markAdminMessagesReadByUser();
