@@ -413,14 +413,8 @@ export default function OrderDetailModal({ order, onClose }: Props) {
                 />
               )}
 
-              {/* Network fee */}
-              {cryptoOpt && (
-                <SpecCell
-                  label={lang === 'ru' ? 'КОМИССИЯ' : 'NETWORK FEE'}
-                  value={`$${networkFee.toFixed(2)}`}
-                  borderTop
-                />
-              )}
+
+
 
               {/* TXID — full width */}
               {order.txid && order.provider && EXPLORER[order.provider as CryptoNetwork] && (
