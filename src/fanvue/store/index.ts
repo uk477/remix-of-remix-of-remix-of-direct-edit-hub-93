@@ -100,6 +100,16 @@ export interface SiteContent {
   referral_rules_en: string
 }
 
+export interface SiteLinks {
+  supportUrl:   string  // ссылка/юзернейм для связи с поддержкой
+  adminUrl:     string  // ссылка/юзернейм администратора
+  chatUrl:      string  // общий чат
+  communityUrl: string  // комьюнити
+  channelUrl:   string  // новостной канал
+  reviewsUrl:   string  // отзывы
+  botUrl:       string  // ссылка на бота
+}
+
 interface AppStore {
   lang: Lang
   langUserSet: boolean
