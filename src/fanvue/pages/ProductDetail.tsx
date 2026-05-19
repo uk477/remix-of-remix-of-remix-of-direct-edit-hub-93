@@ -504,7 +504,6 @@ export default function ProductDetail() {
                       <strong>USDT · USDC · BTC</strong>
                       <em className="fv-pay-card-chips">
                         <i>TRC20</i><i>ERC20</i><i>SOL</i>
-                        <i className="fv-live"><b />{lang === 'ru' ? 'live курсы' : 'live rates'}</i>
                       </em>
                     </span>
                     <span className="fv-pay-card-cta">
