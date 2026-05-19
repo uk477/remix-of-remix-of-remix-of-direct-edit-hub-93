@@ -58,6 +58,10 @@ export interface Product {
   delivery: DeliveryType
   stock: number
   active: boolean
+  /** Пул заготовленных выдач для delivery='auto'.
+   *  Одна запись = один товар = выдаётся одному покупателю (1 в руки).
+   *  После продажи запись удаляется из пула и приклеивается к заказу. */
+  autoItems?: string[]
 }
 
 export interface Order {

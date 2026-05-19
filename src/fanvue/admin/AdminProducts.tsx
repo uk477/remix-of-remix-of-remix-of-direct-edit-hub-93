@@ -11,7 +11,7 @@ import type { Product } from '../store/types'
 const EMPTY: Product = {
   id: 0, cat_id: 1,
   title: '', title_en: '', description: '', desc_en: '',
-  price: 0, delivery: 'auto', stock: 0, active: true,
+  price: 0, delivery: 'auto', stock: 0, active: true, autoItems: [],
 }
 
 export default function AdminProducts() {
@@ -40,7 +40,12 @@ export default function AdminProducts() {
       toast.show(lang === 'ru' ? 'Заполните название и цену' : 'Fill title and price', 'error')
       return
     }
-    upsert(editing)
+    // Для авто-выдачи: stock = кол-во заготовленных записей в пуле
+    const finalProduct =
+      editing.delivery === 'auto'
+        ? { ...editing, stock: (editing.autoItems ?? []).length }
+        : editing
+    upsert(finalProduct)
     toast.show(lang === 'ru' ? 'Сохранено' : 'Saved', 'success')
     haptic('success')
     setEditing(null)
@@ -208,6 +213,41 @@ export default function AdminProducts() {
                   <option value="auto">{t('delivery_auto')}</option>
                   <option value="manual">{t('delivery_manual')}</option>
                 </select>
+
+                {editing.delivery === 'auto' && (
+                  <div className="col gap-2">
+                    <div className="t-xs t-muted" style={{ lineHeight: 1.5 }}>
+                      {lang === 'ru'
+                        ? '🎁 Пул автовыдачи. Одна запись = один товар, выдаётся одному покупателю (1 в руки). Разделяй записи строкой ---'
+                        : '🎁 Auto-delivery pool. One entry = one item delivered to one buyer (1 per hand). Separate entries with ---'}
+                    </div>
+                    <textarea
+                      className="input"
+                      style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, minHeight: 180 }}
+                      placeholder={
+                        lang === 'ru'
+                          ? 'Логин: user1@mail.com\nПароль: Pass123\nПочта: user1@mail.com\nПароль почты: MailPass\nИнструкция: войти и сменить пароль\n---\nЛогин: user2@mail.com\n...'
+                          : 'Login: ...\nPassword: ...\nEmail: ...\nEmail password: ...\nInstruction: ...\n---\nLogin: ...\n...'
+                      }
+                      value={(editing.autoItems ?? []).join('\n---\n')}
+                      onChange={(e) =>
+                        setEditing({
+                          ...editing,
+                          autoItems: e.target.value
+                            .split(/\n-{3,}\n/)
+                            .map((s) => s.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                      rows={10}
+                    />
+                    <div className="t-xs" style={{ color: 'var(--brand)' }}>
+                      {lang === 'ru'
+                        ? `В наличии: ${(editing.autoItems ?? []).length} шт.`
+                        : `In stock: ${(editing.autoItems ?? []).length} pcs.`}
+                    </div>
+                  </div>
+                )}
 
                 <motion.button className="btn btn-primary mt-3" onClick={save} whileTap={{ scale: 0.97 }}>
                   💾 {t('admin_save')}
