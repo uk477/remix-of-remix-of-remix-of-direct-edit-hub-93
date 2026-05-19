@@ -615,10 +615,15 @@ export default function Support() {
     [tickets],
   );
 
-  // Открытый заказ (оплачен, ещё не завершён) разрешает писать без тикета
+  const lastClosedTicketAt = useMemo(
+    () => Math.max(0, ...tickets.map((t) => (t.closed ? new Date(t.closed).getTime() : 0))),
+    [tickets],
+  );
+
+  // Открытый заказ разрешает писать без тикета только пока админ не закрыл текущее обращение.
   const hasOpenOrder = useMemo(
-    () => orders.some((o) => o.status === "paid"),
-    [orders],
+    () => orders.some((o) => o.kind === "buy" && o.status === "paid" && new Date(o.created).getTime() > lastClosedTicketAt),
+    [orders, lastClosedTicketAt],
   );
   const canWrite = !!activeTicket || hasOpenOrder;
 
@@ -844,6 +849,7 @@ export default function Support() {
 
 
   const sendMessage = () => {
+    if (!canWrite) return;
     const trimmed = text.trim();
     if (!trimmed && pendingFiles.length === 0) return;
     haptic("light");
