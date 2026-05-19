@@ -506,7 +506,7 @@ export default function AdminSupport() {
               </div>
 
               {/* ── Messages ── */}
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 2px 12px' }}>
+              <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 2px 12px' }}>
                 <AnimatePresence initial={false}>
                   {visibleMessages.map((m, i) => {
                     const right = m.sender === 'admin'
