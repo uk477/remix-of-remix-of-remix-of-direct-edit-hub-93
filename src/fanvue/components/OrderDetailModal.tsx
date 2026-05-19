@@ -25,6 +25,7 @@ const EXPLORER: Record<CryptoNetwork, (txid: string) => string> = {
   eth:      (t) => `https://etherscan.io/tx/${t}`,
   sol:      (t) => `https://solscan.io/tx/${t}`,
   btc:      (t) => `https://blockstream.info/tx/${t}`,
+  ton:      (t) => `https://tonscan.org/tx/${t}`,
 }
 
 const STATUS_COLOR: Record<string, string> = {

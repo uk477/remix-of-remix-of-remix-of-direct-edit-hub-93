@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import type { CryptoNetwork } from '../store/types'
 import solanaLogo from '../assets/solana.svg'
+import tonLogo from '../assets/ton.svg'
 
 const LOCAL_LOGOS: Partial<Record<CryptoNetwork, string>> = {
   sol: solanaLogo,
+  ton: tonLogo,
 }
 
 /**
@@ -24,6 +26,7 @@ const NETWORK_MAP: Record<CryptoNetwork, {
   eth:      { coin: 'eth',  fallback: 'Ξ' },
   sol:      { coin: 'sol',  fallback: '◎' },
   btc:      { coin: 'btc',  fallback: '₿' },
+  ton:      { coin: 'ton',  fallback: '💎' },
 }
 
 const CDN = 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color'

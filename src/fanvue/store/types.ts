@@ -2,7 +2,7 @@ export type Lang = 'ru' | 'en'
 export type DeliveryType = 'auto' | 'manual'
 export type OrderStatus = 'pending' | 'paid' | 'completed' | 'failed' | 'expired'
 export type OrderKind = 'buy' | 'deposit'
-export type CryptoNetwork = 'trc20' | 'erc20' | 'bep20' | 'eth' | 'sol' | 'btc' | 'usdc_eth' | 'usdc_sol'
+export type CryptoNetwork = 'trc20' | 'erc20' | 'bep20' | 'eth' | 'sol' | 'btc' | 'usdc_eth' | 'usdc_sol' | 'ton'
 
 export interface User {
   uid: number

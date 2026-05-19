@@ -7,11 +7,12 @@ export interface LiveRates {
   eth: number
   sol: number
   bnb: number
+  ton: number
   updatedAt: number
 }
 
 const FALLBACK: LiveRates = {
-  btc: 90000, eth: 3000, sol: 150, bnb: 600, updatedAt: 0,
+  btc: 90000, eth: 3000, sol: 150, bnb: 600, ton: 5.5, updatedAt: 0,
 }
 
 let _cache: LiveRates | null = null
@@ -19,7 +20,7 @@ let _fetching = false
 
 async function fetchBinance(): Promise<Partial<LiveRates> | null> {
   try {
-    const symbols = encodeURIComponent('["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT"]')
+    const symbols = encodeURIComponent('["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","TONUSDT"]')
     const res = await fetch(
       `https://api.binance.com/api/v3/ticker/price?symbols=${symbols}`,
       { signal: AbortSignal.timeout(5000) }
@@ -33,6 +34,7 @@ async function fetchBinance(): Promise<Partial<LiveRates> | null> {
       eth: map['ETHUSDT'] ?? 0,
       sol: map['SOLUSDT'] ?? 0,
       bnb: map['BNBUSDT'] ?? 0,
+      ton: map['TONUSDT'] ?? 0,
     }
   } catch { return null }
 }
@@ -40,7 +42,7 @@ async function fetchBinance(): Promise<Partial<LiveRates> | null> {
 async function fetchCoinGecko(): Promise<Partial<LiveRates> | null> {
   try {
     const res = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd',
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,the-open-network&vs_currencies=usd',
       { signal: AbortSignal.timeout(8000) }
     )
     if (!res.ok) return null
@@ -50,6 +52,7 @@ async function fetchCoinGecko(): Promise<Partial<LiveRates> | null> {
       eth: d.ethereum?.usd ?? 0,
       sol: d.solana?.usd ?? 0,
       bnb: d.binancecoin?.usd ?? 0,
+      ton: d['the-open-network']?.usd ?? 0,
     }
   } catch { return null }
 }
@@ -62,6 +65,7 @@ async function fetchRates(): Promise<LiveRates | null> {
     eth: data.eth || FALLBACK.eth,
     sol: data.sol || FALLBACK.sol,
     bnb: data.bnb || FALLBACK.bnb,
+    ton: data.ton || FALLBACK.ton,
     updatedAt: Date.now(),
   }
 }
@@ -72,6 +76,7 @@ export function calcCryptoAmount(usd: number, network: CryptoNetwork, rates: Liv
     case 'btc':   return r.btc > 0 ? usd / r.btc : usd * APPROX_RATES.btc
     case 'eth':   return r.eth > 0 ? usd / r.eth : usd * APPROX_RATES.eth
     case 'sol':   return r.sol > 0 ? usd / r.sol : usd * APPROX_RATES.sol
+    case 'ton':   return r.ton > 0 ? usd / r.ton : usd * APPROX_RATES.ton
     default:      return usd // USDT/USDC stablecoins — 1:1 with USD
   }
 }
@@ -80,6 +85,7 @@ export function formatCryptoAmount(amount: number, network: CryptoNetwork): stri
   if (network === 'btc') return amount.toFixed(8)
   if (network === 'eth') return amount.toFixed(6)
   if (network === 'sol') return amount.toFixed(4)
+  if (network === 'ton') return amount.toFixed(4)
   return amount.toFixed(2) // USDT/USDC stablecoins
 }
 
