@@ -73,6 +73,12 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
   const [nameInput, setNameInput] = useState('')
   const [flipped, setFlipped] = useState(false)
 
+  // Hide global bottom nav while the game is open
+  useEffect(() => {
+    document.body.classList.add('fv-game-open')
+    return () => { document.body.classList.remove('fv-game-open') }
+  }, [])
+
   const stRef = useRef<GameState>({
     phase: needName ? 'name' : 'waiting',
     cur: { x: 30, w: 90 },
