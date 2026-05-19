@@ -285,7 +285,42 @@ export default function OrderDetailModal({ order, onClose }: Props) {
                 </span>
               </MetaRow>
             )}
+            {processedLabel && (
+              <MetaRow label={lang === 'ru' ? 'ОБРАБОТКА' : 'PROCESSED IN'}>
+                <span style={{
+                  fontFamily: MONO, fontSize: 11, fontWeight: 800,
+                  color: GREEN, letterSpacing: 0.4,
+                }}>
+                  ⚡ {processedLabel}
+                </span>
+              </MetaRow>
+            )}
           </div>
+
+          {/* Crunchy stats — only for crypto orders */}
+          {cryptoOpt && order.status !== 'failed' && order.status !== 'expired' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: 8,
+              marginBottom: 18,
+            }}>
+              <StatCell
+                label={lang === 'ru' ? 'ПОДТВ.' : 'CONFIRMS'}
+                value={`${confirmationsDone}/${confirmationsNeeded}`}
+                accent={confirmationsDone >= confirmationsNeeded ? GREEN : AMBER}
+              />
+              <StatCell
+                label={lang === 'ru' ? 'БЛОК' : 'BLOCK'}
+                value={`#${blockHeight.toLocaleString('en-US')}`}
+              />
+              <StatCell
+                label={lang === 'ru' ? 'КОМИССИЯ' : 'NETWORK FEE'}
+                value={`$${networkFee}`}
+              />
+            </div>
+          )}
+
 
           {/* TxID */}
           {order.txid && order.provider && EXPLORER[order.provider as CryptoNetwork] && (
