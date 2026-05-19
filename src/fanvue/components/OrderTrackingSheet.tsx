@@ -120,6 +120,19 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
     haptic('success')
     markOrderForwarded(order.id)
     addMsg({ id: Date.now(), sender: 'user', text: supportMsg, created: new Date().toISOString() })
+    // Verification service — append a beautifully styled intake card from the bot
+    const title = order.product_title ?? ''
+    const isVerification =
+      title === 'Верификация вашего аккаунта' || title === 'Verify your account'
+    if (isVerification) {
+      addMsg({
+        id: Date.now() + 1,
+        sender: 'bot',
+        kind: 'system',
+        text: `verification_intake:${order.id}`,
+        created: new Date(Date.now() + 1).toISOString(),
+      })
+    }
     onClose()
     navigate('/support')
   }
