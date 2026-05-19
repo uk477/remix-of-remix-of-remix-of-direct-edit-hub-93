@@ -1503,6 +1503,81 @@ function SystemMessage({
       </motion.div>
     );
   }
+  if (msg.text.startsWith("post_delivery_actions:")) {
+    const orderId = msg.text.slice("post_delivery_actions:".length);
+    const ru = lang === "ru";
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.32, ease }}
+        style={{
+          alignSelf: "stretch",
+          margin: "10px 0 6px",
+          padding: "14px 14px 12px",
+          borderRadius: 16,
+          border: `1px solid ${C.border}`,
+          background: `linear-gradient(180deg, ${C.surfaceHi} 0%, ${C.surface} 100%)`,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <span
+            style={{
+              width: 28, height: 28, borderRadius: 9, display: "grid", placeItems: "center",
+              background: "rgba(57,255,99,0.12)", color: C.green,
+              border: "1px solid rgba(57,255,99,0.25)",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, lineHeight: 1.2 }}>
+              {ru ? "Заказ выдан" : "Order delivered"}
+            </div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2, lineHeight: 1.25 }}>
+              {ru ? "Всё получилось? Если остались вопросы — можно продолжить переписку." : "All good? You can keep chatting if you still need help."}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <motion.button
+            onClick={() => onResolveDelivery(orderId, "continue")}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              padding: "10px 12px", borderRadius: 12,
+              border: `1px solid ${C.border}`, background: "transparent",
+              color: C.text, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+              letterSpacing: "-0.005em",
+            }}
+          >
+            {ru ? "У меня ещё вопрос" : "I have another question"}
+          </motion.button>
+          <motion.button
+            onClick={() => onResolveDelivery(orderId, "close")}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              padding: "10px 12px", borderRadius: 12, border: "none",
+              background: C.greenBubble, color: C.greenInk,
+              fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+              letterSpacing: "-0.005em",
+            }}
+          >
+            {ru ? "Закрыть обращение" : "Close ticket"}
+          </motion.button>
+        </div>
+      </motion.div>
+    );
+  }
+  if (msg.text.startsWith("post_delivery_resolved:")) {
+    const [, , choice] = msg.text.split(":");
+    const ru = lang === "ru";
+    const text = choice === "close"
+      ? (ru ? "Обращение закрыто" : "Ticket closed")
+      : (ru ? "Можно продолжать переписку" : "Chat is open — keep messaging");
+    return <SysPill text={text} accent={choice !== "close"} />;
+  }
   if (msg.text.startsWith("ticket_opened:")) {
     // Hidden — opened tickets are implicit; closing is handled via header button.
     void tickets;
