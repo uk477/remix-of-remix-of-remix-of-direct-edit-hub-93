@@ -799,7 +799,7 @@ export const useStore = create<AppStore>()(
         const s = state as Partial<AppStore>
         // ensure newly added siteLinks fields fall back to defaults
         if (s.siteLinks) {
-          s.siteLinks = {
+          const defaults = {
             supportUrl:   `https://t.me/${CONFIG.supportUsername}`,
             adminUrl:     `https://t.me/${CONFIG.adminUsername}`,
             chatUrl:      `https://t.me/${CONFIG.communityUsername}`,
@@ -808,8 +808,8 @@ export const useStore = create<AppStore>()(
             reviewsUrl:   '',
             botUrl:       `https://t.me/${CONFIG.botUsername}`,
             securityInstructionUrl: CONFIG.securityInstructionUrl,
-            ...s.siteLinks,
           }
+          s.siteLinks = { ...defaults, ...s.siteLinks }
         }
         if (s.orders) {
           s.orders = s.orders.map((o) =>
