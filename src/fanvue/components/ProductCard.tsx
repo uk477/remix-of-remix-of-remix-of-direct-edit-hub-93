@@ -67,16 +67,19 @@ export default function ProductCard({ product, index = 0, disableNav = false }: 
   const photos = useStore((s) => s.photos)
   const photo = photos[`product_${product.id}`]
   const title = lang === 'ru' ? product.title : product.title_en
-  const soldOut = product.stock === 0
-  const lowStock = product.stock > 0 && product.stock <= 5
-  const dimmed = !product.active || soldOut
-
   const isAuto = product.delivery === 'auto'
-  const stockText = soldOut
-    ? (lang === 'ru' ? 'Нет в наличии' : 'Out of stock')
-    : lowStock
-      ? (lang === 'ru' ? `${product.stock} осталось` : `${product.stock} left`)
-      : `${product.stock} ${t('in_stock')}`
+  // Для авто-выдачи не показываем количество в наличии — только лейбл «Авто».
+  // Реальная проверка пула делается в момент покупки.
+  const soldOut = !isAuto && product.stock === 0
+  const lowStock = !isAuto && product.stock > 0 && product.stock <= 5
+  const dimmed = !product.active || soldOut
+  const stockText = isAuto
+    ? (lang === 'ru' ? 'Авто' : 'Auto')
+    : soldOut
+      ? (lang === 'ru' ? 'Нет в наличии' : 'Out of stock')
+      : lowStock
+        ? (lang === 'ru' ? `${product.stock} осталось` : `${product.stock} left`)
+        : `${product.stock} ${t('in_stock')}`
 
   return (
     <motion.div
