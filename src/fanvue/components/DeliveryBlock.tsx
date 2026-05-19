@@ -243,86 +243,103 @@ export function ManualDeliveryBlock({ orderId }: { orderId: string }) {
     toast.show(lang === 'ru' ? 'ID скопирован' : 'ID copied', 'success')
   }
 
+  const reveal = (delay: number) => ({
+    initial: { opacity: 0, y: 24, filter: 'blur(8px)' },
+    animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+    transition: { delay, duration: 0.7, ease: [0.16, 1, 0.3, 1] as const },
+  })
+
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: 14,
-      padding: 18,
-      background: 'linear-gradient(180deg, rgba(255,210,74,0.05), rgba(255,210,74,0.01))',
-      border: '1px solid rgba(255,210,74,0.22)',
-      borderRadius: 18,
-      fontFamily: DISPLAY,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{
-          width: 32, height: 32, borderRadius: 10,
-          background: 'rgba(255,210,74,0.14)',
-          border: '1px solid rgba(255,210,74,0.35)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          color: '#ffd24a',
-        }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/>
-          </svg>
-        </span>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.01em' }}>
-            {lang === 'ru' ? 'Ваш заказ обрабатывается' : 'Your order is being processed'}
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 9, color: 'rgba(255,210,74,0.85)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 2 }}>
-            {lang === 'ru' ? 'требуется связь с поддержкой' : 'support contact required'}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 13, lineHeight: 1.55, color: 'rgba(255,255,255,0.85)' }}>
-        {lang === 'ru'
-          ? 'Напишите нам в поддержку или Telegram, чтобы получить данные вашего заказа. Укажите номер заказа ниже.'
-          : 'Message support or Telegram to receive your order. Please mention your order ID below.'}
-      </div>
-
-      <button
-        onClick={copyId}
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 26, fontFamily: DISPLAY }}>
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.4 }}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 10, padding: '12px 14px',
-          background: '#0a0a0a',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 12, cursor: 'pointer', color: '#fff', textAlign: 'left',
+          position: 'absolute', top: -140, left: -80, width: 320, height: 320,
+          background: GREEN, opacity: 0.1, borderRadius: '50%',
+          filter: 'blur(110px)', pointerEvents: 'none', zIndex: 0,
         }}
-      >
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 4 }}>
-            {lang === 'ru' ? 'Номер заказа' : 'Order ID'}
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: 800, color: GREEN, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {orderId}
-          </div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-          <rect x="9" y="9" width="13" height="13" rx="2"/>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-      </button>
+      />
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <a
-          href={tgUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+      <motion.p {...reveal(0.05)} style={{
+        margin: 0, position: 'relative', zIndex: 1,
+        fontSize: 14, lineHeight: 1.55, color: 'rgba(255,255,255,0.62)',
+        maxWidth: 300,
+      }}>
+        {lang === 'ru' ? (
+          <>Ваш заказ обрабатывается. Напишите нам в поддержку или{' '}
+            <a href={tgUrl} target="_blank" rel="noopener noreferrer"
+              style={{ color: GREEN, textDecoration: 'underline', textUnderlineOffset: 4 }}>Telegram</a>
+            , чтобы получить данные вашего заказа.</>
+        ) : (
+          <>Your order is being processed. Message support or{' '}
+            <a href={tgUrl} target="_blank" rel="noopener noreferrer"
+              style={{ color: GREEN, textDecoration: 'underline', textUnderlineOffset: 4 }}>Telegram</a>
+            {' '}to receive the credentials.</>
+        )}
+      </motion.p>
+
+      <motion.div {...reveal(0.18)} style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <span style={{
+          fontFamily: MONO, fontSize: 10, fontWeight: 700,
+          color: 'rgba(255,255,255,0.3)', letterSpacing: '0.22em', textTransform: 'uppercase',
+        }}>
+          {lang === 'ru' ? 'Номер заказа' : 'Order ID'}
+        </span>
+        <motion.button
+          onClick={copyId}
+          whileTap={{ scale: 0.96 }}
           style={{
-            flex: 1,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '13px 14px',
-            background: GREEN, color: INK,
-            border: 'none', borderRadius: 12, textDecoration: 'none',
-            fontFamily: DISPLAY, fontSize: 12, fontWeight: 800,
-            letterSpacing: '0.18em', textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 14, padding: '14px 16px',
+            cursor: 'pointer', color: '#fff', textAlign: 'left',
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
-          Telegram
-        </a>
-      </div>
+          <code style={{
+            fontFamily: MONO, color: GREEN, fontSize: 14, fontWeight: 700,
+            letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{orderId}</code>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </motion.button>
+      </motion.div>
+
+      <motion.a
+        {...reveal(0.3)}
+        href={tgUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileHover={{ x: 4 }}
+        style={{
+          position: 'relative', zIndex: 1,
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '6px 0', textDecoration: 'none', color: '#fff',
+        }}
+      >
+        <span style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          color: GREEN, flexShrink: 0,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+          </svg>
+        </span>
+        <span style={{
+          fontFamily: MONO, fontSize: 11, fontWeight: 700,
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+        }}>
+          {lang === 'ru' ? 'Написать в Telegram' : 'Open Telegram'}
+        </span>
+      </motion.a>
     </div>
   )
 }
