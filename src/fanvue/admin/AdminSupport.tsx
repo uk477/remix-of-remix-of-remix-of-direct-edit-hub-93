@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
 import type { SupportMessage, SupportTicket } from '../store/types'
+import OrderReceiptMessage from '../components/OrderReceiptMessage'
 
 /* ─────────── tokens ─────────── */
 const C = {
