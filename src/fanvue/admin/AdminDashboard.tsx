@@ -197,8 +197,8 @@ export default function AdminDashboard() {
 
         {/* KPI grid */}
         <div className="adm2-kpi-grid mb-4">
-          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99" delta={revDelta}    spark={revSpark} delay={0}    />
-          <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={ordersDelta} spark={ordSpark} delay={0.05} />
+          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99"   delta={period === 'all' ? undefined : revDelta}    spark={revSpark} delay={0}    />
+          <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={period === 'all' ? undefined : ordersDelta} spark={ordSpark} delay={0.05} />
           <KpiCard Icon={Ic.users}   value={String(uniqueUsers)}     label={t('admin_total_users')}  accent="111,154,184" delay={0.10} />
           <KpiCard Icon={Ic.pending} value={String(pendingCount)}    label={t('admin_pending')}      accent="224,115,74"  delay={0.15} />
         </div>
