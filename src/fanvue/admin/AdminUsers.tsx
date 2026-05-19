@@ -115,7 +115,7 @@ export default function AdminUsers() {
           </div>
           <motion.button
             className="adm2-iconbtn"
-            style={{ width: 'auto', padding: '0 12px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', gap: 6, color: '#e8c98c' }}
+            style={{ width: 'auto', padding: '0 12px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', gap: 6, color: '#39ff63' }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               const header = 'UID,Username,Name,Balance,Spent,Purchases,Ref Earned,Ref Count\n'
@@ -141,7 +141,7 @@ export default function AdminUsers() {
             <motion.div
               key={u.uid}
               className="adm2-att-row"
-              style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', borderColor: u.isReal ? 'rgba(232,201,140,0.35)' : undefined }}
+              style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', borderColor: u.isReal ? 'rgba(57,255,99,0.35)' : undefined }}
               onClick={() => { setSelected(u); setBalAmt(''); setRefAmt('') }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -150,24 +150,24 @@ export default function AdminUsers() {
             >
               <div style={{
                 width: 40, height: 40, borderRadius: '50%',
-                background: u.isReal ? 'linear-gradient(135deg, #e8c98c, #d9b27a)' : 'rgba(255,255,255,0.04)',
+                background: u.isReal ? 'linear-gradient(135deg, #39ff63, #22e84f)' : 'rgba(255,255,255,0.04)',
                 border: u.isReal ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                color: u.isReal ? '#1a1208' : 'var(--t-primary)',
+                color: u.isReal ? '#051006' : 'var(--t-primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 14, fontWeight: 800, flexShrink: 0,
-                boxShadow: u.isReal ? '0 4px 14px rgba(232,201,140,0.35)' : 'none',
+                boxShadow: u.isReal ? '0 4px 14px rgba(57,255,99,0.35)' : 'none',
               }}>
                 {initials(u.full_name)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="t-sm fw-bold" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {u.full_name}
-                  {u.isReal && <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg, #e8c98c, #d9b27a)', color: '#1a1208', borderRadius: 4, padding: '2px 5px', letterSpacing: '0.06em' }}>YOU</span>}
+                  {u.isReal && <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg, #39ff63, #22e84f)', color: '#051006', borderRadius: 4, padding: '2px 5px', letterSpacing: '0.06em' }}>YOU</span>}
                 </div>
                 <div className="t-xs t-muted">@{u.username} · {u.uid}</div>
               </div>
               <div className="col" style={{ alignItems: 'flex-end', gap: 2 }}>
-                <div className="t-sm fw-black" style={{ color: '#e8c98c' }}>${u.balance.toFixed(0)}</div>
+                <div className="t-sm fw-black" style={{ color: '#39ff63' }}>${u.balance.toFixed(0)}</div>
                 {u.ref_balance > 0 && (
                   <div className="t-xs fw-bold" style={{ color: '#94c592' }}>
                     ref: ${u.ref_balance.toFixed(0)}
