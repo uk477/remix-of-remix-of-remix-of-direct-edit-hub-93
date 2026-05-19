@@ -160,8 +160,13 @@ export default function AdminSupport() {
   const chatUser = groups.find((g) => g.uid === openUid)
 
   const chatOrderId = (() => {
+    // Сначала ищем по order_receipt (надёжно), затем по #ID в тексте
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]
+      if (m.kind === 'order_receipt' && m.order_receipt?.orderId) return m.order_receipt.orderId
+    }
     for (const m of messages) {
-      const match = m.text.match(/#([\w_]+)/)
+      const match = m.text.match(/#([\w-]+)/)
       if (match) return match[1]
     }
     return null
