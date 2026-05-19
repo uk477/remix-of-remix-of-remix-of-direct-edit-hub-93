@@ -797,6 +797,20 @@ export const useStore = create<AppStore>()(
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
+        // ensure newly added siteLinks fields fall back to defaults
+        if (s.siteLinks) {
+          const defaults = {
+            supportUrl:   `https://t.me/${CONFIG.supportUsername}`,
+            adminUrl:     `https://t.me/${CONFIG.adminUsername}`,
+            chatUrl:      `https://t.me/${CONFIG.communityUsername}`,
+            communityUrl: `https://t.me/${CONFIG.communityUsername}`,
+            channelUrl:   `https://t.me/${CONFIG.channelUsername}`,
+            reviewsUrl:   '',
+            botUrl:       `https://t.me/${CONFIG.botUsername}`,
+            securityInstructionUrl: CONFIG.securityInstructionUrl,
+          }
+          s.siteLinks = { ...defaults, ...s.siteLinks }
+        }
         if (s.orders) {
           s.orders = s.orders.map((o) =>
             o.kind === 'buy' && o.status === 'paid' && o.id.startsWith('2_')
@@ -831,6 +845,7 @@ export const useStore = create<AppStore>()(
         maintenance: s.maintenance,
         notifications: s.notifications,
         siteContent: s.siteContent,
+        siteLinks: s.siteLinks,
         refReward: s.refReward,
         refWithdrawals: s.refWithdrawals,
         refDailyLog: s.refDailyLog,
