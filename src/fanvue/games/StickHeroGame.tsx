@@ -22,7 +22,7 @@ const EGG_SCORE = 20
 type Phase =
   | 'name' | 'waiting' | 'growing' | 'falling' | 'walking'
   | 'camera' | 'falling_off' | 'gameover'
-  | 'egg_fall' | 'egg_flip' | 'egg_unflip'
+  | 'egg_stumble' | 'egg_fall' | 'egg_impact' | 'egg_flip' | 'egg_unflip' | 'egg_land'
 interface Plat { x: number; w: number }
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number }
 
