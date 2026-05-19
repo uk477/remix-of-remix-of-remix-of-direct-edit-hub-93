@@ -7,7 +7,7 @@ import { useTelegram } from '../hooks/useTelegram'
 /* ───────── constants ───────── */
 const STICK_GROW = 240
 const STICK_FALL = 760
-const HERO_WALK  = 340
+const HERO_WALK  = 210
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
 const HERO_W = 36
@@ -323,7 +323,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         const target = st.next.x + st.next.w - HERO_W
         const dir = target > st.heroX ? 1 : -1
         st.heroX += dir * HERO_WALK * dt
-        st.walkPhase += dt * 14
+        st.walkPhase += dt * 11
         if ((dir > 0 && st.heroX >= target) || (dir < 0 && st.heroX <= target)) {
           st.heroX = target
           st.walkPhase = 0
