@@ -393,3 +393,26 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
     </div>
   )
 }
+
+function StatCell({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.025)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: 12,
+      padding: '10px 12px',
+      display: 'flex', flexDirection: 'column', gap: 4,
+      minWidth: 0,
+    }}>
+      <div style={{
+        fontFamily: MONO, fontSize: 8, fontWeight: 700,
+        color: 'rgba(255,255,255,0.4)', letterSpacing: 1.2,
+      }}>{label}</div>
+      <div style={{
+        fontFamily: MONO, fontSize: 12, fontWeight: 800,
+        color: accent ?? '#fff', letterSpacing: 0.2,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>{value}</div>
+    </div>
+  )
+}
