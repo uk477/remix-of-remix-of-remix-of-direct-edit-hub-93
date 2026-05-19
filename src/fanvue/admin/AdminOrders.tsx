@@ -35,9 +35,8 @@ export default function AdminOrders() {
   const updateBalance = useStore((s) => s.updateBalance)
 
   // Sync draft when opening a different order
-  useMemo(() => {
+  useEffect(() => {
     setDeliveryDraft(open?.deliveryData ?? '')
-    return null
   }, [open?.id, open?.deliveryData])
 
   const DELIVERY_PLACEHOLDER = `fanvue/\nЛогин: \nПароль: \n\nПочта/\nЛогин: \nПароль: \n\nИнструкция по работе с аккаунтом:\n`
