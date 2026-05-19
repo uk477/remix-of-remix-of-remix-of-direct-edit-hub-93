@@ -7504,7 +7504,7 @@ body::after { display: none; }
 }
 .adm2-hero-eyebrow {
   font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 6px;
+  color: #39ff63; margin-bottom: 6px;
 }
 .adm2-hero-title {
   font-size: 26px; font-weight: 900; color: var(--t-primary); line-height: 1.1;
@@ -7625,7 +7625,7 @@ body::after { display: none; }
   width: 28px; height: 28px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   border-radius: 8px; background: rgba(57,255,99,0.12);
-  color: var(--gold); font-size: 11px; font-weight: 900;
+  color: #39ff63; font-size: 11px; font-weight: 900;
 }
 .adm2-top-body { flex: 1; min-width: 0; }
 .adm2-top-bar {
