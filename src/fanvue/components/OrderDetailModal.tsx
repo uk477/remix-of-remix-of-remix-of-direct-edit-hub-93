@@ -476,7 +476,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
                 cursor: 'pointer',
               }}
             >
-              {lang === 'ru' ? 'Закрыть документ' : 'Close document'}
+              {lang === 'ru' ? 'Закрыть' : 'Close'}
             </motion.button>
           </div>
 
