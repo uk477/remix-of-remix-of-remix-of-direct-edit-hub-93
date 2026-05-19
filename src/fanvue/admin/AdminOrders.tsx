@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import ConfirmSheet from '../components/ConfirmSheet'
@@ -20,6 +20,7 @@ export default function AdminOrders() {
   const lang = useStore((s) => s.lang)
   const orders = useStore((s) => s.orders)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
+  const setOrderDelivery = useStore((s) => s.setOrderDelivery)
   const deleteOrder = useStore((s) => s.deleteOrder)
   const addLog = useStore((s) => s.addLog)
   const toast = useToast()
@@ -30,7 +31,37 @@ export default function AdminOrders() {
   const [confirmDelete, setConfirmDelete] = useState<Order | null>(null)
   const [balAmt, setBalAmt]   = useState('')
   const [balSent, setBalSent] = useState(false)
+  const [deliveryDraft, setDeliveryDraft] = useState('')
   const updateBalance = useStore((s) => s.updateBalance)
+
+  // Sync draft when opening a different order
+  useEffect(() => {
+    setDeliveryDraft(open?.deliveryData ?? '')
+  }, [open?.id, open?.deliveryData])
+
+  const DELIVERY_PLACEHOLDER = `fanvue/\nЛогин: \nПароль: \n\nПочта/\nЛогин: \nПароль: \n\nИнструкция по работе с аккаунтом:\n`
+
+  const handleIssueDelivery = (o: Order) => {
+    const txt = deliveryDraft.trim()
+    if (!txt) {
+      toast.show(lang === 'ru' ? 'Заполните данные выдачи' : 'Fill delivery data', 'error')
+      return
+    }
+    haptic('success')
+    setOrderDelivery(o.id, txt)
+    addLog({
+      ts: new Date().toISOString(),
+      uid: 0,
+      username: 'manual',
+      kind: o.kind,
+      amount: o.amount,
+      network: o.provider as never,
+      status: 'success',
+      product: o.product_title,
+    })
+    toast.show(lang === 'ru' ? 'Данные выданы клиенту' : 'Delivery issued', 'success')
+    setOpen(null)
+  }
 
   const filtered = useMemo(() => {
     let list = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
@@ -275,6 +306,40 @@ export default function AdminOrders() {
                   {t('admin_mark_completed')}
                 </motion.button>
               )}
+
+              {/* Delivery data — only for buy orders */}
+              {open.kind === 'buy' && (
+                <div className="card mt-4" style={{ padding: 14 }}>
+                  <div className="t-sm fw-bold mb-2">
+                    📦 {lang === 'ru' ? 'Данные для выдачи клиенту' : 'Delivery data for client'}
+                  </div>
+                  <div className="t-xs t-muted mb-2">
+                    {lang === 'ru'
+                      ? 'Заполните логин/пароль аккаунта и почты. Эти данные клиент увидит в своём заказе.'
+                      : 'Fill in account & email credentials. The client will see this in their order.'}
+                  </div>
+                  <textarea
+                    className="input"
+                    rows={10}
+                    placeholder={DELIVERY_PLACEHOLDER}
+                    value={deliveryDraft}
+                    onChange={(e) => setDeliveryDraft(e.target.value)}
+                    style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre' }}
+                  />
+                  <motion.button
+                    className="btn btn-primary mt-2"
+                    style={{ background: 'var(--g-success, #39ff63)', color: '#0a0a0a' }}
+                    onClick={() => handleIssueDelivery(open)}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {open.deliveryData
+                      ? (lang === 'ru' ? '💾 Обновить выдачу' : '💾 Update delivery')
+                      : (lang === 'ru' ? '🚀 Выдать клиенту' : '🚀 Issue to client')}
+                  </motion.button>
+                </div>
+              )}
+
+
 
               <motion.button
                 className="btn btn-secondary mt-3"

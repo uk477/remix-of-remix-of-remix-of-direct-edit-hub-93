@@ -4,6 +4,7 @@ import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { useToast } from './Toast'
 import CryptoLogo from './CryptoLogo'
+import DeliveryBlock, { ManualDeliveryBlock } from './DeliveryBlock'
 import type { Order, CryptoNetwork } from '../store/types'
 
 interface Props { order: Order | null; onClose: () => void }
@@ -291,6 +292,14 @@ export default function OrderDetailModal({ order, onClose }: Props) {
                 </div>
               ))}
             </div>
+
+            {/* Delivery payload — only for buy orders */}
+            {!isDeposit && order.deliveryData && (
+              <DeliveryBlock data={order.deliveryData} />
+            )}
+            {!isDeposit && !order.deliveryData && !isFailed && (
+              <ManualDeliveryBlock orderId={order.id} />
+            )}
 
             {/* Specimen data grid */}
             <div style={{

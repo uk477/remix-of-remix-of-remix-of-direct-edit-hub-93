@@ -171,6 +171,7 @@ interface AppStore {
   setPhoto: (key: string, dataUri: string | null) => void
   toggleMaintenance: () => void
   setOrderStatus: (id: string, status: Order['status']) => void
+  setOrderDelivery: (id: string, deliveryData: string) => void
   deleteOrder: (id: string) => void
   upsertProduct: (p: Product) => void
   deleteProduct: (id: number) => void
@@ -542,6 +543,14 @@ export const useStore = create<AppStore>()(
             : o),
         }))
         if (api.isEnabled()) api.adminPatchOrder(id, { status })
+      },
+
+      setOrderDelivery: (id, deliveryData) => {
+        set((s) => ({
+          orders: s.orders.map((o) => o.id === id
+            ? { ...o, deliveryData, status: 'completed', paid_at: o.paid_at ?? new Date().toISOString() }
+            : o),
+        }))
       },
 
       deleteOrder: (id) => {

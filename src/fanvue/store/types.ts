@@ -72,6 +72,8 @@ export interface Order {
   paid_at?: string
   txid?: string
   orderNum?: number
+  /** Свободный многострочный текст с данными выдачи (логин/пароль/инструкция). Заполняется админом или автовыдачей. */
+  deliveryData?: string
 }
 
 export interface SupportAttachment {

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import { NetworkPicker, PayPanel } from './Deposit'
 import Confetti from '../components/Confetti'
+import DeliveryBlock, { ManualDeliveryBlock } from '../components/DeliveryBlock'
 import { useToast } from '../components/Toast'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
@@ -100,13 +101,13 @@ export default function ProductDetail() {
       kind: 'buy',
       product_title: title,
       amount: total,
-      status: 'completed',
+      status: 'paid',
       quantity: qty,
       created: new Date().toISOString(),
       paid_at: new Date().toISOString(),
     })
     updateBalance(-total)
-    toast.show(lang === 'ru' ? 'Покупка готова.' : 'Purchase ready.', 'success')
+    toast.show(lang === 'ru' ? 'Заказ оплачен.' : 'Order paid.', 'success')
     tgNotify(
       `🛍 Новый заказ (баланс)\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n📦 ${title} × ${qty}\n💵 $${total.toFixed(2)}`,
     )
@@ -585,18 +586,32 @@ export default function ProductDetail() {
                 </motion.div>
               )}
 
-              {payStep === 'success' && (
-                <div className="fv-success">
-                  <Confetti trigger={true} />
-                  <div className="fv-success-mark">✓</div>
-                  <span className="fv-section-kicker">{lang === 'ru' ? 'Готово' : 'Done'}</span>
-                  <h2>{lang === 'ru' ? 'Заказ создан' : 'Order created'}</h2>
-                  <p>{lang === 'ru' ? 'Откройте заказы, чтобы отслеживать выдачу.' : 'Open orders to track delivery.'}</p>
-                  <button className="fv-primary fv-full" onClick={() => { setShowPayment(false); navigate('/orders') }}>
-                    {lang === 'ru' ? 'Открыть заказы' : 'Open orders'}
-                  </button>
-                </div>
-              )}
+              {payStep === 'success' && (() => {
+                const lastOrder = orders[0]
+                const delivered = lastOrder?.kind === 'buy' && lastOrder?.deliveryData
+                return (
+                  <div className="fv-success" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    {!delivered && <Confetti trigger={true} />}
+                    <div className="fv-success-mark">✓</div>
+                    <span className="fv-section-kicker">{lang === 'ru' ? 'Готово' : 'Done'}</span>
+                    <h2 style={{ margin: 0 }}>
+                      {delivered
+                        ? (lang === 'ru' ? 'Заказ выдан' : 'Order delivered')
+                        : (lang === 'ru' ? 'Заказ создан' : 'Order created')}
+                    </h2>
+
+                    {delivered && lastOrder?.deliveryData ? (
+                      <DeliveryBlock data={lastOrder.deliveryData} />
+                    ) : (
+                      <ManualDeliveryBlock orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'} />
+                    )}
+
+                    <button className="fv-primary fv-full" onClick={() => { setShowPayment(false); navigate('/orders') }}>
+                      {lang === 'ru' ? 'Открыть заказы' : 'Open orders'}
+                    </button>
+                  </div>
+                )
+              })()}
             </motion.div>
           </motion.div>
         )}
