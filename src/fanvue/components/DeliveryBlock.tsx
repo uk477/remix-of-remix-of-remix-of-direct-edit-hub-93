@@ -372,6 +372,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
   const navigate = useNavigate()
   const parsed = useMemo(() => parseCreds(data), [data])
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
+  const securityUrl = useStore((s) => s.siteLinks?.securityInstructionUrl) || CONFIG.securityInstructionUrl
 
   const hasAnyParsed =
     !!parsed.fanvue.login || !!parsed.fanvue.password ||
@@ -457,7 +458,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
 
             {/* Security instruction — opens external URL */}
             <motion.a
-              href={CONFIG.securityInstructionUrl}
+              href={securityUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => haptic('light')}
