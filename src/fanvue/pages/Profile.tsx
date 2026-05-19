@@ -185,25 +185,6 @@ export default function Profile() {
 
         {/* Hero balance */}
         <div style={{ position: 'relative', marginTop: 18, zIndex: 2 }}>
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              left: -16,
-              top: -10,
-              fontFamily: DISPLAY,
-              fontSize: 200,
-              fontWeight: 700,
-              fontStyle: 'italic',
-              color: 'rgba(57,255,99,0.06)',
-              lineHeight: 1,
-              pointerEvents: 'none',
-              userSelect: 'none',
-              letterSpacing: '-0.08em',
-            }}
-          >
-            $
-          </div>
           <div style={{ position: 'relative' }}>
             <div style={eyebrow}>
               {lang === 'ru' ? 'Ваш баланс' : 'Your Balance'}
@@ -247,7 +228,7 @@ export default function Profile() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                boxShadow: '0 8px 32px rgba(57,255,99,0.22)',
+                boxShadow: 'none',
               }}
             >
               <span>{lang === 'ru' ? 'Пополнить' : 'Top up'}</span>
