@@ -19,10 +19,12 @@ const MAX_PW = 110
 const PERFECT_R = 8
 const EGG_SCORE = 20
 
+type HeroMode = 'idle' | 'walk' | 'stumble' | 'scared' | 'dizzy'
+
 type Phase =
   | 'name' | 'waiting' | 'growing' | 'falling' | 'walking'
   | 'camera' | 'falling_off' | 'gameover'
-  | 'egg_fall' | 'egg_flip' | 'egg_unflip'
+  | 'egg_stumble' | 'egg_fall' | 'egg_impact' | 'egg_flip' | 'egg_unflip' | 'egg_land'
 interface Plat { x: number; w: number }
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number }
 
@@ -230,8 +232,30 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       }
       ctx.globalAlpha = 1
 
+      // motion blur trail behind hero while plunging
+      if (st.phase === 'egg_fall' && st.heroVy > 200) {
+        const trails = 6
+        for (let i = 1; i <= trails; i++) {
+          const k = i / trails
+          ctx.globalAlpha = 0.18 * (1 - k)
+          drawHero(
+            ctx,
+            st.heroX,
+            groundY + st.heroY - st.heroVy * 0.012 * k,
+            st.heroRot - 28 * k,
+            st.walkPhase, st.capWobble, false, 'scared',
+          )
+        }
+        ctx.globalAlpha = 1
+      }
+
       // hero
-      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking')
+      const heroMode: HeroMode =
+        st.phase === 'egg_stumble' ? 'stumble' :
+        st.phase === 'egg_fall'    ? 'scared'  :
+        st.phase === 'egg_land'    ? 'dizzy'   :
+        st.phase === 'walking'     ? 'walk'    : 'idle'
+      drawHero(ctx, st.heroX, groundY + st.heroY, st.heroRot, st.walkPhase, st.capWobble, st.phase === 'walking', heroMode)
 
       ctx.restore()
 
@@ -308,7 +332,7 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
             st.eggDone = true
             st.heroVy = 0; st.heroY = 0; st.heroRot = 0
             st.eggT = 0
-            st.phase = 'egg_fall'
+            st.phase = 'egg_stumble'
             haptic('warning')
           } else {
             animateCamera(st, () => {
@@ -324,21 +348,75 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
         }
       } else if (st.phase === 'camera') {
         cameraTween(st, dt)
+      } else if (st.phase === 'egg_stumble') {
+        // teeter on the edge — losing balance, arms flailing
+        st.eggT += dt
+        const wobble = Math.sin(st.eggT * 22)
+        st.heroRot = wobble * 12 * Math.min(1, st.eggT * 2)
+        st.heroX = (st.cur.x + st.cur.w - HERO_W) + wobble * 1.6
+        st.shake = Math.max(st.shake, 0.25)
+        // tiny dust puffs at feet
+        if (Math.random() < 0.4) {
+          emitParticles(st.heroX + HERO_W/2, groundY - 1, 'rgba(180,200,180,0.6)', 1)
+        }
+        if (st.eggT > 0.85) {
+          // tip over — start the real plunge
+          st.eggT = 0
+          st.heroVy = -260 // little hop up first for drama
+          st.heroRot = -18
+          st.phase = 'egg_fall'
+          haptic('warning')
+          // big dust burst on platform edge
+          for (let i = 0; i < 16; i++) {
+            const a = -Math.PI/2 + (Math.random() - 0.5) * Math.PI
+            const sp = 60 + Math.random() * 120
+            st.particles.push({
+              x: st.heroX + HERO_W/2, y: groundY,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 0, max: 0.7 + Math.random() * 0.4,
+              color: i % 3 === 0 ? '#39ff63' : 'rgba(200,210,200,0.85)',
+              size: 1.5 + Math.random() * 2.5,
+            })
+          }
+        }
       } else if (st.phase === 'egg_fall') {
-        // looks like real fall, but instead of game-over we trigger flip
-        st.heroVy += 1800 * dt
+        // dramatic plunge — strong gravity, spin, trail, growing shake
+        st.eggT += dt
+        st.heroVy += 2200 * dt
         st.heroY += st.heroVy * dt
-        st.heroRot += 220 * dt
-        if (st.heroY > 200) {
+        st.heroRot += 460 * dt
+        st.shake = Math.max(st.shake, Math.min(1.2, 0.2 + st.eggT * 0.9))
+        // trail of green sparks
+        if (Math.random() < 0.8) {
+          st.particles.push({
+            x: st.heroX + HERO_W/2 + (Math.random() - 0.5) * 6,
+            y: groundY + st.heroY - 12 + (Math.random() - 0.5) * 6,
+            vx: (Math.random() - 0.5) * 40, vy: -st.heroVy * 0.15,
+            life: 0, max: 0.4 + Math.random() * 0.3,
+            color: Math.random() < 0.5 ? '#39ff63' : '#7bffb8',
+            size: 1 + Math.random() * 1.8,
+          })
+        }
+        if (st.heroY > 260) {
+          st.phase = 'egg_impact'
+          st.eggT = 0
+          st.perfectFlash = 1.4
+          st.shake = 1
+          haptic('heavy')
+        }
+      } else if (st.phase === 'egg_impact') {
+        // brief white-out, then world flips
+        st.eggT += dt
+        if (st.eggT > 0.18) {
           st.phase = 'egg_flip'
           st.eggT = 0
           setFlipped(true)
           haptic('medium')
         }
       } else if (st.phase === 'egg_flip') {
-        // hold flipped state briefly while hero "rests" off-screen
+        // hold the upside-down world a beat
         st.eggT += dt
-        if (st.eggT > 0.9) {
+        if (st.eggT > 1.1) {
           setFlipped(false)
           st.phase = 'egg_unflip'
           st.eggT = 0
@@ -346,10 +424,32 @@ export default function StickHeroGame({ onExit }: { onExit: () => void }) {
       } else if (st.phase === 'egg_unflip') {
         st.eggT += dt
         if (st.eggT > 0.55) {
-          // restore hero on current platform & continue normally
+          // hero "lands" back on the platform with a puff
           st.heroY = 0; st.heroVy = 0; st.heroRot = 0
           st.heroX = st.cur.x + st.cur.w - HERO_W
+          st.shake = 0.6
+          // landing dust ring
+          for (let i = 0; i < 14; i++) {
+            const a = -Math.PI/2 + (Math.random() - 0.5) * Math.PI * 0.9
+            const sp = 50 + Math.random() * 100
+            st.particles.push({
+              x: st.heroX + HERO_W/2, y: groundY,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6,
+              life: 0, max: 0.55 + Math.random() * 0.3,
+              color: 'rgba(200,210,200,0.8)',
+              size: 1.4 + Math.random() * 2,
+            })
+          }
           haptic('success')
+          st.eggT = 0
+          st.phase = 'egg_land'
+        }
+      } else if (st.phase === 'egg_land') {
+        // dizzy beat, then continue
+        st.eggT += dt
+        st.heroRot = Math.sin(st.eggT * 8) * 4 * Math.max(0, 1 - st.eggT * 1.2)
+        if (st.eggT > 0.7) {
+          st.heroRot = 0
           animateCamera(st, () => {
             st.cur = { ...st.next }
             st.heroX = st.cur.x + st.cur.w - HERO_W
@@ -750,6 +850,7 @@ function drawHero(
   ctx: CanvasRenderingContext2D,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
+  mode: HeroMode = 'idle',
 ) {
   const W = HERO_W, H = HERO_H
   const cx = x + W / 2
@@ -820,28 +921,33 @@ function drawHero(
   ctx.ellipse(bodyCx, bodyCy, bodyW/2, bodyH/2, 0, 0, Math.PI * 2)
   ctx.stroke()
 
-  // ─── Arms (swinging opposite to legs) ───
-  const armSwing = walking ? Math.sin(walkPhase) * 8 : Math.sin(capWobble * 1.6) * 1.2
+  // ─── Arms (swinging opposite to legs; flailing when scared/stumble) ───
+  const flail = mode === 'scared' ? Math.sin(capWobble * 38) * 110
+              : mode === 'stumble' ? Math.sin(capWobble * 26) * 60
+              : 0
+  const armSwingBase = walking ? Math.sin(walkPhase) * 8 : Math.sin(capWobble * 1.6) * 1.2
+  const armL = -armSwingBase - flail
+  const armR =  armSwingBase + flail
   const armW = 4
+  const armLen = mode === 'scared' || mode === 'stumble' ? 14 : 13
   const armY = bodyCy - 2
+  // left arm
   ctx.fillStyle = '#1ec74a'
-  // left arm (opposite of front leg)
   ctx.save()
   ctx.translate(bodyCx - bodyW/2 + 1, armY)
-  ctx.rotate((-armSwing * Math.PI) / 180)
-  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
-  // hand
+  ctx.rotate((armL * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, armLen, 2); ctx.fill()
   ctx.fillStyle = '#7bff9a'
-  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(0, armLen + 1, 2.6, 0, Math.PI * 2); ctx.fill()
   ctx.restore()
   // right arm
   ctx.fillStyle = '#1ec74a'
   ctx.save()
   ctx.translate(bodyCx + bodyW/2 - 1, armY)
-  ctx.rotate((armSwing * Math.PI) / 180)
-  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
+  ctx.rotate((armR * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, armLen, 2); ctx.fill()
   ctx.fillStyle = '#7bff9a'
-  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(0, armLen + 1, 2.6, 0, Math.PI * 2); ctx.fill()
   ctx.restore()
 
   // ─── Head (same brand green sphere on top of body) ───
@@ -860,14 +966,13 @@ function drawHero(
   ctx.lineWidth = 1.2
   ctx.beginPath(); ctx.arc(0, 0, headR, 0, Math.PI * 2); ctx.stroke()
 
-  // ─── Eyes with blinking ───
-  // blink cycle: blink ~every 2.6s, lasts 0.12s
+  // ─── Eyes with blinking / scared wide eyes ───
   const blinkCycle = (capWobble % 2.6)
-  const blinking = blinkCycle < 0.12
+  const blinking = blinkCycle < 0.12 && mode !== 'scared' && mode !== 'stumble'
+  const wide = mode === 'scared' || mode === 'stumble'
   const eyeOffX = headR * 0.32
   const eyeY = -headR * 0.05
-  const eyeR = headR * 0.18
-  // eye whites
+  const eyeR = headR * (wide ? 0.28 : 0.18)
   ctx.fillStyle = '#ffffff'
   if (blinking) {
     // closed eyes — short lines
@@ -881,24 +986,44 @@ function drawHero(
   } else {
     ctx.beginPath(); ctx.arc(-eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
     ctx.beginPath(); ctx.arc( eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
-    // pupils (look slightly toward direction of motion)
-    const pupilShift = walking ? Math.sin(walkPhase * 0.5) * 0.8 : Math.sin(capWobble * 0.7) * 0.4
+    // pupils — dart around when scared, drift when dizzy
+    let pupilShift = walking ? Math.sin(walkPhase * 0.5) * 0.8 : Math.sin(capWobble * 0.7) * 0.4
+    let pupilDy = 0.4
+    let pupilR = eyeR * 0.55
+    if (wide) { pupilShift = Math.sin(capWobble * 40) * 1.6; pupilR = eyeR * 0.32; pupilDy = -1.2 }
+    if (mode === 'dizzy') { pupilShift = Math.sin(capWobble * 6) * 2; pupilDy = Math.cos(capWobble * 6) * 1.2 }
     ctx.fillStyle = '#062612'
-    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
-    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift, eyeY + pupilDy, pupilR, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift, eyeY + pupilDy, pupilR, 0, Math.PI * 2); ctx.fill()
     // eye shine
     ctx.fillStyle = '#ffffff'
-    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
-    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift + 1, eyeY - 1 + pupilDy*0.4, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift + 1, eyeY - 1 + pupilDy*0.4, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
   }
 
-  // ─── Smile ───
+  // ─── Mouth — smile / O of horror / dazed line ───
   ctx.strokeStyle = '#062612'
   ctx.lineWidth = 1.5
   ctx.lineCap = 'round'
-  ctx.beginPath()
-  ctx.arc(0, headR * 0.18, headR * 0.32, 0.15 * Math.PI, 0.85 * Math.PI)
-  ctx.stroke()
+  if (mode === 'scared' || mode === 'stumble') {
+    // open screaming "O"
+    ctx.fillStyle = '#1a0a08'
+    ctx.beginPath()
+    ctx.ellipse(0, headR * 0.32, headR * 0.16, headR * 0.22, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+  } else if (mode === 'dizzy') {
+    // wavy mouth
+    ctx.beginPath()
+    ctx.moveTo(-headR*0.28, headR*0.28)
+    ctx.quadraticCurveTo(-headR*0.14, headR*0.36, 0, headR*0.28)
+    ctx.quadraticCurveTo( headR*0.14, headR*0.20, headR*0.28, headR*0.28)
+    ctx.stroke()
+  } else {
+    ctx.beginPath()
+    ctx.arc(0, headR * 0.18, headR * 0.32, 0.15 * Math.PI, 0.85 * Math.PI)
+    ctx.stroke()
+  }
 
   // ─── Cheek blush ───
   ctx.fillStyle = 'rgba(255,120,140,0.35)'
@@ -906,7 +1031,9 @@ function drawHero(
   ctx.beginPath(); ctx.ellipse( headR*0.55, headR*0.18, headR*0.13, headR*0.08, 0, 0, Math.PI * 2); ctx.fill()
 
   // ─── Antenna / leaf (brand touch) wobbles ───
-  const leafSway = Math.sin(capWobble * 2.2) * 0.2
+  const leafSway = (mode === 'scared' || mode === 'stumble')
+    ? Math.sin(capWobble * 24) * 0.8
+    : Math.sin(capWobble * 2.2) * 0.2
   ctx.save()
   ctx.translate(0, -headR)
   ctx.rotate(leafSway)
