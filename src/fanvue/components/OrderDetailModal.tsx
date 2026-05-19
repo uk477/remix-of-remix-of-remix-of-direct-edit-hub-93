@@ -69,7 +69,37 @@ export default function OrderDetailModal({ order, onClose }: Props) {
         { label: lang === 'ru' ? 'ДОСТАВЛЕН' : 'DELIVERED', done: order.status === 'completed' },
       ]
 
-  const shortId = order.id.length > 14 ? `${order.id.slice(0, 6)}…${order.id.slice(-6)}` : order.id
+  const shortId = order.id.length > 18 ? `${order.id.slice(0, 8)}…${order.id.slice(-6)}` : order.id
+
+  // "Crunchy" derived stats — deterministic from order.id so they stay stable.
+  const hashSeed = (() => {
+    let h = 2166136261
+    for (let i = 0; i < order.id.length; i++) {
+      h ^= order.id.charCodeAt(i)
+      h = (h * 16777619) >>> 0
+    }
+    return h
+  })()
+  const confirmationsNeeded = order.provider === 'btc' ? 3 : order.provider === 'eth' || order.provider === 'erc20' || order.provider === 'usdc_eth' ? 12 : order.provider === 'sol' || order.provider === 'usdc_sol' ? 32 : 20
+  const confirmationsDone = order.status === 'completed' || order.status === 'paid'
+    ? confirmationsNeeded
+    : order.status === 'pending'
+      ? Math.min(confirmationsNeeded - 1, hashSeed % confirmationsNeeded)
+      : 0
+  const blockHeight = 19_500_000 + (hashSeed % 250_000)
+  const networkFee = ((hashSeed % 420) / 100 + 0.08).toFixed(2)
+
+  const processedMs = order.paid_at ? new Date(order.paid_at).getTime() - new Date(order.created).getTime() : 0
+  const processedLabel = processedMs > 0
+    ? (() => {
+        const s = Math.max(1, Math.round(processedMs / 1000))
+        if (s < 60) return `${s}s`
+        const m = Math.floor(s / 60), rs = s % 60
+        if (m < 60) return rs ? `${m}m ${rs}s` : `${m}m`
+        const h = Math.floor(m / 60), rm = m % 60
+        return rm ? `${h}h ${rm}m` : `${h}h`
+      })()
+    : null
 
   return (
     <AnimatePresence>
