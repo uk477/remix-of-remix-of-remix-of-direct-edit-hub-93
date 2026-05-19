@@ -2,11 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
-import heroSpriteUrl from '@/assets/fanvue-glyph.png'
-
-// preload hero sprite once
-const heroImg: HTMLImageElement | null = typeof Image !== 'undefined' ? new Image() : null
-if (heroImg) heroImg.src = heroSpriteUrl
 
 
 /* ───────── constants ───────── */
@@ -15,8 +10,8 @@ const STICK_FALL = 760
 const HERO_WALK  = 340
 const PLAT_Y_FROM_BOTTOM = 140
 const PLAT_H = 220
-const HERO_W = 64
-const HERO_H = 82
+const HERO_W = 36
+const HERO_H = 58
 const MIN_GAP = 60
 const MAX_GAP = 220
 const MIN_PW = 28
@@ -742,8 +737,8 @@ function drawPlatform(ctx: CanvasRenderingContext2D, p: Plat, groundY: number, t
 }
 
 /**
- * Draws the Fanvue mascot directly on canvas so there is no fake checkerboard
- * image background and the cap / legs can animate independently.
+ * Fully procedural Fanvue mascot — round green body, animated legs/arms,
+ * blinking eyes, smile, bobbing while walking. Matches brand green.
  */
 function drawHero(
   ctx: CanvasRenderingContext2D,
@@ -754,14 +749,14 @@ function drawHero(
   const cx = x + W / 2
 
   // ground shadow
-  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.14 : 1
-  ctx.fillStyle = 'rgba(0,0,0,0.45)'
+  const shadowSquish = walking ? 1 + Math.sin(walkPhase * 2) * 0.18 : 1
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'
   ctx.beginPath()
-  ctx.ellipse(cx, baseY + 1, (W * 0.40) * shadowSquish, 3.2, 0, 0, Math.PI * 2)
+  ctx.ellipse(cx, baseY + 1.5, (W * 0.42) * shadowSquish, 3, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  // body bob (vertical bounce while walking, gentle idle breathing)
-  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 2.5 : Math.sin(capWobble * 1.4) * 0.6
+  // body bob
+  const bodyBob = walking ? -Math.abs(Math.sin(walkPhase)) * 3 : Math.sin(capWobble * 1.6) * 0.7
 
   ctx.save()
   ctx.translate(cx, baseY)
@@ -769,34 +764,161 @@ function drawHero(
   ctx.translate(-cx, -baseY)
   ctx.translate(0, bodyBob)
 
-  if (heroImg && heroImg.complete && heroImg.naturalWidth > 0) {
-    const sW = heroImg.naturalWidth
-    const sH = heroImg.naturalHeight
-    const ar = sW / sH
-    const drawH = H * 1.75
-    const drawW = drawH * ar
-    const drawX = cx - drawW / 2
-    const drawY = baseY - drawH + 8
-    const stepTilt = walking ? Math.sin(walkPhase) * 0.035 : 0
+  // Geometry
+  const feetY = baseY - 2
+  const bodyW = W * 0.78
+  const bodyH = H * 0.62
+  const bodyCx = cx
+  const bodyCy = feetY - bodyH * 0.55 - 8
+  const headR = W * 0.42
+  const headCx = cx
+  const headCy = bodyCy - bodyH * 0.45 - headR * 0.5
 
-    ctx.save()
-    ctx.translate(cx, baseY - drawH * 0.45)
-    ctx.rotate(stepTilt)
-    ctx.translate(-cx, -(baseY - drawH * 0.45))
-    ctx.drawImage(heroImg, drawX, drawY, drawW, drawH)
-    ctx.restore()
+  // ─── Legs (animated walk cycle) ───
+  const legSwing = walking ? Math.sin(walkPhase) * 6 : 0
+  const legLift  = walking ? Math.max(0, Math.sin(walkPhase)) * 3 : 0
+  const legLiftB = walking ? Math.max(0, -Math.sin(walkPhase)) * 3 : 0
+  const hipY = feetY - 10
+  const legW = 4.5
+  // back leg
+  ctx.fillStyle = '#0a3a1f'
+  roundRect(ctx, bodyCx - 7 - legW/2 - legSwing*0.4, hipY - legLiftB, legW, 10 + legLiftB, 2); ctx.fill()
+  // shoe back
+  ctx.fillStyle = '#062612'
+  roundRect(ctx, bodyCx - 11 - legSwing*0.4, feetY - 3 - legLiftB, 9, 3.5, 1.5); ctx.fill()
+  // front leg
+  ctx.fillStyle = '#0e4a28'
+  roundRect(ctx, bodyCx + 7 - legW/2 + legSwing*0.4, hipY - legLift, legW, 10 + legLift, 2); ctx.fill()
+  // shoe front
+  ctx.fillStyle = '#062612'
+  roundRect(ctx, bodyCx + 2 + legSwing*0.4, feetY - 3 - legLift, 9, 3.5, 1.5); ctx.fill()
+
+  // ─── Body (rounded, brand green with gradient) ───
+  const bg = ctx.createLinearGradient(0, bodyCy - bodyH/2, 0, bodyCy + bodyH/2)
+  bg.addColorStop(0, '#7bff9a')
+  bg.addColorStop(0.55, '#39ff63')
+  bg.addColorStop(1, '#1ec74a')
+  ctx.fillStyle = bg
+  ctx.beginPath()
+  ctx.ellipse(bodyCx, bodyCy, bodyW/2, bodyH/2, 0, 0, Math.PI * 2)
+  ctx.fill()
+  // body sheen
+  ctx.fillStyle = 'rgba(255,255,255,0.22)'
+  ctx.beginPath()
+  ctx.ellipse(bodyCx - bodyW*0.18, bodyCy - bodyH*0.22, bodyW*0.18, bodyH*0.10, -0.4, 0, Math.PI * 2)
+  ctx.fill()
+  // body outline
+  ctx.strokeStyle = 'rgba(6,38,18,0.55)'
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  ctx.ellipse(bodyCx, bodyCy, bodyW/2, bodyH/2, 0, 0, Math.PI * 2)
+  ctx.stroke()
+
+  // ─── Arms (swinging opposite to legs) ───
+  const armSwing = walking ? Math.sin(walkPhase) * 8 : Math.sin(capWobble * 1.6) * 1.2
+  const armW = 4
+  const armY = bodyCy - 2
+  ctx.fillStyle = '#1ec74a'
+  // left arm (opposite of front leg)
+  ctx.save()
+  ctx.translate(bodyCx - bodyW/2 + 1, armY)
+  ctx.rotate((-armSwing * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
+  // hand
+  ctx.fillStyle = '#7bff9a'
+  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+  // right arm
+  ctx.fillStyle = '#1ec74a'
+  ctx.save()
+  ctx.translate(bodyCx + bodyW/2 - 1, armY)
+  ctx.rotate((armSwing * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
+  ctx.fillStyle = '#7bff9a'
+  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+
+  // ─── Head (same brand green sphere on top of body) ───
+  const headTilt = walking ? Math.sin(walkPhase) * 0.05 : Math.sin(capWobble * 1.3) * 0.03
+  ctx.save()
+  ctx.translate(headCx, headCy)
+  ctx.rotate(headTilt)
+  // head fill
+  const hg = ctx.createRadialGradient(-headR*0.3, -headR*0.4, headR*0.2, 0, 0, headR)
+  hg.addColorStop(0, '#a8ffb8')
+  hg.addColorStop(0.6, '#39ff63')
+  hg.addColorStop(1, '#1ec74a')
+  ctx.fillStyle = hg
+  ctx.beginPath(); ctx.arc(0, 0, headR, 0, Math.PI * 2); ctx.fill()
+  ctx.strokeStyle = 'rgba(6,38,18,0.55)'
+  ctx.lineWidth = 1.2
+  ctx.beginPath(); ctx.arc(0, 0, headR, 0, Math.PI * 2); ctx.stroke()
+
+  // ─── Eyes with blinking ───
+  // blink cycle: blink ~every 2.6s, lasts 0.12s
+  const blinkCycle = (capWobble % 2.6)
+  const blinking = blinkCycle < 0.12
+  const eyeOffX = headR * 0.32
+  const eyeY = -headR * 0.05
+  const eyeR = headR * 0.18
+  // eye whites
+  ctx.fillStyle = '#ffffff'
+  if (blinking) {
+    // closed eyes — short lines
+    ctx.strokeStyle = '#062612'
+    ctx.lineWidth = 1.6
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(-eyeOffX - eyeR*0.7, eyeY); ctx.lineTo(-eyeOffX + eyeR*0.7, eyeY)
+    ctx.moveTo( eyeOffX - eyeR*0.7, eyeY); ctx.lineTo( eyeOffX + eyeR*0.7, eyeY)
+    ctx.stroke()
   } else {
-    // fallback capsule
-    const bodyW = 38, bodyH = 52
-    const bodyX = cx - bodyW / 2
-    const bodyY = baseY - bodyH - 5
-    ctx.fillStyle = '#e8edf3'
-    roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 18); ctx.fill()
-    ctx.fillStyle = '#7bff8e'
-    roundRect(ctx, bodyX - 6, bodyY - 14, bodyW + 12, 22, 10); ctx.fill()
+    ctx.beginPath(); ctx.arc(-eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
+    // pupils (look slightly toward direction of motion)
+    const pupilShift = walking ? Math.sin(walkPhase * 0.5) * 0.8 : Math.sin(capWobble * 0.7) * 0.4
+    ctx.fillStyle = '#062612'
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
+    // eye shine
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
   }
 
+  // ─── Smile ───
+  ctx.strokeStyle = '#062612'
+  ctx.lineWidth = 1.5
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.arc(0, headR * 0.18, headR * 0.32, 0.15 * Math.PI, 0.85 * Math.PI)
+  ctx.stroke()
+
+  // ─── Cheek blush ───
+  ctx.fillStyle = 'rgba(255,120,140,0.35)'
+  ctx.beginPath(); ctx.ellipse(-headR*0.55, headR*0.18, headR*0.13, headR*0.08, 0, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.ellipse( headR*0.55, headR*0.18, headR*0.13, headR*0.08, 0, 0, Math.PI * 2); ctx.fill()
+
+  // ─── Antenna / leaf (brand touch) wobbles ───
+  const leafSway = Math.sin(capWobble * 2.2) * 0.2
+  ctx.save()
+  ctx.translate(0, -headR)
+  ctx.rotate(leafSway)
+  ctx.strokeStyle = '#1ec74a'
+  ctx.lineWidth = 1.6
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -7); ctx.stroke()
+  ctx.fillStyle = '#7bff9a'
+  ctx.beginPath()
+  ctx.ellipse(2.5, -10, 4, 2.5, -0.5, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#0a3a1f'
+  ctx.lineWidth = 0.7
+  ctx.stroke()
   ctx.restore()
+
+  ctx.restore() // head
+
+  ctx.restore() // body bob
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
