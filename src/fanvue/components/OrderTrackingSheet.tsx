@@ -108,6 +108,10 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
   const isCompleted  = order.status === 'completed'
   const isPaid       = order.status === 'paid'
 
+  const productTitle = order.product_title ?? ''
+  const isVerification =
+    productTitle === 'Верификация вашего аккаунта' || productTitle === 'Verify your account'
+
   const paidAt = order.paid_at ? new Date(order.paid_at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
   const qtyStr = order.quantity && order.quantity > 1 ? ` × ${order.quantity}` : ''
 
