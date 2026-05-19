@@ -6,6 +6,7 @@ import { useTelegram } from "../hooks/useTelegram";
 import { tgNotify } from "../utils/tgNotify";
 import { CONFIG } from "../config";
 import ConfirmSheet from "../components/ConfirmSheet";
+import OrderReceiptMessage from "../components/OrderReceiptMessage";
 import type {
   SupportMessage,
   SupportAttachment,
