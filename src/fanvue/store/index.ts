@@ -673,6 +673,7 @@ export const useStore = create<AppStore>()(
 
       resolvePostDelivery: (orderId, choice) => {
         const state = get()
+        void 0
         // 1. side-effects on tickets
         if (choice === 'close') {
           const open = state.supportTickets.find((t) => t.status !== 'closed')
