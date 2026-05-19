@@ -645,7 +645,7 @@ export default function ProductDetail() {
                     </motion.div>
 
                     {delivered && lastOrder?.deliveryData ? (
-                      <DeliveryBlock data={lastOrder.deliveryData} />
+                      <DeliveryBlock data={lastOrder.deliveryData} orderId={lastOrder.id} />
                     ) : (
                       <ManualDeliveryBlock orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'} />
                     )}
