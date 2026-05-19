@@ -2137,7 +2137,7 @@ function Composer({
             borderRadius: 22,
             padding: "0 14px",
             display: "flex",
-            alignItems: "flex-end",
+            alignItems: "center",
           }}
         >
           <textarea
