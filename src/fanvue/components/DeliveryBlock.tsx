@@ -410,6 +410,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
             accent="#39ff63"
             rows={[{ key: lang === 'ru' ? 'Доступ' : 'Access', value: data.trim() }]}
             onCopy={copy}
+            href="https://www.fanvue.com"
           />
         ) : (
           <>
@@ -424,6 +425,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
                   parsed.fanvue.password ? { key: lang === 'ru' ? 'Пароль' : 'Password', value: parsed.fanvue.password } : null,
                 ].filter(Boolean) as { key: string; value: string }[]}
                 onCopy={copy}
+                href="https://www.fanvue.com"
               />
             )}
 
@@ -438,6 +440,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
                   parsed.mail.password ? { key: lang === 'ru' ? 'Пароль' : 'Password', value: parsed.mail.password } : null,
                 ].filter(Boolean) as { key: string; value: string }[]}
                 onCopy={copy}
+                href="https://www.mail.com"
               />
             )}
 
