@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../store'
 import PageTransition from '../components/PageTransition'
 
-type Filter = 'all' | 'success' | 'failed' | 'expired'
+type Filter = 'all' | 'success' | 'pending' | 'failed' | 'expired'
 type Period = 'today' | 'week' | 'month' | 'all'
 
 const Ic = {
@@ -16,10 +16,10 @@ const NETWORK_LABEL: Record<string, string> = {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  success: 'Успешный', failed: 'Отменён', expired: 'Истёк',
+  success: 'Успешный', pending: 'Ожидание', failed: 'Отменён', expired: 'Истёк',
 }
 const STATUS_COLOR: Record<string, string> = {
-  success: '#39ff63', failed: '#e0734a', expired: '#9788c4',
+  success: '#39ff63', pending: '#e8c98c', failed: '#e0734a', expired: '#9788c4',
 }
 
 function withinPeriod(ts: string, p: Period) {
@@ -45,16 +45,60 @@ const downloadFile = (content: string, filename: string, mime: string) => {
 }
 
 export default function AdminDeposits() {
-  const logs = useStore((s) => s.logs)
+  const logs   = useStore((s) => s.logs)
+  const orders = useStore((s) => s.orders)
+  const user   = useStore((s) => s.user)
 
   const [period, setPeriod] = useState<Period>('all')
   const [filter, setFilter] = useState<Filter>('all')
   const [exportOpen, setExportOpen] = useState(false)
 
-  const deposits = useMemo(
-    () => logs.filter((l) => l.kind === 'deposit' && withinPeriod(l.ts, period)),
-    [logs, period],
-  )
+  /* unified deposits: orders (live) + payment logs (mock/history) */
+  type Dep = {
+    id: string
+    ts: string
+    username: string
+    uid: number | string
+    amount: number
+    network?: string
+    status: 'success' | 'pending' | 'failed' | 'expired'
+    tx_hash?: string
+  }
+
+  const deposits = useMemo<Dep[]>(() => {
+    const fromOrders: Dep[] = orders
+      .filter((o) => o.kind === 'deposit')
+      .map((o) => ({
+        id: o.id,
+        ts: o.created,
+        username: user?.username ?? user?.full_name ?? 'guest',
+        uid: user?.uid ?? '—',
+        amount: o.amount,
+        network: o.provider,
+        status:
+          o.status === 'paid' || o.status === 'completed' ? 'success' :
+          o.status === 'failed' ? 'failed' :
+          o.status === 'expired' ? 'expired' : 'pending',
+        tx_hash: o.txid,
+      }))
+
+    const fromLogs: Dep[] = logs
+      .filter((l) => l.kind === 'deposit')
+      .map((l) => ({
+        id: `LOG-${l.id}`,
+        ts: l.ts,
+        username: l.username,
+        uid: l.uid,
+        amount: l.amount,
+        network: l.network,
+        status: l.status,
+        tx_hash: l.tx_hash,
+      }))
+
+    return [...fromOrders, ...fromLogs]
+      .filter((d) => withinPeriod(d.ts, period))
+      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+  }, [orders, logs, user, period])
 
   const list = useMemo(
     () => filter === 'all' ? deposits : deposits.filter((d) => d.status === filter),
@@ -63,6 +107,7 @@ export default function AdminDeposits() {
 
   const sumSuccess = deposits.filter((d) => d.status === 'success').reduce((s, d) => s + d.amount, 0)
   const countSuccess = deposits.filter((d) => d.status === 'success').length
+  const countPending = deposits.filter((d) => d.status === 'pending').length
   const countFailed  = deposits.filter((d) => d.status === 'failed').length
   const countExpired = deposits.filter((d) => d.status === 'expired').length
 
@@ -70,7 +115,7 @@ export default function AdminDeposits() {
     today: 'Сегодня', week: 'Неделя', month: 'Месяц', all: 'Всё время',
   }
   const filterLabel: Record<Filter, string> = {
-    all: 'Все', success: 'Успешные', failed: 'Отменённые', expired: 'Истёкшие',
+    all: 'Все', success: 'Успешные', pending: 'Ожидание', failed: 'Отменённые', expired: 'Истёкшие',
   }
 
   const exportRows = () => list.map((d, i) => ({
@@ -144,7 +189,7 @@ export default function AdminDeposits() {
             <div className="adm2-hero-eyebrow">История</div>
             <div className="adm2-hero-title">Пополнения</div>
             <div className="adm2-hero-sub">
-              {countSuccess} успешных · ${sumSuccess.toFixed(0)} · {countFailed} отменено · {countExpired} истекло
+              {countSuccess} успешных · ${sumSuccess.toFixed(0)} · {countPending} в ожидании · {countFailed} отменено · {countExpired} истекло
             </div>
           </div>
 
@@ -167,7 +212,7 @@ export default function AdminDeposits() {
 
         {/* status filter */}
         <div className="adm2-segment" style={{ marginTop: 12 }}>
-          {(['all', 'success', 'failed', 'expired'] as Filter[]).map((f) => (
+          {(['all', 'success', 'pending', 'failed', 'expired'] as Filter[]).map((f) => (
             <button
               key={f}
               className={`adm2-seg-btn${filter === f ? ' is-active' : ''}`}
