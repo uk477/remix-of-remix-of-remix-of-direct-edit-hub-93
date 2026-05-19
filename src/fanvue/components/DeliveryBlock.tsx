@@ -374,12 +374,14 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
       {/* Branded credentials */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {!hasAnyParsed ? (
-          <pre style={{
-            margin: 0, background: '#111', border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: 10, padding: 12,
-            fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.85)',
-            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          }}>{data}</pre>
+          <BrandCredCard
+            delay={0.12}
+            brand={<FanvueLogo size={26} />}
+            title={lang === 'ru' ? 'Данные для входа Fanvue' : 'Fanvue login data'}
+            accent="#E8365D"
+            rows={[{ key: lang === 'ru' ? 'Доступ' : 'Access', value: data.trim() }]}
+            onCopy={copy}
+          />
         ) : (
           <>
             {(parsed.fanvue.login || parsed.fanvue.password) && (
