@@ -200,27 +200,34 @@ function OrderRefBlock({ orderId, onCopy, labelKey }: { orderId: string; onCopy:
   )
 }
 
-function ActionButtons({ onChat, tgUrl, chatLabel, tgLabel }: {
-  onChat: () => void; tgUrl: string; chatLabel: string; tgLabel: string
+function isVerificationProduct(title?: string) {
+  const value = title?.trim().toLowerCase() ?? ''
+  return /верификац/.test(value) || /verif/.test(value)
+}
+
+function ActionButtons({ onChat, tgUrl, chatLabel, tgLabel, telegramPrimary = false }: {
+  onChat?: () => void; tgUrl: string; chatLabel: string; tgLabel: string; telegramPrimary?: boolean
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <motion.button
-        onClick={onChat}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18 }}
-        style={{
-          width: '100%', padding: '14px 16px', borderRadius: 12,
-          background: GREEN, color: '#000', border: 'none',
-          fontFamily: DISPLAY, fontSize: 12, fontWeight: 700,
-          letterSpacing: '0.16em', textTransform: 'uppercase',
-          cursor: 'pointer', boxShadow: `0 8px 28px -8px ${GREEN}66`,
-        }}
-      >
-        {chatLabel}
-      </motion.button>
+      {onChat && (
+        <motion.button
+          onClick={onChat}
+          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          style={{
+            width: '100%', padding: '14px 16px', borderRadius: 12,
+            background: GREEN, color: '#000', border: 'none',
+            fontFamily: DISPLAY, fontSize: 12, fontWeight: 700,
+            letterSpacing: '0.16em', textTransform: 'uppercase',
+            cursor: 'pointer', boxShadow: `0 8px 28px -8px ${GREEN}66`,
+          }}
+        >
+          {chatLabel}
+        </motion.button>
+      )}
       <motion.a
         href={tgUrl} target="_blank" rel="noopener noreferrer"
         whileTap={{ scale: 0.98 }}
@@ -229,12 +236,14 @@ function ActionButtons({ onChat, tgUrl, chatLabel, tgLabel }: {
         transition={{ delay: 0.22 }}
         style={{
           width: '100%', padding: '13px 16px', borderRadius: 12,
-          background: 'rgba(255,255,255,0.04)', color: '#fff',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: telegramPrimary ? 'linear-gradient(135deg, #2AABEE, #229ED9)' : 'rgba(255,255,255,0.04)',
+          color: '#fff',
+          border: telegramPrimary ? '1px solid rgba(255,255,255,0.16)' : '1px solid rgba(255,255,255,0.1)',
           fontFamily: DISPLAY, fontSize: 12, fontWeight: 700,
           letterSpacing: '0.16em', textTransform: 'uppercase',
           textAlign: 'center', textDecoration: 'none',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: telegramPrimary ? '0 12px 34px -12px rgba(34,158,217,0.85)' : 'none',
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -529,6 +538,7 @@ export function ManualDeliveryBlock({
   const navigate = useNavigate()
   const sendOrderReceipt = useStore((s) => s.sendOrderReceipt)
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
+  const isVerification = isVerificationProduct(productTitle)
 
   const copyId = async () => {
     try { await navigator.clipboard.writeText(orderId) } catch { }
@@ -608,16 +618,21 @@ export function ManualDeliveryBlock({
         margin: 0, fontFamily: DISPLAY, fontSize: 13, lineHeight: 1.55,
         color: 'rgba(255,255,255,0.6)',
       }}>
-        {lang === 'ru'
+        {isVerification
+          ? (lang === 'ru'
+            ? 'Свяжитесь с нами в Telegram — оператор подскажет, какие данные нужны для аккуратной верификации аккаунта.'
+            : 'Contact us in Telegram — an operator will tell you what data is needed for careful account verification.')
+          : lang === 'ru'
           ? 'Напишите нам в чат поддержки или в Telegram — мы выдадим данные заказа вручную в течение нескольких минут.'
           : 'Message support chat or Telegram — we will deliver the credentials manually within a few minutes.'}
       </p>
 
       <ActionButtons
-        onChat={handleOpenChat}
+        onChat={isVerification ? undefined : handleOpenChat}
         tgUrl={tgUrl}
         chatLabel={lang === 'ru' ? 'Написать в чат поддержки' : 'Open support chat'}
         tgLabel="Telegram"
+        telegramPrimary={isVerification}
       />
     </TerminalShell>
   )
