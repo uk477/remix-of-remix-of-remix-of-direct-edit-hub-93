@@ -3404,6 +3404,14 @@ body::after { display: none; }
   flex-shrink: 0;
 }
 
+.profile-brand-clean::before {
+  display: none;
+}
+
+.profile-brand-clean .shop-hero-brand-logo {
+  filter: drop-shadow(0 5px 10px rgba(0,0,0,0.45));
+}
+
 /* LIVE micro-pill */
 .shop-hero-brand-live {
   display: inline-flex;
