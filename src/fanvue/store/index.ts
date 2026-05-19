@@ -108,6 +108,7 @@ export interface SiteLinks {
   channelUrl:   string  // новостной канал
   reviewsUrl:   string  // отзывы
   botUrl:       string  // ссылка на бота
+  securityInstructionUrl: string  // ссылка на инструкцию по безопасности (открывается из блока выдачи)
 }
 
 interface AppStore {
@@ -251,6 +252,7 @@ export const useStore = create<AppStore>()(
         channelUrl:   `https://t.me/${CONFIG.channelUsername}`,
         reviewsUrl:   '',
         botUrl:       `https://t.me/${CONFIG.botUsername}`,
+        securityInstructionUrl: CONFIG.securityInstructionUrl,
       },
 
       setLang: (lang) => set({ lang, langUserSet: true }),
