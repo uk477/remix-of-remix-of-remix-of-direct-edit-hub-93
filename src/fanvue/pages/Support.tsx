@@ -680,6 +680,7 @@ export default function Support() {
 
   useEffect(() => {
     if (activeTicket) return;
+    if (hasOpenOrder) return; // открытый заказ — пишем напрямую, без триажа
     const last = messages[messages.length - 1];
     // Skip if user just answered a flow chip — next flow node is on its way
     if (last?.sender === "user") return;
