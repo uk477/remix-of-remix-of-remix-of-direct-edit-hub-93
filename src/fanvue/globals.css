@@ -7641,3 +7641,34 @@ body::after { display: none; }
 }
 .adm2-log-ic.ok  { background: rgba(118,163,116,0.16); color: #94c592; }
 .adm2-log-ic.bad { background: rgba(214,90,90,0.16);   color: #e88c8c; }
+
+/* adm2 grid helper (missing in base CSS) */
+.adm2-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.adm2 .grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* danger icon button (exit) */
+.adm2-iconbtn--danger {
+  background: rgba(214,90,90,0.10);
+  border-color: rgba(214,90,90,0.25);
+  color: #f0a0a0;
+}
+.adm2-iconbtn--danger:hover { background: rgba(214,90,90,0.18); border-color: rgba(214,90,90,0.4); }
+
+/* hero responsive — let segmented wrap below on narrow screens */
+.adm2-hero { flex-wrap: wrap; }
+.adm2-hero > div:first-child { flex: 1 1 auto; min-width: 0; }
+.adm2-hero-title { font-size: 28px; }
+.adm2-hero-title span { display: inline; }
+
+/* compact topbar */
+.adm2-topbar { gap: 8px; padding: 10px 12px; }
+.adm2-title { gap: 8px; flex: 1; min-width: 0; }
+.adm2-actions { gap: 6px; flex-shrink: 0; }
