@@ -29,9 +29,9 @@ function parseItem(raw: string): Account {
     const v = m[2].trim()
     if (/инструкц|instruct|примеч|safety|безопасн/.test(k)) { extraInstr.push(v); continue }
     if (/(почт|mail|email).*парол|парол.*(почт|mail|email)|mail[ _-]?pass|email[ _-]?pass/.test(k)) { acc.mailPassword = v; continue }
-    if (/^(почт|email|e[-_ ]?mail|mail)\b/.test(k)) { acc.mailEmail = v; continue }
-    if (/^(логин|login|username|user)\b/.test(k)) { acc.fanvueLogin = v; continue }
-    if (/^(пароль|password|pass)\b/.test(k)) { acc.fanvuePassword = v; continue }
+    if (/^(почт[аы]?|email|e[-_ ]?mail|mail)(?:\s|$)/.test(k)) { acc.mailEmail = v; continue }
+    if (/^(логин|login|username|user)(?:\s|$)/.test(k)) { acc.fanvueLogin = v; continue }
+    if (/^(пароль|password|pass)(?:\s|$)/.test(k)) { acc.fanvuePassword = v; continue }
     extraInstr.push(`${m[1].trim()}: ${v}`)
   }
   acc.instruction = extraInstr.join('\n')
