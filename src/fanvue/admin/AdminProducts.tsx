@@ -7,6 +7,7 @@ import { useT } from '../i18n'
 import { useToast } from '../components/Toast'
 import { useTelegram } from '../hooks/useTelegram'
 import type { Product } from '../store/types'
+import AccountsPoolEditor from './AccountsPoolEditor'
 
 const EMPTY: Product = {
   id: 0, cat_id: 1,
@@ -215,38 +216,10 @@ export default function AdminProducts() {
                 </select>
 
                 {editing.delivery === 'auto' && (
-                  <div className="col gap-2">
-                    <div className="t-xs t-muted" style={{ lineHeight: 1.5 }}>
-                      {lang === 'ru'
-                        ? '🎁 Пул автовыдачи. Одна запись = один товар, выдаётся одному покупателю (1 в руки). Разделяй записи строкой ---'
-                        : '🎁 Auto-delivery pool. One entry = one item delivered to one buyer (1 per hand). Separate entries with ---'}
-                    </div>
-                    <textarea
-                      className="input"
-                      style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, minHeight: 180 }}
-                      placeholder={
-                        lang === 'ru'
-                          ? 'Логин: user1@mail.com\nПароль: Pass123\nПочта: user1@mail.com\nПароль почты: MailPass\nИнструкция: войти и сменить пароль\n---\nЛогин: user2@mail.com\n...'
-                          : 'Login: ...\nPassword: ...\nEmail: ...\nEmail password: ...\nInstruction: ...\n---\nLogin: ...\n...'
-                      }
-                      value={(editing.autoItems ?? []).join('\n---\n')}
-                      onChange={(e) =>
-                        setEditing({
-                          ...editing,
-                          autoItems: e.target.value
-                            .split(/\n-{3,}\n/)
-                            .map((s) => s.trim())
-                            .filter(Boolean),
-                        })
-                      }
-                      rows={10}
-                    />
-                    <div className="t-xs" style={{ color: 'var(--brand)' }}>
-                      {lang === 'ru'
-                        ? `В наличии: ${(editing.autoItems ?? []).length} шт.`
-                        : `In stock: ${(editing.autoItems ?? []).length} pcs.`}
-                    </div>
-                  </div>
+                  <AccountsPoolEditor
+                    items={editing.autoItems ?? []}
+                    onChange={(items) => setEditing({ ...editing, autoItems: items })}
+                  />
                 )}
 
                 <motion.button className="btn btn-primary mt-3" onClick={save} whileTap={{ scale: 0.97 }}>
