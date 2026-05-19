@@ -343,62 +343,54 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Marquee referral link */}
-        <button
-          onClick={copyRef}
+        {/* Referral link */}
+        <div
           style={{
             position: 'relative',
-            background: '#000',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 999,
-            height: 46,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 12,
+            padding: '10px 12px',
             display: 'flex',
             alignItems: 'center',
-            paddingLeft: 18,
-            paddingRight: 6,
-            overflow: 'hidden',
+            gap: 10,
             zIndex: 2,
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              gap: 32,
-              whiteSpace: 'nowrap',
-              fontFamily: MONO,
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.4)',
-              animation: 'fanvueMarquee 22s linear infinite',
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <span>{refLink}</span>
-            <span>{refLink}</span>
-            <span>{refLink}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 }}>
+            <span style={{
+              fontFamily: MONO, fontSize: 9, fontWeight: 700,
+              color: 'rgba(255,255,255,0.35)', letterSpacing: '0.18em', textTransform: 'uppercase',
+            }}>
+              {lang === 'ru' ? 'Реф. ссылка' : 'Ref link'}
+            </span>
+            <span style={{
+              fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.85)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {refLink}
+            </span>
           </div>
-          <span
+          <button
+            onClick={copyRef}
+            aria-label={lang === 'ru' ? 'Копировать' : 'Copy'}
             style={{
-              position: 'absolute',
-              right: 6,
-              top: 6,
-              bottom: 6,
-              padding: '0 14px',
-              background: copied ? GREEN : '#fff',
-              color: INK,
-              fontFamily: DISPLAY,
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.18em',
-              borderRadius: 999,
-              display: 'flex',
-              alignItems: 'center',
+              flexShrink: 0,
+              width: 38, height: 38, borderRadius: 10,
+              background: copied ? GREEN : 'rgba(255,255,255,0.06)',
+              border: `1px solid ${copied ? GREEN : 'rgba(255,255,255,0.1)'}`,
+              color: copied ? INK : '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 160ms ease',
             }}
           >
-            {copied ? '✓ OK' : lang === 'ru' ? 'Копия' : 'Copy'}
-          </span>
-        </button>
+            {copied ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            )}
+          </button>
+        </div>
 
         {/* Menu */}
         <div style={{ marginTop: 6, position: 'relative', zIndex: 2 }}>
