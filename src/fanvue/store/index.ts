@@ -142,6 +142,8 @@ interface AppStore {
   addSupportMessage: (msg: SupportMessage) => void
   updateSupportMessage: (id: number, updates: Partial<SupportMessage>) => void
   deleteSupportMessage: (id: number, mode: 'user' | 'all') => void
+  sendOrderReceipt: (payload: OrderReceiptPayload) => boolean
+  setOrderReceiptStage: (orderId: string, stage: OrderReceiptPayload['stage']) => void
   markUserMessagesReadByAdmin: () => void
   markAdminMessagesReadByUser: () => void
   setUserTyping: (v: boolean) => void
