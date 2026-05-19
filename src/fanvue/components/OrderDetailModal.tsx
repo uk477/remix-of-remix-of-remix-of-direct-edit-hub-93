@@ -15,12 +15,6 @@ const AMBER = '#ffb84a'
 const RED = '#ff5a5a'
 const INK = '#0a0a0a'
 
-function formatFull(iso: string, lang: string) {
-  return new Date(iso).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', {
-    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
-}
-
 const EXPLORER: Record<CryptoNetwork, (txid: string) => string> = {
   trc20:    (t) => `https://tronscan.org/#/transaction/${t}`,
   erc20:    (t) => `https://etherscan.io/tx/${t}`,
@@ -38,6 +32,19 @@ const STATUS_COLOR: Record<string, string> = {
   failed: RED, expired: RED, cancelled: RED,
 }
 
+function formatDate(iso: string, lang: string) {
+  return new Date(iso).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  }).toUpperCase().replace(/\./g, '')
+}
+function formatTimeFull(iso: string) {
+  const d = new Date(iso)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${hh}:${mm}:${ss}`
+}
+
 export default function OrderDetailModal({ order, onClose }: Props) {
   const t = useT()
   const lang = useStore((s) => s.lang)
@@ -50,6 +57,9 @@ export default function OrderDetailModal({ order, onClose }: Props) {
   const statusKey = `status_${order.status}` as Parameters<typeof t>[0]
   const statusColor = STATUS_COLOR[order.status] ?? 'rgba(255,255,255,0.6)'
   const cryptoOpt = order.provider ? CRYPTO_OPTIONS.find((c) => c.id === order.provider) : undefined
+  const isCompleted = order.status === 'completed'
+  const isPaid = order.status === 'paid' || isCompleted
+  const isFailed = order.status === 'failed' || order.status === 'expired'
 
   const copyId = async () => {
     try { await navigator.clipboard.writeText(order.id) } catch { /* ignore */ }
@@ -57,21 +67,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
     toast.show(lang === 'ru' ? 'ID скопирован' : 'ID copied')
   }
 
-  const steps = isDeposit
-    ? [
-        { label: lang === 'ru' ? 'СОЗДАН'   : 'CREATED',  done: true },
-        { label: lang === 'ru' ? 'ОПЛАЧЕН'  : 'PAID',     done: order.status === 'paid' || order.status === 'completed' },
-        { label: lang === 'ru' ? 'ЗАЧИСЛЕН' : 'CREDITED', done: order.status === 'completed' },
-      ]
-    : [
-        { label: lang === 'ru' ? 'СОЗДАН'    : 'CREATED',   done: true },
-        { label: lang === 'ru' ? 'ОПЛАЧЕН'   : 'PAID',      done: order.status === 'paid' || order.status === 'completed' },
-        { label: lang === 'ru' ? 'ДОСТАВЛЕН' : 'DELIVERED', done: order.status === 'completed' },
-      ]
-
-  const shortId = order.id.length > 18 ? `${order.id.slice(0, 8)}…${order.id.slice(-6)}` : order.id
-
-  // "Crunchy" derived stats — deterministic from order.id so they stay stable.
+  // Deterministic crunchy stats — derived from order.id so they stay stable.
   const hashSeed = (() => {
     let h = 2166136261
     for (let i = 0; i < order.id.length; i++) {
@@ -80,26 +76,46 @@ export default function OrderDetailModal({ order, onClose }: Props) {
     }
     return h
   })()
-  const confirmationsNeeded = order.provider === 'btc' ? 3 : order.provider === 'eth' || order.provider === 'erc20' || order.provider === 'usdc_eth' ? 12 : order.provider === 'sol' || order.provider === 'usdc_sol' ? 32 : 20
-  const confirmationsDone = order.status === 'completed' || order.status === 'paid'
-    ? confirmationsNeeded
-    : order.status === 'pending'
-      ? Math.min(confirmationsNeeded - 1, hashSeed % confirmationsNeeded)
-      : 0
-  const blockHeight = 19_500_000 + (hashSeed % 250_000)
-  const networkFee = ((hashSeed % 420) / 100 + 0.08).toFixed(2)
+  const confirmationsNeeded = order.provider === 'btc' ? 3
+    : order.provider === 'eth' || order.provider === 'erc20' || order.provider === 'usdc_eth' ? 12
+    : order.provider === 'sol' || order.provider === 'usdc_sol' ? 32
+    : 20
+  const confirmationsDone = isCompleted ? confirmationsNeeded
+    : isPaid ? Math.max(1, Math.floor(confirmationsNeeded * 0.75))
+    : order.status === 'pending' ? Math.min(confirmationsNeeded - 1, hashSeed % confirmationsNeeded)
+    : 0
+  const blockHeight = (order.provider === 'btc' ? 850_000 : 19_500_000) + (hashSeed % 250_000)
+  const networkFee = ((hashSeed % 420) / 100 + 0.08)
 
   const processedMs = order.paid_at ? new Date(order.paid_at).getTime() - new Date(order.created).getTime() : 0
   const processedLabel = processedMs > 0
     ? (() => {
         const s = Math.max(1, Math.round(processedMs / 1000))
-        if (s < 60) return `${s}s`
-        const m = Math.floor(s / 60), rs = s % 60
-        if (m < 60) return rs ? `${m}m ${rs}s` : `${m}m`
-        const h = Math.floor(m / 60), rm = m % 60
-        return rm ? `${h}h ${rm}m` : `${h}h`
+        const mm = Math.floor(s / 60), ss = s % 60
+        if (mm === 0) return `00M ${String(ss).padStart(2, '0')}S`
+        if (mm < 60) return `${String(mm).padStart(2, '0')}M ${String(ss).padStart(2, '0')}S`
+        const h = Math.floor(mm / 60), rm = mm % 60
+        return `${String(h).padStart(2, '0')}H ${String(rm).padStart(2, '0')}M`
       })()
-    : null
+    : '—'
+
+  const steps = isDeposit
+    ? [
+        { label: lang === 'ru' ? 'Создан'   : 'Created',  done: true,        active: !isPaid && !isFailed },
+        { label: lang === 'ru' ? 'Оплачен'  : 'Paid',     done: isPaid,      active: isPaid && !isCompleted },
+        { label: lang === 'ru' ? 'Зачислен' : 'Credited', done: isCompleted, active: false },
+      ]
+    : [
+        { label: lang === 'ru' ? 'Создан'    : 'Created',   done: true,        active: !isPaid && !isFailed },
+        { label: lang === 'ru' ? 'Оплачен'   : 'Paid',      done: isPaid,      active: isPaid && !isCompleted },
+        { label: lang === 'ru' ? 'Доставлен' : 'Delivered', done: isCompleted, active: false },
+      ]
+
+  const doneCount = steps.filter((s) => s.done).length
+  const progressPct = steps.length > 1 ? ((doneCount - 1) / (steps.length - 1)) * 100 : 0
+
+  const refLabel = `${lang === 'ru' ? 'СПРАВКА' : 'REFERENCE'} / ${String(isDeposit ? 2 : 1).padStart(2, '0')} / ${isDeposit ? 'DEPOSIT' : 'ORDER'}`
+  const statusLabel = String(t(statusKey)).toUpperCase()
 
   return (
     <AnimatePresence>
@@ -110,7 +126,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
         onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         style={{
           position: 'fixed', inset: 0, zIndex: 1000,
-          background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)',
+          background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         }}
       >
@@ -124,295 +140,407 @@ export default function OrderDetailModal({ order, onClose }: Props) {
           dragElastic={{ top: 0, bottom: 0.3 }}
           onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
           style={{
-            width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            width: '100%', maxWidth: 480, maxHeight: '94dvh', overflowY: 'auto',
             background: INK,
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.1)',
             borderBottom: 'none',
-            borderTopLeftRadius: 24, borderTopRightRadius: 24,
-            padding: '10px 18px 24px',
-            fontFamily: DISPLAY, color: '#fff',
+            borderTopLeftRadius: 32, borderTopRightRadius: 32,
+            color: '#fff', fontFamily: DISPLAY,
+            position: 'relative',
           }}
         >
           {/* Drag handle */}
-          <div style={{
-            width: 38, height: 4, borderRadius: 2,
-            background: 'rgba(255,255,255,0.18)',
-            margin: '0 auto 18px', cursor: 'grab',
-          }} />
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 8 }}>
+            <div style={{ width: 48, height: 5, borderRadius: 999, background: 'rgba(255,255,255,0.18)' }} />
+          </div>
 
-          {/* Header strip */}
+          {/* Reference header strip */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            fontFamily: MONO, fontSize: 9, fontWeight: 700,
-            color: 'rgba(255,255,255,0.35)', letterSpacing: 1.2,
-            marginBottom: 14,
+            padding: '8px 24px 14px',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
           }}>
-            <span>{isDeposit ? '/02 · DEPOSIT' : '/01 · ORDER'}</span>
-            <span style={{ color: statusColor }}>● {String(t(statusKey)).toUpperCase()}</span>
-          </div>
-
-          {/* Title row */}
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 20 }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: 14,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: isDeposit ? GREEN : '#fff', flexShrink: 0,
+            <span style={{
+              fontFamily: MONO, fontSize: 10, fontWeight: 700,
+              color: 'rgba(255,255,255,0.35)', letterSpacing: '0.22em',
             }}>
-              {cryptoOpt
-                ? <CryptoLogo network={cryptoOpt.id} size={36} showBadge />
-                : isDeposit
-                  ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-                  : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.15, letterSpacing: -0.3 }}>
-                {isDeposit
-                  ? (cryptoOpt ? cryptoOpt.name : t('order_deposit'))
-                  : (order.product_title ?? t('order_buy'))}
-              </div>
-              {cryptoOpt && (
-                <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, letterSpacing: 1 }}>
-                  {cryptoOpt.symbol}
-                </div>
-              )}
-            </div>
+              {refLabel}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: statusColor,
+                boxShadow: `0 0 8px ${statusColor}`,
+                animation: !isFailed && !isCompleted ? 'specPulse 1.6s ease-in-out infinite' : 'none',
+              }} />
+              <span style={{
+                fontFamily: MONO, fontSize: 10, fontWeight: 700,
+                color: statusColor, letterSpacing: '0.06em',
+              }}>
+                {statusLabel}
+              </span>
+            </span>
           </div>
 
-          {/* Amount card */}
-          <div style={{
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderLeft: `2px solid ${isDeposit ? GREEN : '#fff'}`,
-            borderRadius: 14, padding: '14px 16px',
-            marginBottom: 18,
-          }}>
-            <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 1.2 }}>
-              {lang === 'ru' ? 'СУММА' : 'AMOUNT'}
-            </div>
-            <div style={{
-              fontSize: 32, fontWeight: 800, marginTop: 4,
-              color: isDeposit ? GREEN : '#fff',
-              letterSpacing: -0.8,
-              display: 'flex', alignItems: 'baseline', gap: 4,
-            }}>
-              <span style={{ fontSize: 18, opacity: 0.55 }}>{isDeposit ? '+$' : '$'}</span>
-              {order.amount.toFixed(2)}
-              {order.quantity && order.quantity > 1 && (
-                <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginLeft: 8 }}>
-                  × {order.quantity}
-                </span>
-              )}
-            </div>
-          </div>
+          <div style={{ padding: '24px 24px 28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-          {/* Timeline */}
-          <div style={{
-            fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: 1.2,
-            color: 'rgba(255,255,255,0.4)', marginBottom: 10,
-          }}>
-            {lang === 'ru' ? '— ХРОНОЛОГИЯ' : '— TIMELINE'}
-          </div>
-          <div style={{
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: 14, padding: '14px 16px', marginBottom: 18,
-          }}>
-            {steps.map((step, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', paddingBottom: i < steps.length - 1 ? 14 : 0 }}>
+            {/* Primary asset row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
                 <div style={{
-                  width: 22, height: 22, borderRadius: 11, flexShrink: 0,
+                  width: 56, height: 56, borderRadius: 18,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: step.done ? GREEN : 'rgba(255,255,255,0.06)',
-                  color: step.done ? INK : 'rgba(255,255,255,0.4)',
-                  fontFamily: MONO, fontSize: 11, fontWeight: 800,
-                  border: step.done ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  color: isDeposit ? GREEN : '#fff', flexShrink: 0,
                 }}>
-                  {step.done ? '✓' : i + 1}
+                  {cryptoOpt
+                    ? <CryptoLogo network={cryptoOpt.id} size={38} showBadge />
+                    : isDeposit
+                      ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                      : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>}
                 </div>
-                {i < steps.length - 1 && (
+                <div style={{ minWidth: 0 }}>
                   <div style={{
-                    position: 'absolute', left: 10, top: 22, width: 2, height: 14,
-                    background: step.done ? GREEN : 'rgba(255,255,255,0.08)',
-                  }} />
-                )}
-                <div style={{
-                  fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: 0.6,
-                  color: step.done ? '#fff' : 'rgba(255,255,255,0.4)',
-                }}>
-                  {step.label}
+                    fontSize: 22, fontWeight: 800, lineHeight: 1.1,
+                    letterSpacing: '-0.02em',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {isDeposit
+                      ? (cryptoOpt ? cryptoOpt.name : t('order_deposit'))
+                      : (order.product_title ?? t('order_buy'))}
+                  </div>
+                  <div style={{
+                    fontFamily: MONO, fontSize: 10, fontWeight: 700,
+                    color: 'rgba(255,255,255,0.4)', letterSpacing: '0.2em',
+                    textTransform: 'uppercase', marginTop: 4,
+                  }}>
+                    {cryptoOpt ? cryptoOpt.symbol : (isDeposit ? 'DEPOSIT' : 'ORDER')}
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{
+                  fontFamily: MONO, fontSize: 9, fontWeight: 700,
+                  color: 'rgba(255,255,255,0.3)', letterSpacing: '0.2em',
+                  textTransform: 'uppercase', marginBottom: 4,
+                }}>
+                  {lang === 'ru' ? 'СУММА' : 'AMOUNT'}
+                </div>
+                <div style={{
+                  fontSize: 28, fontWeight: 800,
+                  color: isDeposit ? GREEN : '#fff',
+                  letterSpacing: '-0.04em', lineHeight: 1,
+                  display: 'inline-flex', alignItems: 'baseline', gap: 2,
+                }}>
+                  <span style={{ fontSize: 16, opacity: 0.55 }}>{isDeposit ? '+$' : '$'}</span>
+                  {order.amount.toFixed(2)}
+                </div>
+                {order.quantity && order.quantity > 1 && (
+                  <div style={{
+                    fontFamily: MONO, fontSize: 10, fontWeight: 700,
+                    color: 'rgba(255,255,255,0.4)', marginTop: 4,
+                  }}>
+                    × {order.quantity}
+                  </div>
+                )}
+              </div>
+            </div>
 
-          {/* Meta */}
-          <div style={{
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: 14, padding: '4px 16px', marginBottom: 18,
-          }}>
-            <MetaRow label="ID">
+            {/* Horizontal timeline */}
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{
+                position: 'absolute', top: 9, left: 9, right: 9, height: 1,
+                background: 'rgba(255,255,255,0.1)',
+              }} />
+              <div style={{
+                position: 'absolute', top: 9, left: 9, height: 1,
+                width: `calc((100% - 18px) * ${progressPct / 100})`,
+                background: GREEN,
+                transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)',
+              }} />
+              {steps.map((step, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: i === 0 ? 'flex-start' : i === steps.length - 1 ? 'flex-end' : 'center',
+                    gap: 10, flex: 1,
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: step.done ? GREEN : 'rgba(255,255,255,0.08)',
+                    boxShadow: step.done ? `0 0 0 4px rgba(57,255,99,0.15)` : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: step.done ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                  }}>
+                    <div style={{
+                      width: 5, height: 5, borderRadius: '50%',
+                      background: step.done ? INK : 'rgba(255,255,255,0.25)',
+                    }} />
+                  </div>
+                  <span style={{
+                    fontFamily: MONO, fontSize: 9, fontWeight: 700,
+                    color: step.done ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)',
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                  }}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Specimen data grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 1,
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 16,
+              overflow: 'hidden',
+            }}>
+              {/* Order ID — full width */}
               <button
                 onClick={copyId}
                 style={{
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                  fontFamily: MONO, fontSize: 11, fontWeight: 700, color: GREEN,
-                  display: 'flex', alignItems: 'center', gap: 6,
+                  gridColumn: 'span 2',
+                  background: INK, padding: '14px 16px',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                  border: 'none', textAlign: 'left', cursor: 'pointer',
+                  color: '#fff',
                 }}
               >
-                {shortId}
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-            </MetaRow>
-            <MetaRow label={lang === 'ru' ? 'СОЗДАН' : 'CREATED'}>
-              <span style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.85)' }}>
-                {formatFull(order.created, lang)}
-              </span>
-            </MetaRow>
-            {order.paid_at && (
-              <MetaRow label={lang === 'ru' ? 'ОПЛАЧЕН' : 'PAID'}>
-                <span style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.85)' }}>
-                  {formatFull(order.paid_at, lang)}
-                </span>
-              </MetaRow>
-            )}
-            {cryptoOpt && (
-              <MetaRow label={lang === 'ru' ? 'СЕТЬ' : 'NETWORK'}>
-                <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: '#fff' }}>
-                  {cryptoOpt.name}
-                </span>
-              </MetaRow>
-            )}
-            {processedLabel && (
-              <MetaRow label={lang === 'ru' ? 'ОБРАБОТКА' : 'PROCESSED IN'}>
                 <span style={{
-                  fontFamily: MONO, fontSize: 11, fontWeight: 800,
-                  color: GREEN, letterSpacing: 0.4,
+                  fontFamily: MONO, fontSize: 9, fontWeight: 700,
+                  color: 'rgba(255,255,255,0.3)', letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
                 }}>
-                  ⚡ {processedLabel}
+                  {lang === 'ru' ? 'ИДЕНТИФИКАТОР' : 'ORDER IDENTIFIER'}
                 </span>
-              </MetaRow>
-            )}
-          </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <span style={{
+                    fontFamily: MONO, fontSize: 12, fontWeight: 800,
+                    color: GREEN, letterSpacing: '0.1em',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {order.id}
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                </div>
+              </button>
 
-          {/* Crunchy stats — only for crypto orders */}
-          {cryptoOpt && order.status !== 'failed' && order.status !== 'expired' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: 8,
-              marginBottom: 18,
-            }}>
-              <StatCell
-                label={lang === 'ru' ? 'ПОДТВ.' : 'CONFIRMS'}
-                value={`${confirmationsDone}/${confirmationsNeeded}`}
-                accent={confirmationsDone >= confirmationsNeeded ? GREEN : AMBER}
+              {/* Created */}
+              <SpecCell
+                label={lang === 'ru' ? 'СОЗДАН' : 'CREATED'}
+                value={formatDate(order.created, lang)}
+                sub={formatTimeFull(order.created)}
               />
-              <StatCell
-                label={lang === 'ru' ? 'БЛОК' : 'BLOCK'}
-                value={`#${blockHeight.toLocaleString('en-US')}`}
+
+              {/* Paid */}
+              <SpecCell
+                label={lang === 'ru' ? 'ОПЛАЧЕН' : 'CONFIRMED AT'}
+                value={order.paid_at ? formatDate(order.paid_at, lang) : '—'}
+                sub={order.paid_at ? formatTimeFull(order.paid_at) : (lang === 'ru' ? 'ожидание' : 'pending')}
+                muted={!order.paid_at}
               />
-              <StatCell
-                label={lang === 'ru' ? 'КОМИССИЯ' : 'NETWORK FEE'}
-                value={`$${networkFee}`}
+
+              {/* Processed */}
+              <SpecCell
+                label={lang === 'ru' ? 'ОБРАБОТКА' : 'PROCESSED IN'}
+                value={processedLabel}
+                accent={order.paid_at ? GREEN : undefined}
+                borderTop
               />
+
+              {/* Confirmations */}
+              {cryptoOpt ? (
+                <div style={{
+                  background: INK, padding: '14px 16px',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                }}>
+                  <span style={{
+                    fontFamily: MONO, fontSize: 9, fontWeight: 700,
+                    color: 'rgba(255,255,255,0.3)', letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                  }}>
+                    {lang === 'ru' ? 'ПОДТВЕРЖДЕНИЯ' : 'CONFIRMS'}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{
+                      fontFamily: MONO, fontSize: 13, fontWeight: 800,
+                      color: confirmationsDone >= confirmationsNeeded ? GREEN : AMBER,
+                    }}>
+                      {confirmationsDone}
+                    </span>
+                    <span style={{
+                      fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.3)',
+                    }}>
+                      / {confirmationsNeeded}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <SpecCell
+                  label={lang === 'ru' ? 'ТИП' : 'TYPE'}
+                  value={isDeposit ? (lang === 'ru' ? 'Депозит' : 'Deposit') : (lang === 'ru' ? 'Покупка' : 'Purchase')}
+                  borderTop
+                />
+              )}
+
+              {/* Network */}
+              {cryptoOpt && (
+                <SpecCell
+                  label={lang === 'ru' ? 'СЕТЬ' : 'NETWORK'}
+                  value={cryptoOpt.name}
+                  borderTop
+                />
+              )}
+
+              {/* Block */}
+              {cryptoOpt && (
+                <SpecCell
+                  label={lang === 'ru' ? 'БЛОК' : 'BLOCK'}
+                  value={`#${blockHeight.toLocaleString('en-US')}`}
+                  borderTop
+                  underline
+                />
+              )}
+
+              {/* Network fee */}
+              {cryptoOpt && (
+                <SpecCell
+                  label={lang === 'ru' ? 'КОМИССИЯ' : 'NETWORK FEE'}
+                  value={`$${networkFee.toFixed(2)}`}
+                  borderTop
+                />
+              )}
+
+              {/* TXID — full width */}
+              {order.txid && order.provider && EXPLORER[order.provider as CryptoNetwork] && (
+                <a
+                  href={EXPLORER[order.provider as CryptoNetwork](order.txid)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    gridColumn: 'span 2',
+                    background: 'rgba(57,255,99,0.04)',
+                    padding: '14px 16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 10, textDecoration: 'none', color: '#fff',
+                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                    <span style={{
+                      fontFamily: MONO, fontSize: 9, fontWeight: 700,
+                      color: GREEN, letterSpacing: '0.18em', textTransform: 'uppercase',
+                    }}>
+                      {lang === 'ru' ? 'TX · BLOCKCHAIN' : 'BLOCKCHAIN TXID'}
+                    </span>
+                    <span style={{
+                      fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.55)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {order.txid}
+                    </span>
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              )}
             </div>
-          )}
 
-
-          {/* TxID */}
-          {order.txid && order.provider && EXPLORER[order.provider as CryptoNetwork] && (
-            <motion.a
-              href={EXPLORER[order.provider as CryptoNetwork](order.txid)}
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Action button */}
+            <motion.button
+              onClick={onClose}
               whileTap={{ scale: 0.98 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: 'rgba(57,255,99,0.06)',
-                border: '1px solid rgba(57,255,99,0.22)',
-                borderRadius: 14, padding: '12px 14px',
-                textDecoration: 'none', marginBottom: 18,
+                width: '100%', padding: '18px',
+                background: GREEN, color: INK,
+                border: 'none', borderRadius: 18,
+                fontFamily: DISPLAY, fontSize: 12, fontWeight: 800,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                cursor: 'pointer',
               }}
             >
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: 'rgba(57,255,99,0.15)', color: GREEN,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: GREEN, letterSpacing: 1 }}>
-                  {lang === 'ru' ? 'TX · BLOCKCHAIN' : 'TX · BLOCKCHAIN'}
-                </div>
-                <div style={{
-                  fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.55)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2,
-                }}>
-                  {order.txid}
-                </div>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </motion.a>
-          )}
+              {lang === 'ru' ? 'Закрыть документ' : 'Close document'}
+            </motion.button>
+          </div>
 
-          <motion.button
-            onClick={onClose}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              width: '100%', padding: '14px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 12,
-              color: '#fff', fontFamily: DISPLAY, fontSize: 14, fontWeight: 700,
-              cursor: 'pointer', letterSpacing: 0.3,
-            }}
-          >
-            {t('close')}
-          </motion.button>
+          {/* Decorative footer line */}
+          <div style={{
+            height: 1,
+            margin: '0 48px 24px',
+            background: `linear-gradient(90deg, transparent, ${GREEN}55, transparent)`,
+            opacity: 0.5,
+          }} />
+
+          <style>{`
+            @keyframes specPulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.35; }
+            }
+          `}</style>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   )
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+function SpecCell({
+  label, value, sub, accent, muted, borderTop, underline,
+}: {
+  label: string
+  value: string
+  sub?: string
+  accent?: string
+  muted?: boolean
+  borderTop?: boolean
+  underline?: boolean
+}) {
   return (
     <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '10px 0',
-      borderBottom: '1px solid rgba(255,255,255,0.04)',
-    }}>
-      <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 1.2 }}>
-        {label}
-      </span>
-      {children}
-    </div>
-  )
-}
-
-function StatCell({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <div style={{
-      background: 'rgba(255,255,255,0.025)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 12,
-      padding: '10px 12px',
-      display: 'flex', flexDirection: 'column', gap: 4,
+      background: INK, padding: '14px 16px',
+      display: 'flex', flexDirection: 'column', gap: 6,
+      borderTop: borderTop ? '1px solid rgba(255,255,255,0.1)' : undefined,
       minWidth: 0,
     }}>
-      <div style={{
-        fontFamily: MONO, fontSize: 8, fontWeight: 700,
-        color: 'rgba(255,255,255,0.4)', letterSpacing: 1.2,
-      }}>{label}</div>
-      <div style={{
-        fontFamily: MONO, fontSize: 12, fontWeight: 800,
-        color: accent ?? '#fff', letterSpacing: 0.2,
+      <span style={{
+        fontFamily: MONO, fontSize: 9, fontWeight: 700,
+        color: 'rgba(255,255,255,0.3)', letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+      }}>
+        {label}
+      </span>
+      <span style={{
+        fontFamily: MONO, fontSize: 11, fontWeight: 700,
+        color: muted ? 'rgba(255,255,255,0.35)' : (accent ?? 'rgba(255,255,255,0.88)'),
+        letterSpacing: '0.04em',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>{value}</div>
+        textDecoration: underline ? 'underline' : 'none',
+        textDecorationColor: 'rgba(57,255,99,0.35)',
+        textUnderlineOffset: 3,
+      }}>
+        {value}
+      </span>
+      {sub && (
+        <span style={{
+          fontFamily: MONO, fontSize: 10, fontWeight: 500,
+          color: muted ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.4)',
+        }}>
+          {sub}
+        </span>
+      )}
     </div>
   )
 }
