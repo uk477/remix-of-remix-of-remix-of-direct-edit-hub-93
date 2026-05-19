@@ -687,7 +687,9 @@ export default function Support() {
     if (last?.sender === "user") return;
     const lastIsInteractive =
       last?.kind === "system" &&
-      (last.text === "triage_prompt" || last.text.startsWith("flow:"));
+      (last.text === "triage_prompt" ||
+        last.text.startsWith("flow:") ||
+        last.text.startsWith("post_delivery_actions:"));
     if (lastIsInteractive) return;
 
     if (messages.length === 0) {
