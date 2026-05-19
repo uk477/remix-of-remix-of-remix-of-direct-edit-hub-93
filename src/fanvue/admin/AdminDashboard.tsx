@@ -412,6 +412,7 @@ export default function AdminDashboard() {
             { label: 'Пользователи', to: '/admin/users',     accent: '57,255,99' },
             { label: 'Рассылка',     to: '/admin/broadcast', accent: '192,138,159' },
             { label: 'Реф. выводы',  to: '/admin/referrals', accent: '111,154,184' },
+            { label: 'Пополнения',   to: '/admin/deposits',  accent: '57,255,99'   },
             { label: 'Настройки',    to: '/admin/settings',  accent: '118,163,116' },
           ].map((q, i) => (
             <motion.button
