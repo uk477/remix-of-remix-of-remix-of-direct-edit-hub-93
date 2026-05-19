@@ -171,6 +171,7 @@ interface AppStore {
   setPhoto: (key: string, dataUri: string | null) => void
   toggleMaintenance: () => void
   setOrderStatus: (id: string, status: Order['status']) => void
+  setOrderDelivery: (id: string, deliveryData: string) => void
   deleteOrder: (id: string) => void
   upsertProduct: (p: Product) => void
   deleteProduct: (id: number) => void
