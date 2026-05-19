@@ -39,6 +39,7 @@ export default function ProductDetail() {
   const updateBalance = useStore((s) => s.updateBalance)
   const addNotification = useStore((s) => s.addNotification)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
+  const tryAutoFulfill = useStore((s) => s.tryAutoFulfill)
 
   const product = products.find((p) => p.id === Number(id))
   const [qty, setQty] = useState(1)
@@ -95,11 +96,13 @@ export default function ProductDetail() {
   const handleBuyWithBalance = () => {
     haptic('success')
     const buyCount = orders.filter((o) => o.kind === 'buy').length + 1
+    const orderId = generateOrderId('buy')
     addOrder({
-      id: generateOrderId('buy'),
+      id: orderId,
       orderNum: buyCount,
       kind: 'buy',
       product_title: title,
+      product_id: product.id,
       amount: total,
       status: 'paid',
       quantity: qty,
@@ -107,6 +110,8 @@ export default function ProductDetail() {
       paid_at: new Date().toISOString(),
     })
     updateBalance(-total)
+    // Автовыдача: сразу пробуем закрыть заказ данными из пула
+    if (product.delivery === 'auto') tryAutoFulfill(orderId)
     toast.show(lang === 'ru' ? 'Заказ оплачен.' : 'Order paid.', 'success')
     tgNotify(
       `🛍 Новый заказ (баланс)\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n📦 ${title} × ${qty}\n💵 $${total.toFixed(2)}`,
@@ -133,6 +138,7 @@ export default function ProductDetail() {
       orderNum: buyCount,
       kind: 'buy',
       product_title: title,
+      product_id: product.id,
       amount: uniqueAmount,
       status: 'pending',
       quantity: qty,
@@ -576,6 +582,8 @@ export default function ProductDetail() {
                     onSuccess={() => {
                       if (pendingOrder && selectedNet) {
                         setOrderStatus(pendingOrder.id, 'paid')
+                        // Автовыдача после оплаты криптой
+                        if (product.delivery === 'auto') tryAutoFulfill(pendingOrder.id)
                         addNotification({
                           orderId: pendingOrder.id,
                           kind: 'buy',
