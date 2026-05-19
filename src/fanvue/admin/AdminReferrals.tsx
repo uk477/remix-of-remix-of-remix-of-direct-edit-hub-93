@@ -165,7 +165,7 @@ export default function AdminReferrals() {
 
         {/* KPI */}
         <div className="adm2-kpi-grid mb-4">
-          <div className="adm2-kpi" style={{ ['--kpi-accent' as never]: '232,201,140' }}>
+          <div className="adm2-kpi" style={{ ['--kpi-accent' as never]: '57,255,99' }}>
             <div className="adm2-kpi-top">
               <div className="adm2-kpi-ic">⏳</div>
             </div>
@@ -188,7 +188,7 @@ export default function AdminReferrals() {
               <div className="t-xs t-muted">
                 {lang === 'ru' ? 'Реф. баланс пользователя' : 'User ref balance'}
               </div>
-              <div className="t-md fw-black" style={{ color: '#e8c98c' }}>
+              <div className="t-md fw-black" style={{ color: '#39ff63' }}>
                 ${user.ref_balance.toFixed(2)}
               </div>
             </div>

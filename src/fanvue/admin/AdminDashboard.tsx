@@ -195,7 +195,7 @@ export default function AdminDashboard() {
 
         {/* KPI grid */}
         <div className="adm2-kpi-grid mb-4">
-          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="232,201,140" delta={revDelta}    spark={revSpark} delay={0}    />
+          <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99" delta={revDelta}    spark={revSpark} delay={0}    />
           <KpiCard Icon={Ic.box}     value={String(cur.length)}      label={t('admin_total_orders')} accent="151,136,196" delta={ordersDelta} spark={ordSpark} delay={0.05} />
           <KpiCard Icon={Ic.users}   value={String(uniqueUsers)}     label={t('admin_total_users')}  accent="111,154,184" delay={0.10} />
           <KpiCard Icon={Ic.pending} value={String(pendingCount)}    label={t('admin_pending')}      accent="224,115,74"  delay={0.15} />
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
           {[
             { label: 'Заказы',       to: '/admin/orders',    accent: '151,136,196' },
             { label: 'Товары',       to: '/admin/products',  accent: '224,115,74'  },
-            { label: 'Пользователи', to: '/admin/users',     accent: '232,201,140' },
+            { label: 'Пользователи', to: '/admin/users',     accent: '57,255,99' },
             { label: 'Рассылка',     to: '/admin/broadcast', accent: '192,138,159' },
             { label: 'Реф. выводы',  to: '/admin/referrals', accent: '111,154,184' },
             { label: 'Настройки',    to: '/admin/settings',  accent: '118,163,116' },

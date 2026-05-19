@@ -20,7 +20,7 @@ const I = {
 }
 
 const TABS = [
-  { path: '/admin',          Icon: I.dash,     key: 'admin_dashboard' as const, accent: '232,201,140' },
+  { path: '/admin',          Icon: I.dash,     key: 'admin_dashboard' as const, accent: '57,255,99' },
   { path: '/admin/orders',   Icon: I.orders,   key: 'admin_orders'    as const, accent: '151,136,196' },
   { path: '/admin/products', Icon: I.products, key: 'admin_products'  as const, accent: '224,115,74'  },
   { path: '/admin/support',  Icon: I.support,  key: 'admin_support'   as const, accent: '118,163,116' },
