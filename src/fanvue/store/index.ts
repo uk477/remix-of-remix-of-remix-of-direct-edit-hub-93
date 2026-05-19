@@ -794,7 +794,7 @@ export const useStore = create<AppStore>()(
     }),
     {
       name: 'fanvue-app-v7',
-      version: 8,
+      version: 9,
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
@@ -822,6 +822,9 @@ export const useStore = create<AppStore>()(
             securityInstructionUrl: CONFIG.securityInstructionUrl,
           }
           s.siteLinks = { ...defaults, ...s.siteLinks }
+          if (s.siteLinks.securityInstructionUrl === CONFIG.securityInstructionUrl) {
+            s.siteLinks.securityInstructionUrl = ''
+          }
         }
         if (s.orders) {
           s.orders = s.orders.map((o) =>

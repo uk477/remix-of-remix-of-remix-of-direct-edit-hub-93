@@ -71,6 +71,15 @@ function parseCreds(text: string): ParsedCreds {
   return { fanvue, mail, instructions, extras }
 }
 
+function normalizeExternalUrl(raw?: string) {
+  const value = raw?.trim()
+  if (!value) return ''
+  const match = value.match(/https?:\/\/[^\s]+|(?:www\.)?[\w-]+(?:\.[\w-]+)+(?:\/[^\s]*)?/i)
+  const url = match?.[0]?.replace(/[),.;]+$/, '') ?? ''
+  if (!url) return ''
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`
+}
+
 // ============================================================
 // Shared terminal shell — scanning gauge, header, footer CTA
 // ============================================================
@@ -372,7 +381,8 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
   const navigate = useNavigate()
   const parsed = useMemo(() => parseCreds(data), [data])
   const tgUrl = `https://t.me/${CONFIG.supportUsername}`
-  const securityUrl = useStore((s) => s.siteLinks?.securityInstructionUrl) || CONFIG.securityInstructionUrl
+  const savedSecurityUrl = useStore((s) => s.siteLinks?.securityInstructionUrl)
+  const securityUrl = normalizeExternalUrl(parsed.instructions[0]) || normalizeExternalUrl(savedSecurityUrl) || normalizeExternalUrl(CONFIG.securityInstructionUrl)
 
   const hasAnyParsed =
     !!parsed.fanvue.login || !!parsed.fanvue.password ||
