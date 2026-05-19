@@ -290,10 +290,18 @@ export default function AdminDashboard() {
         {/* export sales */}
         <div style={{ position: 'relative', marginTop: 12 }}>
           <button
-            className="adm2-iconbtn"
             onClick={() => setExportOpen((v) => !v)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#39ff63' }}
             disabled={cur.length === 0}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 14px', borderRadius: 12,
+              background: 'rgba(57,255,99,0.10)',
+              border: '1px solid rgba(57,255,99,0.28)',
+              color: '#39ff63', fontWeight: 700, fontSize: 13,
+              cursor: cur.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: cur.length === 0 ? 0.45 : 1,
+              whiteSpace: 'nowrap',
+            }}
           >
             <Ic.dl />
             <span>Скачать продажи · {periodLabel[period]} ({cur.length})</span>
