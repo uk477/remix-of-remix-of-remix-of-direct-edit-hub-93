@@ -63,9 +63,9 @@ function parseCreds(text: string): ParsedCreds {
     const lk = k.toLowerCase()
     if (/инструкц|instruct|примеч|^note|safety|безопасн/.test(lk)) { instructions.push(v); continue }
     if (/(почт|mail|email).*парол|парол.*(почт|mail|email)|mail[ _-]?pass|email[ _-]?pass/.test(lk)) { mail.password = v; continue }
-    if (/^(почт|email|e[-_ ]?mail|mail)\b/.test(lk)) { mail.email = v; continue }
-    if (/^(логин|login|username|user)\b/.test(lk)) { fanvue.login = v; continue }
-    if (/^(пароль|password|pass)\b/.test(lk)) { fanvue.password = v; continue }
+    if (/^(почт[аы]?|email|e[-_ ]?mail|mail)(?:\s|$)/.test(lk)) { mail.email = v; continue }
+    if (/^(логин|login|username|user)(?:\s|$)/.test(lk)) { fanvue.login = v; continue }
+    if (/^(пароль|password|pass)(?:\s|$)/.test(lk)) { fanvue.password = v; continue }
     extras.push({ key: k, value: v })
   }
   return { fanvue, mail, instructions, extras }
