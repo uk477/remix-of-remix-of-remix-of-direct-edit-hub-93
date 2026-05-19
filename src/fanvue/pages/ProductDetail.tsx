@@ -589,16 +589,60 @@ export default function ProductDetail() {
               {payStep === 'success' && (() => {
                 const lastOrder = orders[0]
                 const delivered = lastOrder?.kind === 'buy' && lastOrder?.deliveryData
+                const GREEN = '#39ff63'
+                const MONO = "'JetBrains Mono', ui-monospace, monospace"
+                const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
                 return (
-                  <div className="fv-success" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8, fontFamily: DISPLAY }}>
                     {!delivered && <Confetti trigger={true} />}
-                    <div className="fv-success-mark">✓</div>
-                    <span className="fv-section-kicker">{lang === 'ru' ? 'Готово' : 'Done'}</span>
-                    <h2 style={{ margin: 0 }}>
-                      {delivered
-                        ? (lang === 'ru' ? 'Заказ выдан' : 'Order delivered')
-                        : (lang === 'ru' ? 'Заказ создан' : 'Order created')}
-                    </h2>
+
+                    {/* kicker */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      transition={{ delay: 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ marginBottom: 18 }}
+                    >
+                      <motion.div
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        style={{ width: 48, height: 2, background: GREEN, transformOrigin: 'left', boxShadow: `0 0 12px ${GREEN}` }}
+                      />
+                      <div style={{
+                        marginTop: 10, color: GREEN, fontFamily: MONO,
+                        fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700,
+                      }}>
+                        {delivered
+                          ? (lang === 'ru' ? 'Выдача / Подтверждено' : 'Delivery / Verified')
+                          : (lang === 'ru' ? 'Подтверждение / Принято' : 'Confirmation / Received')}
+                      </div>
+                    </motion.div>
+
+                    {/* heading */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 28, filter: 'blur(10px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      transition={{ delay: 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ marginBottom: 32 }}
+                    >
+                      <div style={{
+                        color: 'rgba(255,255,255,0.4)', fontFamily: DISPLAY,
+                        fontSize: 18, fontWeight: 300, letterSpacing: '-0.02em', lineHeight: 1,
+                        marginBottom: 6,
+                      }}>
+                        {lang === 'ru' ? 'Готово' : 'Done'}
+                      </div>
+                      <h1 style={{
+                        margin: 0, color: '#fff',
+                        fontFamily: DISPLAY, fontWeight: 700,
+                        fontSize: 56, lineHeight: 0.9, letterSpacing: '-0.04em',
+                      }}>
+                        {delivered
+                          ? (lang === 'ru' ? <>Заказ<br/>выдан</> : <>Order<br/>delivered</>)
+                          : (lang === 'ru' ? <>Заказ<br/>создан</> : <>Order<br/>created</>)}
+                      </h1>
+                    </motion.div>
 
                     {delivered && lastOrder?.deliveryData ? (
                       <DeliveryBlock data={lastOrder.deliveryData} />
@@ -606,9 +650,28 @@ export default function ProductDetail() {
                       <ManualDeliveryBlock orderId={lastOrder?.id ?? pendingOrder?.id ?? '—'} />
                     )}
 
-                    <button className="fv-primary fv-full" onClick={() => { setShowPayment(false); navigate('/orders') }}>
-                      {lang === 'ru' ? 'Открыть заказы' : 'Open orders'}
-                    </button>
+                    <motion.button
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => { setShowPayment(false); navigate('/orders') }}
+                      style={{
+                        marginTop: 32,
+                        width: '100%', height: 64,
+                        background: GREEN, color: '#000',
+                        border: 'none', borderRadius: 18, cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                        fontFamily: DISPLAY, fontWeight: 700, fontSize: 16,
+                        letterSpacing: '-0.01em', textTransform: 'uppercase',
+                        boxShadow: `0 10px 40px -10px ${GREEN}66`,
+                      }}
+                    >
+                      <span>{lang === 'ru' ? 'Открыть заказы' : 'Open orders'}</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                      </svg>
+                    </motion.button>
                   </div>
                 )
               })()}
