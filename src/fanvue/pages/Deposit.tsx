@@ -482,6 +482,17 @@ export function PayPanel({
     return () => clearInterval(iv)
   }, [])
 
+  // Auto-expire when the 30-minute window closes
+  const expiredRef = useRef(false)
+  useEffect(() => {
+    if (timer === 0 && !expiredRef.current && status === 'pending') {
+      expiredRef.current = true
+      useStore.getState().setOrderStatus(orderId, 'expired')
+      setStatus('expired')
+      haptic('error')
+    }
+  }, [timer, status, orderId, haptic])
+
   // step reflects real status: 0 = waiting, 1 = detected/confirming, 2 = credited
 
   useEffect(() => {
