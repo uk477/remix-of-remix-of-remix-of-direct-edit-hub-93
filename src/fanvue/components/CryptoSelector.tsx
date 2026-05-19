@@ -42,6 +42,13 @@ const COIN_GROUPS: CoinGroup[] = [
     networks: [{ id: 'eth', label: 'Ethereum', tag: 'ERC20 сеть', tagEn: 'ERC20 network' }],
   },
   {
+    coin: 'ton',
+    label: 'Toncoin',
+    symbol: 'TON',
+    color: '#0098EA',
+    networks: [{ id: 'ton', label: 'TON', tag: 'The Open Network · быстро и дёшево', tagEn: 'The Open Network · fast & cheap' }],
+  },
+  {
     coin: 'sol',
     label: 'Solana',
     symbol: 'SOL',
@@ -60,7 +67,7 @@ const COIN_GROUPS: CoinGroup[] = [
 const NET_COLORS: Partial<Record<CryptoNetwork, string>> = {
   trc20: '#E8365D', erc20: '#627EEA', bep20: '#F0B90B',
   usdc_eth: '#627EEA', usdc_sol: '#9945FF',
-  eth: '#627EEA', sol: '#9945FF', btc: '#F7931A',
+  eth: '#627EEA', sol: '#9945FF', btc: '#F7931A', ton: '#0098EA',
 }
 
 export default function CryptoSelector({
