@@ -293,6 +293,14 @@ export default function OrderDetailModal({ order, onClose }: Props) {
               ))}
             </div>
 
+            {/* Delivery payload — only for buy orders */}
+            {!isDeposit && order.deliveryData && (
+              <DeliveryBlock data={order.deliveryData} />
+            )}
+            {!isDeposit && !order.deliveryData && !isFailed && (
+              <ManualDeliveryBlock orderId={order.id} />
+            )}
+
             {/* Specimen data grid */}
             <div style={{
               display: 'grid',
