@@ -68,6 +68,8 @@ export interface Order {
   id: string
   kind: OrderKind
   product_title?: string
+  /** ID товара — нужен для автовыдачи (взятия следующего пула). */
+  product_id?: number
   amount: number
   status: OrderStatus
   provider?: string
