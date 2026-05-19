@@ -1036,6 +1036,10 @@ export default function Support() {
                   onPickCategory={handlePickCategory}
                   onFlowAnswer={handleFlowAnswer}
                   onFlowBack={handleFlowBack}
+                  onResolveDelivery={(orderId, choice) => {
+                    haptic("light");
+                    resolvePostDelivery(orderId, choice);
+                  }}
                 />
               );
             }
