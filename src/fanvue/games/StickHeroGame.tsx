@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
-import heroSpriteUrl from '@/assets/fanvue-ninja.png'
+import heroSpriteUrl from '@/assets/fanvue-glyph.png'
 
 // preload hero sprite once
 const heroImg: HTMLImageElement | null = typeof Image !== 'undefined' ? new Image() : null
@@ -785,36 +785,6 @@ function drawHero(
     ctx.translate(-cx, -(baseY - drawH * 0.45))
     ctx.drawImage(heroImg, drawX, drawY, drawW, drawH)
     ctx.restore()
-
-    // Blink — briefly cover the highlight "eye" with body color
-    // Eye highlight sits roughly at (0.69, 0.50) of the sprite
-    const blinkCycle = 3.2 // seconds between blinks
-    const blinkDur = 0.13
-    const t = (capWobble % blinkCycle)
-    if (t < blinkDur) {
-      const k = Math.sin((t / blinkDur) * Math.PI) // 0..1..0
-      const eyeX = drawX + drawW * 0.69
-      const eyeY = drawY + drawH * 0.50
-      const eyeRX = drawW * 0.025
-      const eyeRY = drawW * 0.018 * Math.max(0.15, 1 - k)
-      // Closed-lid color matches the body shading
-      ctx.save()
-      ctx.translate(cx, baseY - drawH * 0.45)
-      ctx.rotate(stepTilt)
-      ctx.translate(-cx, -(baseY - drawH * 0.45))
-      ctx.fillStyle = '#cfd3d6'
-      ctx.beginPath()
-      ctx.ellipse(eyeX, eyeY, eyeRX, eyeRY + 0.6, 0, 0, Math.PI * 2)
-      ctx.fill()
-      // tiny lid line
-      ctx.strokeStyle = 'rgba(60,70,80,0.45)'
-      ctx.lineWidth = 0.8
-      ctx.beginPath()
-      ctx.moveTo(eyeX - eyeRX, eyeY)
-      ctx.lineTo(eyeX + eyeRX, eyeY)
-      ctx.stroke()
-      ctx.restore()
-    }
   } else {
     // fallback capsule
     const bodyW = 38, bodyH = 52
