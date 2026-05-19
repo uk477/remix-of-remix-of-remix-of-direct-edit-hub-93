@@ -714,11 +714,11 @@ export const useStore = create<AppStore>()(
         const pool = product.autoItems ?? []
         if (pool.length === 0) return false
         const [nextItem, ...rest] = pool
-        // 1) убираем выданную запись из пула + синхронизируем stock
+        // 1) убираем выданную запись из пула, но публичный stock не трогаем
         set((s) => ({
           products: s.products.map((p) =>
             p.id === product.id
-              ? { ...p, autoItems: rest, stock: rest.length }
+              ? { ...p, autoItems: rest }
               : p,
           ),
         }))
@@ -794,9 +794,21 @@ export const useStore = create<AppStore>()(
     }),
     {
       name: 'fanvue-app-v7',
+      version: 8,
       migrate: (state: unknown) => {
         // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
+        if (Array.isArray(s.products)) {
+          const defaultStocks = new Map(MOCK_PRODUCTS.map((p) => [p.id, p.stock]))
+          s.products = s.products.map((p) => {
+            if (p.delivery !== 'auto') return p
+            const defaultStock = defaultStocks.get(p.id)
+            const poolCount = p.autoItems?.length ?? 0
+            return defaultStock && p.stock === poolCount && defaultStock > p.stock
+              ? { ...p, stock: defaultStock }
+              : p
+          })
+        }
         // ensure newly added siteLinks fields fall back to defaults
         if (s.siteLinks) {
           const defaults = {

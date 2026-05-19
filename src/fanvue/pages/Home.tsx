@@ -312,8 +312,9 @@ export default function Home() {
                 ? (lang === 'ru' ? 'Проводим верификацию на твоём аккаунте. Деньги назад, если откажут.' : 'We pass verification on your account. Refund if rejected.')
                 : rawDesc)
           const image = photos[`product_${p.id}`] || fallback[i] || fallback[0]
-          const isOut = p.stock === 0
-          const isLow = !isOut && p.stock <= 5
+          const isAuto = p.delivery === 'auto'
+          const isOut = !isAuto && p.stock === 0
+          const isLow = !isAuto && !isOut && p.stock <= 5
           return (
             <LotCard
               key={p.id}

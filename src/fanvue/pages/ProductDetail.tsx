@@ -72,7 +72,8 @@ export default function ProductDetail() {
   const title = lang === 'ru' ? product.title : product.title_en
   const desc = lang === 'ru' ? product.description : product.desc_en
   const cat = categories.find((c) => c.id === product.cat_id)
-  const isOut = product.stock === 0
+  const isAuto = product.delivery === 'auto'
+  const isOut = !isAuto && product.stock === 0
   const activeTier = [...TIERS].reverse().find((tier) => qty >= tier.min)
   const discountPct = activeTier?.pct ?? 0
   const total = product.price * qty * (1 - discountPct / 100)
@@ -86,7 +87,8 @@ export default function ProductDetail() {
 
   const originalUnit = product.price
   const originalTotal = originalUnit * qty
-  const lowStock = product.stock > 0 && product.stock <= 5
+  const lowStock = !isAuto && product.stock > 0 && product.stock <= 5
+  const maxQty = Math.max(1, product.stock)
   const categoryName = cat ? (lang === 'ru' ? cat.name : cat.name_en) : 'Fanvue'
   const deliveryLabel = product.delivery === 'auto'
     ? (lang === 'ru' ? 'Мгновенно' : 'Instant')
@@ -317,8 +319,8 @@ export default function ProductDetail() {
               <span>{lang === 'ru' ? 'ШТ.' : 'PCS'}</span>
             </div>
             <button
-              onClick={() => { haptic('light'); setQty((q) => Math.min(product.stock, q + 1)) }}
-              disabled={qty >= product.stock}
+              onClick={() => { haptic('light'); setQty((q) => Math.min(maxQty, q + 1)) }}
+              disabled={qty >= maxQty}
               aria-label="Increase"
               className="pdb-step pdb-step--plus"
             >
@@ -335,7 +337,7 @@ export default function ProductDetail() {
                 <motion.button
                   key={tier.min}
                   className={`pdb-tier${active ? ' is-on' : ''}`}
-                  onClick={() => { haptic('light'); setQty(Math.min(product.stock, tier.min)) }}
+                  onClick={() => { haptic('light'); setQty(Math.min(maxQty, tier.min)) }}
                   whileTap={{ scale: 0.96 }}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
