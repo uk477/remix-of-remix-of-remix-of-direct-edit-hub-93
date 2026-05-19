@@ -100,6 +100,16 @@ export interface SiteContent {
   referral_rules_en: string
 }
 
+export interface SiteLinks {
+  supportUrl:   string  // ссылка/юзернейм для связи с поддержкой
+  adminUrl:     string  // ссылка/юзернейм администратора
+  chatUrl:      string  // общий чат
+  communityUrl: string  // комьюнити
+  channelUrl:   string  // новостной канал
+  reviewsUrl:   string  // отзывы
+  botUrl:       string  // ссылка на бота
+}
+
 interface AppStore {
   lang: Lang
   langUserSet: boolean
@@ -123,6 +133,7 @@ interface AppStore {
   qrOverrides: Partial<Record<CryptoNetwork, string>>
   photos: Record<string, string>
   siteContent: SiteContent
+  siteLinks: SiteLinks
 
   notifications: PaymentNotification[]
   refReward: RefReward
@@ -169,6 +180,7 @@ interface AppStore {
 
   // Admin actions
   setCryptoAddress: (network: CryptoNetwork, address: string) => void
+  setSiteLink: (key: keyof SiteLinks, value: string) => void
   setQrOverride: (network: CryptoNetwork, dataUri: string | null) => void
   setPhoto: (key: string, dataUri: string | null) => void
   toggleMaintenance: () => void
@@ -226,6 +238,15 @@ export const useStore = create<AppStore>()(
         rules_ru: '', rules_en: '',
         contacts_ru: '', contacts_en: '',
         referral_rules_ru: '', referral_rules_en: '',
+      },
+      siteLinks: {
+        supportUrl:   `https://t.me/${CONFIG.supportUsername}`,
+        adminUrl:     `https://t.me/${CONFIG.adminUsername}`,
+        chatUrl:      `https://t.me/${CONFIG.communityUsername}`,
+        communityUrl: `https://t.me/${CONFIG.communityUsername}`,
+        channelUrl:   `https://t.me/${CONFIG.channelUsername}`,
+        reviewsUrl:   '',
+        botUrl:       `https://t.me/${CONFIG.botUsername}`,
       },
 
       setLang: (lang) => set({ lang, langUserSet: true }),
@@ -560,6 +581,9 @@ export const useStore = create<AppStore>()(
       // ─── ADMIN ─────────────────────────────────────────
       setCryptoAddress: (network, address) =>
         set((s) => ({ cryptoAddresses: { ...s.cryptoAddresses, [network]: address } })),
+
+      setSiteLink: (key, value) =>
+        set((s) => ({ siteLinks: { ...s.siteLinks, [key]: value } })),
 
       setQrOverride: (network, dataUri) =>
         set((s) => {
