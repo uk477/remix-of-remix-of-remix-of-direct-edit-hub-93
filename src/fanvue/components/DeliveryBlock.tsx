@@ -276,7 +276,7 @@ function MailcomMark({ size = 26 }: { size?: number }) {
 }
 
 function BrandCredCard({
-  brand, title, accent, rows, onCopy, delay = 0,
+  brand, title, accent, rows, onCopy, delay = 0, href,
 }: {
   brand: React.ReactNode
   title: string
@@ -284,7 +284,12 @@ function BrandCredCard({
   rows: { key: string; value: string }[]
   onCopy: (text: string, label: string) => void
   delay?: number
+  href?: string
 }) {
+  const HeaderTag: any = href ? 'a' : 'div'
+  const headerProps = href
+    ? { href, target: '_blank', rel: 'noopener noreferrer' }
+    : {}
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -302,18 +307,27 @@ function BrandCredCard({
         background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
         opacity: 0.7,
       }} />
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '14px 14px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: `linear-gradient(180deg, ${accent}10, transparent)`,
-      }}>
+      <HeaderTag
+        {...headerProps}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '14px 14px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: `linear-gradient(180deg, ${accent}10, transparent)`,
+          textDecoration: 'none', color: 'inherit',
+          cursor: href ? 'pointer' : 'default',
+        }}
+      >
         {brand}
         <div style={{
+          flex: 1,
           fontFamily: DISPLAY, fontSize: 15, fontWeight: 800, color: '#fff',
           letterSpacing: '-0.015em', lineHeight: 1.15,
         }}>{title}</div>
-      </div>
+        {href && (
+          <ArrowUpRight size={16} color="rgba(255,255,255,0.5)" />
+        )}
+      </HeaderTag>
       <div>
         {rows.map((row, ri) => (
           <button
