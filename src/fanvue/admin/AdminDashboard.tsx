@@ -287,6 +287,59 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
 
+        {/* export sales */}
+        <div style={{ position: 'relative', marginTop: 12 }}>
+          <button
+            className="adm2-iconbtn"
+            onClick={() => setExportOpen((v) => !v)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#39ff63' }}
+            disabled={cur.length === 0}
+          >
+            <Ic.dl />
+            <span>Скачать продажи · {periodLabel[period]} ({cur.length})</span>
+          </button>
+          <AnimatePresence>
+            {exportOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 20,
+                  background: 'rgba(20,22,26,0.98)',
+                  border: '1px solid rgba(57,255,99,0.25)',
+                  borderRadius: 12, padding: 6, minWidth: 220,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+                }}
+              >
+                <button
+                  className="adm2-att-row"
+                  style={{ width: '100%', textAlign: 'left' }}
+                  onClick={handleExportCSV}
+                >
+                  <div className="adm2-att-dot" style={{ background: '#39ff63' }} />
+                  <div className="adm2-att-body">
+                    <div className="t-sm fw-bold">Google Таблицы (CSV)</div>
+                    <div className="t-xs t-muted">Откроется в Google Sheets / Excel</div>
+                  </div>
+                </button>
+                <button
+                  className="adm2-att-row"
+                  style={{ width: '100%', textAlign: 'left', marginTop: 4 }}
+                  onClick={handleExportTXT}
+                >
+                  <div className="adm2-att-dot" style={{ background: '#97 88c4'.replace(' ', '') }} />
+                  <div className="adm2-att-body">
+                    <div className="t-sm fw-bold">Текстовый файл (.txt)</div>
+                    <div className="t-xs t-muted">Простой читаемый отчёт</div>
+                  </div>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* KPI grid */}
         <div className="adm2-kpi-grid mb-4">
           <KpiCard Icon={Ic.rev}     value={`$${sumCur.toFixed(0)}`} label={t('admin_revenue')}      accent="57,255,99"   delta={period === 'all' ? undefined : revDelta}    spark={revSpark} delay={0}    />
