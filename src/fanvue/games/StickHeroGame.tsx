@@ -19,6 +19,8 @@ const MAX_PW = 110
 const PERFECT_R = 8
 const EGG_SCORE = 20
 
+type HeroMode = 'idle' | 'walk' | 'stumble' | 'scared' | 'dizzy'
+
 type Phase =
   | 'name' | 'waiting' | 'growing' | 'falling' | 'walking'
   | 'camera' | 'falling_off' | 'gameover'
@@ -848,6 +850,7 @@ function drawHero(
   ctx: CanvasRenderingContext2D,
   x: number, baseY: number, rot: number,
   walkPhase: number, capWobble: number, walking: boolean,
+  mode: HeroMode = 'idle',
 ) {
   const W = HERO_W, H = HERO_H
   const cx = x + W / 2
@@ -918,28 +921,33 @@ function drawHero(
   ctx.ellipse(bodyCx, bodyCy, bodyW/2, bodyH/2, 0, 0, Math.PI * 2)
   ctx.stroke()
 
-  // ─── Arms (swinging opposite to legs) ───
-  const armSwing = walking ? Math.sin(walkPhase) * 8 : Math.sin(capWobble * 1.6) * 1.2
+  // ─── Arms (swinging opposite to legs; flailing when scared/stumble) ───
+  const flail = mode === 'scared' ? Math.sin(capWobble * 38) * 110
+              : mode === 'stumble' ? Math.sin(capWobble * 26) * 60
+              : 0
+  const armSwingBase = walking ? Math.sin(walkPhase) * 8 : Math.sin(capWobble * 1.6) * 1.2
+  const armL = -armSwingBase - flail
+  const armR =  armSwingBase + flail
   const armW = 4
+  const armLen = mode === 'scared' || mode === 'stumble' ? 14 : 13
   const armY = bodyCy - 2
+  // left arm
   ctx.fillStyle = '#1ec74a'
-  // left arm (opposite of front leg)
   ctx.save()
   ctx.translate(bodyCx - bodyW/2 + 1, armY)
-  ctx.rotate((-armSwing * Math.PI) / 180)
-  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
-  // hand
+  ctx.rotate((armL * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, armLen, 2); ctx.fill()
   ctx.fillStyle = '#7bff9a'
-  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(0, armLen + 1, 2.6, 0, Math.PI * 2); ctx.fill()
   ctx.restore()
   // right arm
   ctx.fillStyle = '#1ec74a'
   ctx.save()
   ctx.translate(bodyCx + bodyW/2 - 1, armY)
-  ctx.rotate((armSwing * Math.PI) / 180)
-  roundRect(ctx, -armW/2, 0, armW, 13, 2); ctx.fill()
+  ctx.rotate((armR * Math.PI) / 180)
+  roundRect(ctx, -armW/2, 0, armW, armLen, 2); ctx.fill()
   ctx.fillStyle = '#7bff9a'
-  ctx.beginPath(); ctx.arc(0, 14, 2.6, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(0, armLen + 1, 2.6, 0, Math.PI * 2); ctx.fill()
   ctx.restore()
 
   // ─── Head (same brand green sphere on top of body) ───
@@ -958,14 +966,13 @@ function drawHero(
   ctx.lineWidth = 1.2
   ctx.beginPath(); ctx.arc(0, 0, headR, 0, Math.PI * 2); ctx.stroke()
 
-  // ─── Eyes with blinking ───
-  // blink cycle: blink ~every 2.6s, lasts 0.12s
+  // ─── Eyes with blinking / scared wide eyes ───
   const blinkCycle = (capWobble % 2.6)
-  const blinking = blinkCycle < 0.12
+  const blinking = blinkCycle < 0.12 && mode !== 'scared' && mode !== 'stumble'
+  const wide = mode === 'scared' || mode === 'stumble'
   const eyeOffX = headR * 0.32
   const eyeY = -headR * 0.05
-  const eyeR = headR * 0.18
-  // eye whites
+  const eyeR = headR * (wide ? 0.28 : 0.18)
   ctx.fillStyle = '#ffffff'
   if (blinking) {
     // closed eyes — short lines
@@ -979,24 +986,44 @@ function drawHero(
   } else {
     ctx.beginPath(); ctx.arc(-eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
     ctx.beginPath(); ctx.arc( eyeOffX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill()
-    // pupils (look slightly toward direction of motion)
-    const pupilShift = walking ? Math.sin(walkPhase * 0.5) * 0.8 : Math.sin(capWobble * 0.7) * 0.4
+    // pupils — dart around when scared, drift when dizzy
+    let pupilShift = walking ? Math.sin(walkPhase * 0.5) * 0.8 : Math.sin(capWobble * 0.7) * 0.4
+    let pupilDy = 0.4
+    let pupilR = eyeR * 0.55
+    if (wide) { pupilShift = Math.sin(capWobble * 40) * 1.6; pupilR = eyeR * 0.32; pupilDy = -1.2 }
+    if (mode === 'dizzy') { pupilShift = Math.sin(capWobble * 6) * 2; pupilDy = Math.cos(capWobble * 6) * 1.2 }
     ctx.fillStyle = '#062612'
-    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
-    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift, eyeY + 0.4, eyeR * 0.55, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift, eyeY + pupilDy, pupilR, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift, eyeY + pupilDy, pupilR, 0, Math.PI * 2); ctx.fill()
     // eye shine
     ctx.fillStyle = '#ffffff'
-    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
-    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift + 1, eyeY - 1, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(-eyeOffX + pupilShift + 1, eyeY - 1 + pupilDy*0.4, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc( eyeOffX + pupilShift + 1, eyeY - 1 + pupilDy*0.4, eyeR * 0.18, 0, Math.PI * 2); ctx.fill()
   }
 
-  // ─── Smile ───
+  // ─── Mouth — smile / O of horror / dazed line ───
   ctx.strokeStyle = '#062612'
   ctx.lineWidth = 1.5
   ctx.lineCap = 'round'
-  ctx.beginPath()
-  ctx.arc(0, headR * 0.18, headR * 0.32, 0.15 * Math.PI, 0.85 * Math.PI)
-  ctx.stroke()
+  if (mode === 'scared' || mode === 'stumble') {
+    // open screaming "O"
+    ctx.fillStyle = '#1a0a08'
+    ctx.beginPath()
+    ctx.ellipse(0, headR * 0.32, headR * 0.16, headR * 0.22, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+  } else if (mode === 'dizzy') {
+    // wavy mouth
+    ctx.beginPath()
+    ctx.moveTo(-headR*0.28, headR*0.28)
+    ctx.quadraticCurveTo(-headR*0.14, headR*0.36, 0, headR*0.28)
+    ctx.quadraticCurveTo( headR*0.14, headR*0.20, headR*0.28, headR*0.28)
+    ctx.stroke()
+  } else {
+    ctx.beginPath()
+    ctx.arc(0, headR * 0.18, headR * 0.32, 0.15 * Math.PI, 0.85 * Math.PI)
+    ctx.stroke()
+  }
 
   // ─── Cheek blush ───
   ctx.fillStyle = 'rgba(255,120,140,0.35)'
@@ -1004,7 +1031,9 @@ function drawHero(
   ctx.beginPath(); ctx.ellipse( headR*0.55, headR*0.18, headR*0.13, headR*0.08, 0, 0, Math.PI * 2); ctx.fill()
 
   // ─── Antenna / leaf (brand touch) wobbles ───
-  const leafSway = Math.sin(capWobble * 2.2) * 0.2
+  const leafSway = (mode === 'scared' || mode === 'stumble')
+    ? Math.sin(capWobble * 24) * 0.8
+    : Math.sin(capWobble * 2.2) * 0.2
   ctx.save()
   ctx.translate(0, -headR)
   ctx.rotate(leafSway)
