@@ -8,7 +8,7 @@ import notifyRouter from "./routes/notify.js";
 import { startPoller } from "./blockchain/poller.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.resolve(__dirname, "..", "dist");
+const DIST = path.resolve(__dirname, "..", "..", "dist");
 
 const app = express();
 
