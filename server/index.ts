@@ -25,9 +25,20 @@ app.get("/api/health", (_req, res) => {
 });
 
 // ── Serve static SPA from dist/ ─────────────────────────────────────
-app.use(express.static(DIST, { maxAge: "1y", immutable: true }));
+app.use(
+  express.static(DIST, {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
+  }),
+);
 
 app.get("/{*splat}", (_req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.sendFile(path.join(DIST, "index.html"));
 });
 
