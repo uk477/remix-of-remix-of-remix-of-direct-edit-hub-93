@@ -51,6 +51,24 @@ export function useTelegram() {
       tg?.expand?.()
       tg?.setHeaderColor?.('#050510')
       tg?.setBackgroundColor?.('#050510')
+
+      const applyTgTop = () => {
+        const r = getTg() as Record<string, unknown> | undefined
+        if (!r) return
+        const csa = r.contentSafeAreaInset as { top?: number } | undefined
+        const sai = r.safeAreaInset as { top?: number } | undefined
+        const top = (csa?.top ?? 0) + (sai?.top ?? 0)
+        const val = top > 0 ? top : 56
+        document.documentElement.style.setProperty('--tg-top', `${val}px`)
+      }
+
+      applyTgTop()
+
+      const onSafeArea = () => applyTgTop()
+      try { (tg as any).onEvent?.('contentSafeAreaChanged', onSafeArea) } catch {}
+      try { (tg as any).onEvent?.('safeAreaChanged', onSafeArea) } catch {}
+
+      setTimeout(applyTgTop, 300)
     } catch {
       /* ignore */
     }

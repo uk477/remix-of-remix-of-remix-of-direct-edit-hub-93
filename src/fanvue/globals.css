@@ -83,6 +83,7 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   --page-px: 18px;
+  --tg-top: env(safe-area-inset-top, 0px);
   --radius-sm: 10px;
   --radius:    16px;
   --radius-lg: 22px;
@@ -142,9 +143,9 @@ input, textarea, select {
 .page {
   min-height: 100%;
   padding: var(--page-px) var(--page-px) 48px;
-  padding-top: max(var(--page-px), env(safe-area-inset-top, var(--page-px)));
+  padding-top: max(var(--page-px), var(--tg-top));
 }
-.page-with-header { padding-top: max(8px, env(safe-area-inset-top, 8px)); }
+.page-with-header { padding-top: max(8px, var(--tg-top)); }
 
 /* ─── TYPOGRAPHY ─────────────────────────────────────── */
 .t-xs { font-size: 11px; }
@@ -570,7 +571,7 @@ body {
 /* Top hairline session bar */
 .session-bar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 30;
-  padding: max(14px, env(safe-area-inset-top, 14px)) var(--vault-px) 10px;
+  padding: max(14px, var(--tg-top)) var(--vault-px) 10px;
   display: flex; align-items: center; justify-content: space-between;
   pointer-events: none;
 }
@@ -606,7 +607,7 @@ body {
 
 /* Category rail under session bar */
 .cat-rail {
-  position: absolute; top: calc(64px + env(safe-area-inset-top, 0px)); left: 0; right: 0; z-index: 25;
+  position: absolute; top: calc(64px + var(--tg-top)); left: 0; right: 0; z-index: 25;
   display: flex; gap: 8px; padding: 0 var(--vault-px) 8px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -656,7 +657,7 @@ body {
   width: 100%;
   height: 100dvh;
   display: flex; flex-direction: column;
-  padding: calc(120px + env(safe-area-inset-top, 0px)) var(--vault-px) calc(var(--dock-h) + var(--strip-h) + 28px);
+  padding: calc(120px + var(--tg-top)) var(--vault-px) calc(var(--dock-h) + var(--strip-h) + 28px);
 }
 
 /* Cinematic backdrop per lot — gradient + grain accent */
@@ -924,7 +925,7 @@ body {
 }
 .detail-hero {
   position: relative;
-  padding: max(80px, env(safe-area-inset-top, 80px) + 60px) var(--vault-px) 36px;
+  padding: max(80px, var(--tg-top, 80px) + 60px) var(--vault-px) 36px;
   background:
     radial-gradient(120% 80% at 50% 0%, rgba(184,149,106,0.22) 0%, transparent 55%),
     radial-gradient(80% 50% at 100% 100%, rgba(151,136,196,0.06) 0%, transparent 60%),
@@ -938,7 +939,7 @@ body {
   opacity: 0.05; mix-blend-mode: overlay;
 }
 .detail-back {
-  position: absolute; top: max(18px, env(safe-area-inset-top, 18px)); left: var(--vault-px);
+  position: absolute; top: max(18px, var(--tg-top, 18px)); left: var(--vault-px);
   z-index: 10;
   display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.26em; text-transform: uppercase;
@@ -982,7 +983,7 @@ body {
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  padding: max(18px, env(safe-area-inset-top, 18px) + 8px) var(--vault-px) calc(var(--dock-h) + 64px);
+  padding: max(18px, var(--tg-top, 18px) + 8px) var(--vault-px) calc(var(--dock-h) + 64px);
 }
 
 /* Subtle gold meridian line on inner pages */
@@ -1491,7 +1492,7 @@ body::after { display: none; }
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: max(14px, env(safe-area-inset-top, 14px)) 14px calc(var(--fv-nav-h) + 24px + env(safe-area-inset-bottom, 0px));
+  padding: max(14px, var(--tg-top, 14px)) 14px calc(var(--fv-nav-h) + 24px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
 .fv-topbar {
@@ -1965,7 +1966,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .fv-detail-missing { display: grid; place-items: center; }
 .fv-back {
   position: fixed;
-  top: max(14px, env(safe-area-inset-top, 14px));
+  top: max(14px, var(--tg-top, 14px));
   left: 14px;
   z-index: 70;
   display: grid;
@@ -2748,7 +2749,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: max(14px, env(safe-area-inset-top, 14px)) 14px 24px;
+  padding: max(14px, var(--tg-top, 14px)) 14px 24px;
   background:
     radial-gradient(70% 36% at 80% 0%, rgba(57,255,99,0.20), transparent 60%),
     var(--fv-black);
@@ -2850,7 +2851,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: max(14px, env(safe-area-inset-top, 14px)) 16px calc(var(--fv-nav-h) + 32px + env(safe-area-inset-bottom, 0px));
+  padding: max(14px, var(--tg-top, 14px)) 16px calc(var(--fv-nav-h) + 32px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
 
@@ -3277,7 +3278,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .shop {
   position: relative; z-index: 1;
   min-height: 100dvh;
-  padding: max(10px, env(safe-area-inset-top, 10px)) 10px calc(var(--fv-nav-h) + 22px + env(safe-area-inset-bottom, 0px));
+  padding: max(10px, var(--tg-top, 10px)) 10px calc(var(--fv-nav-h) + 22px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
 @media (min-width: 720px) { .shop { max-width: 760px; margin: 0 auto; } }
@@ -4460,7 +4461,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: max(14px, env(safe-area-inset-top, 14px)) 14px calc(28px + env(safe-area-inset-bottom, 0px));
+  padding: max(14px, var(--tg-top, 14px)) 14px calc(28px + env(safe-area-inset-bottom, 0px));
   background: #07080a;
   color: var(--fv-text);
   overflow: hidden;
@@ -5380,7 +5381,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: max(12px, env(safe-area-inset-top, 12px)) 0 0;
+  padding: max(12px, var(--tg-top, 12px)) 0 0;
   color: var(--fv-text);
   background:
     radial-gradient(120% 60% at 100% 0%, rgba(57,255,99,0.10), transparent 55%),
@@ -5818,7 +5819,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: max(10px, env(safe-area-inset-top, 10px)) 14px 10px;
+  padding: max(10px, var(--tg-top, 10px)) 14px 10px;
   background: linear-gradient(180deg, rgba(5,6,5,0.95) 0%, rgba(5,6,5,0.7) 70%, transparent 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -6559,7 +6560,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: max(12px, env(safe-area-inset-top, 12px)) 14px 12px;
+  padding: max(12px, var(--tg-top, 12px)) 14px 12px;
   background: linear-gradient(180deg, rgba(5,6,5,0.95) 0%, rgba(5,6,5,0.7) 70%, transparent 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -7156,7 +7157,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 /* Toast notifications */
 .toast-stack {
   position: fixed;
-  top: max(16px, env(safe-area-inset-top));
+  top: max(16px, var(--tg-top));
   left: 0;
   right: 0;
   z-index: 9999;

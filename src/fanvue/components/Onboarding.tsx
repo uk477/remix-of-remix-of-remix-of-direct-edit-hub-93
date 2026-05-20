@@ -99,11 +99,11 @@ export default function Onboarding() {
       position: 'fixed', inset: 0, zIndex: 600,
       background: 'radial-gradient(ellipse at top, rgba(232,54,93,0.08) 0%, var(--bg) 50%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      paddingTop: 'max(48px, env(safe-area-inset-top, 24px))',
+      paddingTop: 'max(48px, var(--tg-top))',
       paddingBottom: 'max(36px, env(safe-area-inset-bottom, 24px))',
     }}>
       <button onClick={dismiss} style={{
-        position: 'absolute', top: 'max(20px, env(safe-area-inset-top, 16px))', right: 20,
+        position: 'absolute', top: 'max(20px, var(--tg-top))', right: 20,
         padding: '8px 14px', borderRadius: 999,
         background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
         color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, letterSpacing: '0.02em',

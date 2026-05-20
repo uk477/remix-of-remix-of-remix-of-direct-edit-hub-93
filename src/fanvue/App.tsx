@@ -112,7 +112,7 @@ function AppInner() {
         role="main"
       >
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location} key={isLoading ? '__loading__' : location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/market" element={<Market />} />
             <Route path="/product/:id" element={<ProductDetail />} />

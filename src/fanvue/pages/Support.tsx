@@ -984,7 +984,7 @@ export default function Support() {
         inset: 0,
         display: "flex",
         flexDirection: "column",
-        paddingTop: "max(0px, env(safe-area-inset-top))",
+        paddingTop: "var(--tg-top)",
         paddingBottom: kbHeight > 0 ? kbHeight : 0,
         transition: "padding-bottom 100ms ease",
         overflow: "hidden",

@@ -90,7 +90,7 @@ export default function Orders() {
           background: INK,
           color: '#fff',
           fontFamily: DISPLAY,
-          padding: 'max(18px, env(safe-area-inset-top, 18px) + 8px) 18px calc(var(--dock-h, 80px) + 64px)',
+          padding: 'max(18px, calc(var(--tg-top) + 8px)) 18px calc(var(--dock-h, 80px) + 64px)',
         }}
       >
         {/* Header */}
