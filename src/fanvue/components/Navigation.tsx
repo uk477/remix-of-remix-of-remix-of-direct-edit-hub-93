@@ -291,7 +291,7 @@ export default function Navigation() {
 
   return (
     <nav className="fv-nav" aria-label="Primary navigation">
-      <div ref={innerRef} className={`fv-nav-inner ${peeking ? 'is-peeking' : ''}`}>
+      <div ref={innerRef} className={`fv-nav-inner ${peeking ? 'is-peeking' : ''}`} role="tablist">
         {pillIdx >= 0 && (
           <span
             ref={pillRef}
@@ -315,10 +315,14 @@ export default function Navigation() {
               onPointerCancel={onPointerCancel}
               onContextMenu={(e) => e.preventDefault()}
               style={{ touchAction: 'pan-y', userSelect: 'none', WebkitUserSelect: 'none' }}
+              role="tab"
+              aria-selected={lit}
+              aria-label={`${item.label[lang]}${item.path === '/profile' && supportUnread > 0 ? ` (${supportUnread})` : ''}`}
+              tabIndex={lit ? 0 : -1}
             >
               <Icon />
               <span>{item.label[lang]}</span>
-              {item.path === '/profile' && supportUnread > 0 && <i />}
+              {item.path === '/profile' && supportUnread > 0 && <i aria-label={`${supportUnread} unread`} />}
             </button>
           )
         })}

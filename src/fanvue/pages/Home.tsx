@@ -47,8 +47,25 @@ export default function Home() {
     return () => clearInterval(t)
   }, [])
 
+  const realSales = useStore((s) => s.realSales)
+
   const online = useMemo(() => getOnline(new Date(now)), [now])
-  const recentSales = useMemo(() => getRecentSales(3, new Date(now)), [now])
+  const recentSales = useMemo(() => {
+    const fakes = getRecentSales(3, new Date(now))
+    const merged = [
+      ...realSales.map((s) => ({
+        buyerId: `real-${s.uid}`,
+        handle: s.username || s.full_name.slice(0, 4).toUpperCase(),
+        avatar: s.photo_url || `https://api.dicebear.com/9.x/avataaars/svg?seed=${s.uid}&radius=50`,
+        productIndex: s.productIndex,
+        ts: s.ts,
+      })),
+      ...fakes,
+    ]
+      .sort((a, b) => b.ts - a.ts)
+      .slice(0, 5)
+    return merged
+  }, [now, realSales])
   const totalSales = useMemo(() => getTotalSales(new Date(now)) + orders.length, [now, orders.length])
 
   // Animated count-up for total sales

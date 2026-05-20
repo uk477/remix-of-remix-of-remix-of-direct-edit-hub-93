@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
@@ -11,6 +11,7 @@ import { useTelegram } from '../hooks/useTelegram'
 import { createOrder, generateOrderId, generateUniqueAmount } from '../utils/payment'
 import { tgNotify } from '../utils/tgNotify'
 import { track } from '../utils/analytics'
+import { rateLimit, audit } from '../utils/security'
 import type { CryptoNetwork } from '../store/types'
 
 
@@ -40,6 +41,7 @@ export default function ProductDetail() {
   const addNotification = useStore((s) => s.addNotification)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
   const tryAutoFulfill = useStore((s) => s.tryAutoFulfill)
+  const addRealSale = useStore((s) => s.addRealSale)
 
   const product = products.find((p) => p.id === Number(id))
   const [qty, setQty] = useState(1)
@@ -47,6 +49,7 @@ export default function ProductDetail() {
   const [payStep, setPayStep] = useState<PayStep>('select')
   const [selectedNet, setSelectedNet] = useState<CryptoNetwork | null>(null)
   const [pendingOrder, setPendingOrder] = useState<{ id: string; uniqueAmount: number } | null>(null)
+  const purchaseLock = useRef(false)
 
   useEffect(() => {
     if (product) track('product_view', { id: product.id, title: product.title })
@@ -96,7 +99,20 @@ export default function ProductDetail() {
 
 
   const handleBuyWithBalance = () => {
+    if (purchaseLock.current) return
+    if (!rateLimit('purchase', 3, 30_000)) {
+      toast.show(lang === 'ru' ? 'Слишком быстро, подождите' : 'Too fast, please wait', 'error')
+      return
+    }
+    // Re-check balance from store (prevents stale-state race condition)
+    const freshBalance = useStore.getState().user?.balance ?? 0
+    if (freshBalance < total) {
+      toast.show(lang === 'ru' ? 'Недостаточно средств' : 'Insufficient balance', 'error')
+      return
+    }
+    purchaseLock.current = true
     haptic('success')
+    audit('purchase_balance', user?.uid, { productId: product.id, qty, total })
     const buyCount = orders.filter((o) => o.kind === 'buy').length + 1
     const orderId = generateOrderId('buy')
     addOrder({
@@ -112,18 +128,38 @@ export default function ProductDetail() {
       paid_at: new Date().toISOString(),
     })
     updateBalance(-total)
-    // Автовыдача: сразу пробуем закрыть заказ данными из пула
     if (product.delivery === 'auto') tryAutoFulfill(orderId)
+    if (user) {
+      addRealSale({
+        id: orderId,
+        uid: user.uid,
+        username: user.username,
+        full_name: user.full_name,
+        photo_url: user.photo_url,
+        productTitle: title,
+        productIndex: products.findIndex((p) => p.id === product.id) <= 0 ? 0 : 1,
+        amount: total,
+        ts: Date.now(),
+      })
+    }
     toast.show(lang === 'ru' ? 'Заказ оплачен.' : 'Order paid.', 'success')
     tgNotify(
       `🛍 Новый заказ (баланс)\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n📦 ${title} × ${qty}\n💵 $${total.toFixed(2)}`,
     )
     setPayStep('success')
+    setTimeout(() => { purchaseLock.current = false }, 2000)
   }
 
   const handlePayCrypto = async () => {
     if (!selectedNet || !user) return
+    if (purchaseLock.current) return
+    if (!rateLimit('purchase_crypto', 3, 30_000)) {
+      toast.show(lang === 'ru' ? 'Слишком быстро, подождите' : 'Too fast, please wait', 'error')
+      return
+    }
+    purchaseLock.current = true
     haptic('medium')
+    audit('purchase_crypto', user?.uid, { productId: product.id, qty, total, network: selectedNet })
     const remote = await createOrder({
       uid: user.uid,
       kind: 'buy',
@@ -152,6 +188,7 @@ export default function ProductDetail() {
       `🛍 Новый заказ (крипто)\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n📦 ${title} × ${qty}\n💵 $${uniqueAmount.toFixed(2)} · ${selectedNet.toUpperCase()}\n🆔 ${orderId}`,
     )
     setPayStep('crypto_pay')
+    setTimeout(() => { purchaseLock.current = false }, 2000)
   }
 
   const titleWords = title.split(/\s+/).filter(Boolean)

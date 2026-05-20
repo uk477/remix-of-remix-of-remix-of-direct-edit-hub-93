@@ -8,7 +8,16 @@ export const CONFIG = {
   supportUsername: e.VITE_SUPPORT_USERNAME ?? 'FanvueSupport',
   channelUsername: e.VITE_CHANNEL_USERNAME ?? 'FanvueStore',
   communityUsername: e.VITE_COMMUNITY_USERNAME ?? 'FanvueCommunity',
-  adminIds:        (e.VITE_ADMIN_IDS ?? '123456789').split(',').map(Number) as number[],
+
+  /**
+   * SHA-256 hashes of admin UIDs (format: SHA-256("fanvue:admin:v1:<uid>")).
+   * Plain UIDs are NEVER shipped in the client bundle.
+   * Generate yours:  node -e "require('crypto').createHash('sha256').update('fanvue:admin:v1:YOUR_UID').digest('hex')"
+   */
+  adminHashes: (e.VITE_ADMIN_HASHES ?? '71ff3087360063a84423e4bf06ad77cf050af2f1c0dda5d7f81bb7f07fd7e2bf')
+    .split(',')
+    .map((h: string) => h.trim().toLowerCase())
+    .filter(Boolean) as string[],
 
   siteUrl:  e.VITE_SITE_URL ?? '',
   apiUrl:   e.VITE_API_URL  ?? '',
@@ -23,6 +32,19 @@ export const CONFIG = {
     usdc_eth: e.VITE_ADDR_USDC_ETH ?? '',
     usdc_sol: e.VITE_ADDR_USDC_SOL ?? '',
     ton:      e.VITE_ADDR_TON      ?? '',
+  },
+
+  /** QR code image URLs per network (from .env). Empty = auto-generate via QRCodeSVG. */
+  qrCodes: {
+    trc20:    e.VITE_QR_TRC20    ?? '',
+    erc20:    e.VITE_QR_ERC20    ?? '',
+    bep20:    e.VITE_QR_BEP20    ?? '',
+    eth:      e.VITE_QR_ETH      ?? '',
+    sol:      e.VITE_QR_SOL      ?? '',
+    btc:      e.VITE_QR_BTC      ?? '',
+    usdc_eth: e.VITE_QR_USDC_ETH ?? '',
+    usdc_sol: e.VITE_QR_USDC_SOL ?? '',
+    ton:      e.VITE_QR_TON      ?? '',
   },
 
   paymentTimeoutMinutes: Number(e.VITE_PAYMENT_TIMEOUT_MINUTES ?? 30),

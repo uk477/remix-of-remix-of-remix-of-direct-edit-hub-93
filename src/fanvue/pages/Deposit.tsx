@@ -13,6 +13,7 @@ import { createOrder, generateOrderId, generateUniqueAmount, paymentUri, fetchOr
 import { useCryptoRates, calcCryptoAmount, formatCryptoAmount } from '../hooks/useCryptoRates'
 import { tgNotify } from '../utils/tgNotify'
 import { track } from '../utils/analytics'
+import { rateLimit, isValidAmount, audit } from '../utils/security'
 import type { CryptoNetwork, OrderStatus } from '../store/types'
 
 type Step = 'amount' | 'network' | 'pay' | 'success'
@@ -89,7 +90,7 @@ export default function Deposit() {
   // when the timer expires, or when a new deposit is created with another coin.
 
   const numAmount = parseFloat(amount) || 0
-  const isValidAmount = numAmount >= 5
+  const amountOk = numAmount >= 5
   const cryptoOption = CRYPTO_OPTIONS.find((c) => c.id === network)
 
   const cancelDeposit = () => {
@@ -99,14 +100,23 @@ export default function Deposit() {
   }
 
   const handleContinue = () => {
-    if (!isValidAmount) return
+    if (!amountOk) return
     track('deposit_start', { amount: numAmount }); haptic('medium')
     setStep('network')
   }
 
   const handleSelectNetwork = async () => {
     if (!network || !user) return
+    if (!isValidAmount(numAmount, 1, 50_000)) {
+      toast.show(lang === 'ru' ? 'Некорректная сумма' : 'Invalid amount', 'error')
+      return
+    }
+    if (!rateLimit('deposit', 5, 60_000)) {
+      toast.show(lang === 'ru' ? 'Подождите перед следующим депозитом' : 'Wait before next deposit', 'error')
+      return
+    }
     haptic('medium')
+    audit('deposit_start', user.uid, { amount: numAmount, network })
     cancelPendingDeposits(network)
     const remote = await createOrder({ uid: user.uid, kind: 'deposit', amount_usd: numAmount, network })
     const depositCount = orders.filter((o) => o.kind === 'deposit').length + 1
@@ -120,6 +130,8 @@ export default function Deposit() {
 
   const handleSuccess = () => {
     if (!pendingOrder) return
+    if (!rateLimit('deposit_confirm', 3, 60_000)) return
+    audit('deposit_confirm', user?.uid, { orderId: pendingOrder.id, amount: pendingOrder.uniqueAmount })
     creditDeposit(pendingOrder.id, pendingOrder.uniqueAmount)
     toast.show(lang === 'ru' ? `+$${pendingOrder.uniqueAmount.toFixed(2)} зачислено` : `+$${pendingOrder.uniqueAmount.toFixed(2)} credited`, 'success')
     tgNotify(`💳 Новый депозит\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${pendingOrder.uniqueAmount.toFixed(2)} · ${network?.toUpperCase()}\n🆔 ${pendingOrder.id}`)
@@ -193,7 +205,7 @@ export default function Deposit() {
 
               <h1 className="dpz-h2">{lang === 'ru' ? 'Сумма пополнения' : 'Top-up amount'}</h1>
 
-              <div className={`dpz-money${isValidAmount ? ' is-valid' : ''}${numAmount > 0 && !isValidAmount ? ' is-warn' : ''}`}>
+              <div className={`dpz-money${amountOk ? ' is-valid' : ''}${numAmount > 0 && !amountOk ? ' is-warn' : ''}`}>
                 <span className="dpz-money-cur">$</span>
                 <input
                   className="dpz-money-input"
@@ -234,7 +246,7 @@ export default function Deposit() {
 
               <button
                 className="dpz-cta"
-                disabled={!isValidAmount}
+                disabled={!amountOk}
                 onClick={handleContinue}
               >
                 <span className="dpz-cta-t">{lang === 'ru' ? 'Далее' : 'Continue'}</span>

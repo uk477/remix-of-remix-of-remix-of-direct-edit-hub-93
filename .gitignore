@@ -1,3 +1,8 @@
+# Environment — NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+
 # Logs
 logs
 *.log
@@ -19,6 +24,10 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Server build output & database
+server/dist
+data/
 
 # Editor directories and files
 .vscode/*

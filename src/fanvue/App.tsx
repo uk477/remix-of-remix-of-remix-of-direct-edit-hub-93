@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
+import ErrorBoundary from './components/ErrorBoundary'
 import BackgroundOrbs from './components/BackgroundOrbs'
 import Navigation from './components/Navigation'
 import LoadingScreen from './components/LoadingScreen'
@@ -75,7 +76,8 @@ function AppInner() {
 
   if (isAdminRoute) {
     return (
-      <div className="app">
+      <div className="app" role="application">
+        <a href="#main-content" className="sr-only-focusable" style={{ position: 'absolute', left: -9999, top: 'auto', width: 1, height: 1, overflow: 'hidden', zIndex: 999 }}>Skip to content</a>
         <BackgroundOrbs />
         <Suspense fallback={<LoadingScreen />}>
           <Routes>
@@ -100,11 +102,14 @@ function AppInner() {
   }
 
   return (
-    <div className="app">
+    <div className="app" role="application">
+      <a href="#main-content" className="sr-only-focusable" style={{ position: 'absolute', left: -9999, top: 'auto', width: 1, height: 1, overflow: 'hidden', zIndex: 999 }}>Skip to content</a>
       <BackgroundOrbs />
       <div
+        id="main-content"
         className={`scroll-area${location.pathname === '/' ? ' vault-scroll' : ''}`}
         style={{ height: location.pathname === '/' ? '100dvh' : (showNav ? undefined : '100dvh') }}
+        role="main"
       >
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -129,10 +134,12 @@ function AppInner() {
 
 export default function App() {
   return (
-    <HashRouter>
-      <ToastProvider>
-        <AppInner />
-      </ToastProvider>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <ToastProvider>
+          <AppInner />
+        </ToastProvider>
+      </HashRouter>
+    </ErrorBoundary>
   )
 }

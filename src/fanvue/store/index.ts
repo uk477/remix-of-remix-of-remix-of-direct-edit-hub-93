@@ -2,10 +2,19 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { CONFIG } from '../config'
 import { api } from './api'
+import {
+  verifyAdminHash,
+  sanitizeText,
+  rateLimit,
+  isValidAmount,
+  createFinancialNonce,
+  audit,
+} from '../utils/security'
 import type {
   Lang, User, Category, Product, Order, SupportMessage, CartItem, CryptoOption,
   CryptoNetwork, PaymentLog, Broadcast, PaymentNotification, RefReward, RefWithdrawal,
   SupportTicket, SupportTicketCategory, AdminPresence, OrderReceiptPayload,
+  Referral, RealSale,
 } from './types'
 
 export const CRYPTO_OPTIONS: CryptoOption[] = [
@@ -126,6 +135,10 @@ interface AppStore {
   adminTyping: boolean
   cart: CartItem | null
   isLoading: boolean
+  referrals: Referral[]
+  realSales: RealSale[]
+  _adminVerified: boolean
+  _adminCheckDone: boolean
 
   // Admin-editable state
   cryptoAddresses: Record<CryptoNetwork, string>
@@ -205,6 +218,12 @@ interface AppStore {
   pinProduct: (id: number) => void
   unpinProduct: (id: number) => void
   isAdmin: () => boolean
+  isAdminCheckDone: () => boolean
+  createFinancialNonce: () => string
+  addReferral: (ref: Referral) => void
+  updateReferral: (uid: number, updates: Partial<Referral>) => void
+  getActiveReferrals: () => Referral[]
+  addRealSale: (sale: RealSale) => void
   addStickHeroScore: (score: number) => void
   setStickHeroName: (name: string) => void
 }
@@ -225,12 +244,18 @@ export const useStore = create<AppStore>()(
       adminTyping: false,
       cart: null,
       isLoading: true,
+      referrals: [],
+      realSales: [],
+      _adminVerified: false,
+      _adminCheckDone: false,
 
       cryptoAddresses: { ...CONFIG.addresses },
       maintenance: false,
       logs: MOCK_LOGS,
       broadcasts: [],
-      qrOverrides: {},
+      qrOverrides: Object.fromEntries(
+        Object.entries(CONFIG.qrCodes).filter(([, v]) => !!v),
+      ),
       photos: {},
       notifications: [],
       refReward: { month: '', count: 0, claimed: false },
@@ -294,11 +319,21 @@ export const useStore = create<AppStore>()(
               langUserSet: state.langUserSet || true,
               isLoading: false,
             })
+
+            // Async admin verification via SHA-256 hash comparison
+            verifyAdminHash(localUser.uid, CONFIG.adminHashes).then((ok) => {
+              set({ _adminVerified: ok, _adminCheckDone: true })
+              if (ok) audit('admin_verified', localUser.uid)
+            })
+
             // sync with server when API is enabled
             if (api.isEnabled()) {
               api.auth({}).then((serverUser) => {
                 if (serverUser && typeof serverUser === 'object') {
                   const u = serverUser as Record<string, unknown>
+                  // If server reports isAdmin, trust it over local hash
+                  const serverIsAdmin = u.isAdmin === true
+                  if (serverIsAdmin) set({ _adminVerified: true, _adminCheckDone: true })
                   set((s) => ({
                     user: s.user ? {
                       ...s.user,
@@ -340,23 +375,39 @@ export const useStore = create<AppStore>()(
             }
           } else {
             set({ user: MOCK_USER, isLoading: false })
+            // Demo mode: verify mock user against hashes too
+            verifyAdminHash(MOCK_USER.uid, CONFIG.adminHashes).then((ok) => {
+              set({ _adminVerified: ok, _adminCheckDone: true })
+            })
           }
         } catch {
-          set({ user: MOCK_USER, isLoading: false })
+          set({ user: MOCK_USER, isLoading: false, _adminCheckDone: true })
         }
       },
 
       setCart: (cart) => set({ cart }),
 
-      addOrder: (order) => set((s) => ({ orders: [order, ...s.orders] })),
+      addOrder: (order) => {
+        if (!isValidAmount(order.amount, 0.001, 100_000)) return
+        if (!rateLimit('addOrder', 5, 60_000)) {
+          audit('rate_limited', get().user?.uid, { action: 'addOrder' })
+          return
+        }
+        audit('order_created', get().user?.uid, { orderId: order.id, kind: order.kind, amount: order.amount })
+        set((s) => ({ orders: [order, ...s.orders] }))
+      },
 
       addSupportMessage: (msg) => {
+        const sanitized: SupportMessage = {
+          ...msg,
+          text: sanitizeText(msg.text),
+        }
         set((s) => ({
-          supportMessages: [...s.supportMessages, msg],
-          supportUnread: msg.sender === 'admin' ? s.supportUnread + 1 : s.supportUnread,
+          supportMessages: [...s.supportMessages, sanitized],
+          supportUnread: sanitized.sender === 'admin' ? s.supportUnread + 1 : s.supportUnread,
         }))
-        if (api.isEnabled() && msg.sender === 'user') {
-          api.sendMessage(msg.text)
+        if (api.isEnabled() && sanitized.sender === 'user') {
+          api.sendMessage(sanitized.text)
         }
       },
 
@@ -481,10 +532,17 @@ export const useStore = create<AppStore>()(
           ),
         })),
 
-      updateBalance: (delta) =>
+      updateBalance: (delta) => {
+        if (!isValidAmount(Math.abs(delta), 0.001, 100_000)) return
+        if (!rateLimit('updateBalance', 10, 60_000)) {
+          audit('rate_limited', get().user?.uid, { action: 'updateBalance', delta })
+          return
+        }
+        audit('balance_change', get().user?.uid, { delta, before: get().user?.balance })
         set((s) => ({
           user: s.user ? { ...s.user, balance: Math.max(0, s.user.balance + delta) } : null,
-        })),
+        }))
+      },
 
       addNotification: (n) =>
         set((s) => ({
@@ -500,29 +558,54 @@ export const useStore = create<AppStore>()(
       removeNotification: (orderId) =>
         set((s) => ({ notifications: s.notifications.filter((n) => n.orderId !== orderId) })),
 
-      creditDeposit: (orderId, amount, txid?) =>
-        set((s) => {
-          const order = s.orders.find((o) => o.id === orderId)
-          if (order?.paid_at) return {}
-          return {
-            user: s.user ? { ...s.user, balance: Math.max(0, s.user.balance + amount) } : null,
-            orders: s.orders.map((o) =>
-              o.id === orderId
-                ? { ...o, status: 'completed' as const, paid_at: new Date().toISOString(), ...(txid ? { txid } : {}) }
-                : o
-            ),
-          }
-        }),
+      creditDeposit: (orderId, amount, txid?) => {
+        if (!isValidAmount(amount, 0.01, 100_000)) return
+        if (!rateLimit('creditDeposit', 5, 60_000)) {
+          audit('rate_limited', get().user?.uid, { action: 'creditDeposit', orderId })
+          return
+        }
+        const state = get()
+        const order = state.orders.find((o) => o.id === orderId)
+        if (!order || order.kind !== 'deposit' || order.paid_at) return
+        if (Math.abs(order.amount - amount) > 0.1) {
+          audit('amount_mismatch', state.user?.uid, { orderId, expected: order.amount, got: amount })
+          return
+        }
+        audit('deposit_credited', state.user?.uid, { orderId, amount })
+        set((s) => ({
+          user: s.user ? { ...s.user, balance: Math.max(0, s.user.balance + amount) } : null,
+          orders: s.orders.map((o) =>
+            o.id === orderId
+              ? { ...o, status: 'completed' as const, paid_at: new Date().toISOString(), ...(txid ? { txid } : {}) }
+              : o
+          ),
+        }))
+      },
 
-      creditRefBalance: (amount) =>
+      creditRefBalance: (amount) => {
+        if (!isValidAmount(amount, 0.01, 10_000)) return
+        audit('ref_credit', get().user?.uid, { amount })
         set((s) => ({
           user: s.user ? { ...s.user, ref_balance: (s.user.ref_balance) + amount } : null,
-        })),
+        }))
+      },
 
-      spendRefBalance: (amount) =>
+      spendRefBalance: (amount) => {
+        if (!isValidAmount(amount, 0.01, 10_000)) return
+        const balance = get().user?.ref_balance ?? 0
+        if (amount > balance + 0.001) {
+          audit('ref_spend_insufficient', get().user?.uid, { amount, balance })
+          return
+        }
+        if (!rateLimit('spendRefBalance', 3, 60_000)) {
+          audit('rate_limited', get().user?.uid, { action: 'spendRefBalance' })
+          return
+        }
+        audit('ref_spend', get().user?.uid, { amount })
         set((s) => ({
           user: s.user ? { ...s.user, ref_balance: Math.max(0, s.user.ref_balance - amount) } : null,
-        })),
+        }))
+      },
 
       addRefWithdrawal: (w) =>
         set((s) => ({
@@ -766,10 +849,30 @@ export const useStore = create<AppStore>()(
       unpinProduct: (id) =>
         set((s) => ({ pinnedProductIds: s.pinnedProductIds.filter((x) => x !== id) })),
 
-      isAdmin: (): boolean => {
-        const u = get().user
-        return !!u && CONFIG.adminIds.includes(u.uid)
-      },
+      isAdmin: (): boolean => get()._adminVerified,
+      isAdminCheckDone: (): boolean => get()._adminCheckDone,
+      createFinancialNonce: (): string => createFinancialNonce(),
+
+      addReferral: (ref) =>
+        set((s) => {
+          if (s.referrals.some((r) => r.uid === ref.uid)) return {}
+          return { referrals: [...s.referrals, ref] }
+        }),
+
+      updateReferral: (uid, updates) =>
+        set((s) => ({
+          referrals: s.referrals.map((r) =>
+            r.uid === uid ? { ...r, ...updates } : r
+          ),
+        })),
+
+      getActiveReferrals: () =>
+        get().referrals.filter((r) => r.purchaseCount > 0),
+
+      addRealSale: (sale) =>
+        set((s) => ({
+          realSales: [sale, ...s.realSales].slice(0, 200),
+        })),
 
       stickHeroScores: [],
       stickHeroName: null,
@@ -869,10 +972,14 @@ export const useStore = create<AppStore>()(
         refDailyLog: s.refDailyLog,
         supportMessages: s.supportMessages,
         supportTickets: s.supportTickets,
-        orders: s.orders,
+        // Strip deliveryData (credentials) — NEVER persist to localStorage.
+        // In production the user fetches delivery info from the server.
+        orders: s.orders.map((o) => ({ ...o, deliveryData: undefined })),
         supportForwardedOrders: s.supportForwardedOrders,
         pinnedProductIds: s.pinnedProductIds,
         supportUnread: s.supportUnread,
+        referrals: s.referrals,
+        realSales: s.realSales,
         stickHeroScores: s.stickHeroScores,
         stickHeroName: s.stickHeroName,
       }),

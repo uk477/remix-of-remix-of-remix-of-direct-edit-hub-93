@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo } from 'react'
 import { useStore } from '../store'
+import type { Referral } from '../store/types'
 
 interface Props {
   open: boolean
@@ -9,47 +9,37 @@ interface Props {
 
 const DISPLAY = "'Space Grotesk', system-ui, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, monospace"
+const BODY = "'DM Sans', system-ui, sans-serif"
 const GREEN = '#39ff63'
 const INK = '#0a0a0a'
 
-// Mock referral pool — used to render entries based on user.ref_count
-const REFERRAL_POOL: { username: string; nickname: string; daysAgo: number; hue: number }[] = [
-  { username: 'crypto_max',     nickname: 'Max',       daysAgo: 1,  hue: 142 },
-  { username: 'lena_diamond',   nickname: 'Lena',      daysAgo: 3,  hue: 320 },
-  { username: '',               nickname: 'Anonymous', daysAgo: 6,  hue: 24  },
-  { username: 'nova_trader',    nickname: 'Nova',      daysAgo: 9,  hue: 200 },
-  { username: 'shadow_99',      nickname: 'Shadow',    daysAgo: 14, hue: 270 },
-  { username: 'rin_satoshi',    nickname: 'Rin',       daysAgo: 18, hue: 50  },
-  { username: '',               nickname: 'Guest',     daysAgo: 24, hue: 12  },
-  { username: 'leo_btc',        nickname: 'Leo',       daysAgo: 30, hue: 180 },
-  { username: 'mira_x',         nickname: 'Mira',      daysAgo: 41, hue: 340 },
-  { username: 'kai_eth',        nickname: 'Kai',       daysAgo: 55, hue: 100 },
-]
+function avatarUrl(ref: Referral): string {
+  if (ref.photo_url) return ref.photo_url
+  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${ref.uid}&radius=50&backgroundType=gradientLinear&backgroundColor=39ff63,0d8a3a,1a1a1a`
+}
+
+function formatDate(iso: string, lang: 'ru' | 'en') {
+  return new Date(iso).toLocaleDateString(
+    lang === 'ru' ? 'ru-RU' : 'en-US',
+    { day: 'numeric', month: 'short', year: 'numeric' },
+  )
+}
+
+function daysAgo(iso: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000))
+}
 
 export default function ReferralList({ open, onClose }: Props) {
-  const lang = useStore((s) => s.lang)
+  const lang = useStore((s) => s.lang) as 'ru' | 'en'
   const user = useStore((s) => s.user)
+  const allReferrals = useStore((s) => s.referrals)
 
-  const referrals = useMemo(() => {
-    if (!user) return []
-    const now = Date.now()
-    return REFERRAL_POOL.slice(0, Math.max(0, user.ref_count)).map((r, i) => ({
-      ...r,
-      id: `ref-${i}`,
-      joinedAt: new Date(now - r.daysAgo * 86400000).toISOString(),
-    }))
-  }, [user])
+  const activeRefs = allReferrals.filter((r) => r.purchaseCount > 0)
+  const pendingCount = allReferrals.length - activeRefs.length
 
   if (!user) return null
 
   const totalEarned = user.ref_earned
-
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString(
-      lang === 'ru' ? 'ru-RU' : 'en-US',
-      { day: 'numeric', month: 'short', year: 'numeric' }
-    )
-  }
 
   return (
     <AnimatePresence>
@@ -68,6 +58,7 @@ export default function ReferralList({ open, onClose }: Props) {
               WebkitBackdropFilter: 'blur(10px)',
               zIndex: 100,
             }}
+            role="presentation"
           />
           <motion.div
             initial={{ y: '100%' }}
@@ -78,6 +69,8 @@ export default function ReferralList({ open, onClose }: Props) {
             dragConstraints={{ top: 0 }}
             dragElastic={{ top: 0, bottom: 0.3 }}
             onDragEnd={(_, info) => { if (info.offset.y > 100) onClose() }}
+            role="dialog"
+            aria-label={lang === 'ru' ? 'Мои рефералы' : 'My Referrals'}
             style={{
               position: 'fixed',
               left: 0,
@@ -85,7 +78,7 @@ export default function ReferralList({ open, onClose }: Props) {
               bottom: 0,
               zIndex: 101,
               background: INK,
-              borderTop: `1px solid rgba(57,255,99,0.2)`,
+              borderTop: '1px solid rgba(57,255,99,0.2)',
               borderRadius: '24px 24px 0 0',
               maxHeight: '92vh',
               display: 'flex',
@@ -95,12 +88,10 @@ export default function ReferralList({ open, onClose }: Props) {
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
-            {/* Drag handle */}
             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'grab', touchAction: 'none' }}>
               <div style={{ width: 42, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.18)' }} />
             </div>
 
-            {/* Header */}
             <div
               style={{
                 display: 'flex',
@@ -122,6 +113,7 @@ export default function ReferralList({ open, onClose }: Props) {
               <motion.button
                 onClick={onClose}
                 whileTap={{ scale: 0.9 }}
+                aria-label={lang === 'ru' ? 'Закрыть' : 'Close'}
                 style={{
                   width: 36, height: 36, borderRadius: '50%',
                   background: 'rgba(255,255,255,0.06)',
@@ -132,7 +124,7 @@ export default function ReferralList({ open, onClose }: Props) {
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1, padding: '20px 22px 32px' }}>
-              {/* Earnings hero */}
+              {/* Earnings card */}
               <div
                 style={{
                   position: 'relative',
@@ -140,9 +132,8 @@ export default function ReferralList({ open, onClose }: Props) {
                   padding: '20px 18px 22px',
                   margin: '0 auto 22px',
                   maxWidth: 320,
-                  background: `radial-gradient(circle at 50% 0%, rgba(57,255,99,0.18), transparent 65%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))`,
+                  background: 'radial-gradient(circle at 50% 0%, rgba(57,255,99,0.18), transparent 65%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
                   border: '1px solid rgba(57,255,99,0.22)',
-                  overflow: 'hidden',
                   textAlign: 'center',
                 }}
               >
@@ -165,9 +156,8 @@ export default function ReferralList({ open, onClose }: Props) {
                     fontWeight: 700,
                     padding: '4px 10px',
                     borderRadius: 999,
-                    letterSpacing: '0.05em',
                   }}>
-                    {user.ref_count} {lang === 'ru' ? 'РЕФЕРАЛОВ' : 'REFERRALS'}
+                    {activeRefs.length} {lang === 'ru' ? 'АКТИВНЫХ' : 'ACTIVE'}
                   </div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: MONO }}>
                     × $5
@@ -175,106 +165,133 @@ export default function ReferralList({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* History header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontFamily: MONO }}>
-                  {lang === 'ru' ? '/История' : '/History'}
-                </div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: MONO }}>
-                  {referrals.length}
+              {/* Info banner — only purchasers count */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 12px',
+                marginBottom: 18,
+                background: 'rgba(57,255,99,0.04)',
+                border: '1px solid rgba(57,255,99,0.14)',
+                borderRadius: 10,
+              }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: 'rgba(57,255,99,0.12)', color: GREEN,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, flexShrink: 0,
+                }}>ⓘ</div>
+                <div style={{ fontFamily: BODY, fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
+                  {lang === 'ru'
+                    ? 'Засчитываются только рефералы, которые сделали покупку.'
+                    : 'Only referrals who made a purchase count.'}
+                  {pendingCount > 0 && (
+                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      {' '}{lang === 'ru'
+                        ? `${pendingCount} ожидают первой покупки.`
+                        : `${pendingCount} pending first purchase.`}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {referrals.length === 0 ? (
+              {/* Section header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontFamily: MONO }}>
+                  {lang === 'ru' ? '/Активные' : '/Active'}
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: MONO }}>
+                  {activeRefs.length}
+                </div>
+              </div>
+
+              {activeRefs.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
-                  padding: '40px 0',
+                  padding: '40px 20px',
                   border: '1px dashed rgba(255,255,255,0.08)',
                   borderRadius: 14,
                   color: 'rgba(255,255,255,0.4)',
                   fontSize: 13,
+                  fontFamily: BODY,
+                  lineHeight: 1.5,
                 }}>
-                  {lang === 'ru' ? 'Пока нет рефералов' : 'No referrals yet'}
+                  {lang === 'ru'
+                    ? 'Пока ни один реферал не сделал покупку.\nПоделитесь ссылкой!'
+                    : 'No referrals have made a purchase yet.\nShare your link!'}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {referrals.map((r, i) => {
-                    const displayName = r.username ? `@${r.username}` : r.nickname
-                    const initial = (r.username || r.nickname).charAt(0).toUpperCase()
-                    return (
-                      <motion.div
-                        key={r.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.035, type: 'spring', stiffness: 320, damping: 26 }}
-                        style={{
-                          background: 'rgba(255,255,255,0.025)',
-                          border: '1px solid rgba(255,255,255,0.05)',
-                          borderRadius: 14,
-                          padding: '12px 14px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 12,
-                        }}
-                      >
-                        {/* Avatar */}
-                        <div
+                  {activeRefs
+                    .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime())
+                    .map((ref, i) => {
+                      const displayName = ref.username ? `@${ref.username}` : ref.full_name
+                      const days = daysAgo(ref.joinedAt)
+                      return (
+                        <motion.div
+                          key={ref.uid}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.035, type: 'spring', stiffness: 320, damping: 26 }}
                           style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: '50%',
-                            background: `linear-gradient(135deg, hsl(${r.hue} 70% 55%), hsl(${(r.hue + 40) % 360} 65% 35%))`,
+                            background: 'rgba(255,255,255,0.025)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: 14,
+                            padding: '12px 14px',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            fontFamily: DISPLAY,
-                            fontSize: 16,
-                            fontWeight: 800,
-                            color: '#fff',
-                            flexShrink: 0,
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                            gap: 12,
                           }}
                         >
-                          {initial}
-                        </div>
+                          <img
+                            src={avatarUrl(ref)}
+                            alt=""
+                            width={42}
+                            height={42}
+                            style={{
+                              borderRadius: '50%',
+                              flexShrink: 0,
+                              objectFit: 'cover',
+                              background: 'rgba(255,255,255,0.06)',
+                            }}
+                            loading="lazy"
+                          />
 
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: '#fff',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}>
-                            {displayName}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontSize: 14, fontWeight: 700, color: '#fff',
+                              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                            }}>
+                              {displayName}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+                              <span>{formatDate(ref.joinedAt, lang)}</span>
+                              <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                              <span>{days === 0 ? (lang === 'ru' ? 'сегодня' : 'today') : `${days}${lang === 'ru' ? 'д' : 'd'}`}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, fontFamily: MONO, fontSize: 10 }}>
+                              <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                {lang === 'ru' ? 'Потрачено' : 'Spent'}: <span style={{ color: '#fff', fontWeight: 700 }}>${ref.totalSpent.toFixed(2)}</span>
+                              </span>
+                              <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                              <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                {ref.purchaseCount} {lang === 'ru' ? 'покуп.' : 'purch.'}
+                              </span>
+                            </div>
                           </div>
-                          <div style={{
-                            fontSize: 11,
-                            color: 'rgba(255,255,255,0.4)',
-                            fontFamily: MONO,
-                            marginTop: 2,
-                          }}>
-                            {formatDate(r.joinedAt)}
-                          </div>
-                        </div>
 
-                        <div style={{
-                          fontFamily: MONO,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: GREEN,
-                          background: 'rgba(57,255,99,0.08)',
-                          border: '1px solid rgba(57,255,99,0.18)',
-                          padding: '5px 10px',
-                          borderRadius: 8,
-                          flexShrink: 0,
-                        }}>
-                          +$5
-                        </div>
-                      </motion.div>
-                    )
-                  })}
+                          <div style={{
+                            fontFamily: MONO, fontSize: 13, fontWeight: 700,
+                            color: GREEN, background: 'rgba(57,255,99,0.08)',
+                            border: '1px solid rgba(57,255,99,0.18)',
+                            padding: '5px 10px', borderRadius: 8, flexShrink: 0,
+                          }}>
+                            +$5
+                          </div>
+                        </motion.div>
+                      )
+                    })}
                 </div>
               )}
             </div>

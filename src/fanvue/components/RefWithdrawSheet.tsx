@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
+import { isValidCryptoAddress, isValidAmount, rateLimit, audit, sanitizeText } from '../utils/security'
 import CryptoLogo from './CryptoLogo'
 import type { CryptoNetwork, RefWithdrawal } from '../store/types'
 
@@ -168,15 +169,27 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const amountNum = parseFloat(amount) || 0
   const amountValid = amountNum >= MIN_WITHDRAW && amountNum <= balance
 
+  const [addressError, setAddressError] = useState<string | null>(null)
+
   function handleSubmit() {
     if (!network) return
+    if (!isValidAmount(amountNum, MIN_WITHDRAW, balance)) return
+    const freshBalance = useStore.getState().user?.ref_balance ?? 0
+    if (amountNum > freshBalance) return
+    if (!isValidCryptoAddress(address.trim(), network)) {
+      setAddressError(lang === 'ru' ? 'Некорректный адрес для выбранной сети' : 'Invalid address for selected network')
+      return
+    }
+    if (!rateLimit('ref_withdraw', 3, 120_000)) return
+    const sanitizedAddr = sanitizeText(address.trim())
+    audit('ref_withdraw', user?.uid, { amount: amountNum, network, address: sanitizedAddr })
     const newId = `RW-${Date.now()}`
     spendRefBalance(amountNum)
-    addRefWithdrawal({ id: newId, amount: amountNum, network, address, status: 'pending' } as Parameters<typeof addRefWithdrawal>[0])
+    addRefWithdrawal({ id: newId, uid: user?.uid, amount: amountNum, network, address: sanitizedAddr, status: 'pending' } as Parameters<typeof addRefWithdrawal>[0])
     setCreatedId(newId)
     haptic('success')
     tgNotify(
-      `💸 Реферальный вывод\n🆔 ${newId}\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${address}`,
+      `💸 Реферальный вывод\n🆔 ${newId}\n👤 ${user?.username ? '@' + user.username : user?.full_name ?? '—'} (ID: ${user?.uid})\n💵 $${amountNum.toFixed(2)} · ${network.toUpperCase()}\n📬 ${sanitizedAddr}`,
     )
     setStep('done')
   }
@@ -687,33 +700,44 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       type="text"
                       placeholder={lang === 'ru' ? 'Вставьте адрес' : 'Paste address'}
                       value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      style={{ ...inputStyle, marginBottom: 8 }}
+                      onChange={(e) => { setAddress(e.target.value); setAddressError(null) }}
+                      style={{ ...inputStyle, marginBottom: 4, borderColor: addressError ? 'rgba(255,80,80,0.6)' : undefined }}
                     />
-                    <div
-                      style={{
-                        fontFamily: MONO,
-                        fontSize: 10,
-                        color: 'rgba(255,255,255,0.4)',
-                        marginBottom: 24,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                      }}
-                    >
-                      {lang === 'ru'
-                        ? 'Адрес должен соответствовать сети'
-                        : 'Address must match the network'}
-                    </div>
+                    {addressError ? (
+                      <div style={{ fontFamily: MONO, fontSize: 10, color: '#ff5050', marginBottom: 20, letterSpacing: '0.06em' }}>
+                        {addressError}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          fontFamily: MONO,
+                          fontSize: 10,
+                          color: network && address.trim().length >= 10 && isValidCryptoAddress(address.trim(), network) ? GREEN : 'rgba(255,255,255,0.4)',
+                          marginBottom: 20,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                        }}
+                      >
+                        {network && address.trim().length >= 10 && isValidCryptoAddress(address.trim(), network)
+                          ? (lang === 'ru' ? '✓ Адрес валиден' : '✓ Address valid')
+                          : (lang === 'ru' ? 'Адрес должен соответствовать сети' : 'Address must match the network')}
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <button style={{ ...ghostBtn, flex: 1 }} onClick={() => setStep('network')}>
+                      <button style={{ ...ghostBtn, flex: 1 }} onClick={() => { setStep('network'); setAddressError(null) }}>
                         ← {lang === 'ru' ? 'Назад' : 'Back'}
                       </button>
                       <div style={{ flex: 2 }}>
                         <button
-                          style={primaryBtn(address.trim().length < 10)}
-                          disabled={address.trim().length < 10}
+                          style={primaryBtn(!network || address.trim().length < 10 || !isValidCryptoAddress(address.trim(), network))}
+                          disabled={!network || address.trim().length < 10 || !isValidCryptoAddress(address.trim(), network)}
                           onClick={() => {
+                            if (network && !isValidCryptoAddress(address.trim(), network)) {
+                              setAddressError(lang === 'ru' ? 'Некорректный адрес для выбранной сети' : 'Invalid address for selected network')
+                              return
+                            }
                             haptic('light')
+                            setAddressError(null)
                             setStep('confirm')
                           }}
                         >

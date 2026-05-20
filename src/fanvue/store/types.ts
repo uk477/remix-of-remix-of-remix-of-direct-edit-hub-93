@@ -29,6 +29,7 @@ export type RefWithdrawalStatus = 'pending' | 'completed' | 'rejected'
 
 export interface RefWithdrawal {
   id: string
+  uid?: number
   amount: number
   network: CryptoNetwork
   address: string
@@ -186,4 +187,26 @@ export interface PaymentNotification {
  *   crypto_<network>         — переопределение лого крипты
  *   product_<id>             — фото товара
  */
+export interface Referral {
+  uid: number
+  username: string
+  full_name: string
+  photo_url?: string
+  joinedAt: string
+  totalSpent: number
+  purchaseCount: number
+}
+
+export interface RealSale {
+  id: string
+  uid: number
+  username: string
+  full_name: string
+  photo_url?: string
+  productTitle: string
+  productIndex: 0 | 1
+  amount: number
+  ts: number
+}
+
 export type PhotoKey = string

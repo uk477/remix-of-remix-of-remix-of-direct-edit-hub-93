@@ -45,6 +45,7 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const isAdmin  = useStore((s) => s.isAdmin)
+  const isAdminCheckDone = useStore((s) => s.isAdminCheckDone)
   const orders   = useStore((s) => s.orders)
   const tickets  = useStore((s) => s.supportTickets)
   const refW     = useStore((s) => s.refWithdrawals)
@@ -54,6 +55,13 @@ export default function AdminLayout() {
   const [notifOpen, setNotifOpen]     = useState(false)
   const [q, setQ]                     = useState('')
 
+  if (!isAdminCheckDone()) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', color: 'rgba(255,255,255,0.5)', fontSize: 13, letterSpacing: '0.15em' }}>
+        Verifying access…
+      </div>
+    )
+  }
   if (!isAdmin()) return <Navigate to="/" replace />
 
   const active = (path: string) =>

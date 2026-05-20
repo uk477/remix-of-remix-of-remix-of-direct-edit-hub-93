@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import CryptoLogo from '../components/CryptoLogo'
 import { useStore, CRYPTO_OPTIONS } from '../store'
-import { tgNotify } from '../utils/tgNotify'
+import { tgNotify, notifyUser, notifyAdmin } from '../utils/tgNotify'
 import type { RefWithdrawal } from '../store/types'
 
 type Tab = 'pending' | 'all'
@@ -57,20 +57,18 @@ function TxidInput({ id }: { id: string }) {
             if (!w) return
             completeRefWithdrawal(id, tx || '')
             const net = CRYPTO_OPTIONS.find((o) => o.id === w.network)
-            tgNotify(
-              [
-                '✅ Реферальная выплата',
-                '',
-                `💰 Сумма: $${w.amount.toFixed(2)}`,
-                `💎 Валюта: ${net?.name ?? w.network.toUpperCase()}`,
-                tx ? `🔗 TxID: ${tx}` : '',
-                '',
-                'Спасибо, что используете Fanvue Market!',
-                'Рады сотрудничеству 🤝',
-              ]
-                .filter(Boolean)
-                .join('\n'),
-            )
+            const userMsg = [
+              '✅ Реферальная выплата одобрена!',
+              '',
+              `💰 Сумма: $${w.amount.toFixed(2)}`,
+              `💎 Валюта: ${net?.name ?? w.network.toUpperCase()}`,
+              tx ? `🔗 TxID: ${tx}` : '',
+              '',
+              'Спасибо, что используете Fanvue Market!',
+              'Рады сотрудничеству 🤝',
+            ].filter(Boolean).join('\n')
+            if (w.uid) notifyUser(w.uid, userMsg)
+            notifyAdmin(`✅ Вывод одобрен\n🆔 ${w.id}\n💵 $${w.amount.toFixed(2)} · ${net?.name ?? w.network}\n${tx ? `🔗 ${tx}` : ''}`)
           }}
           whileTap={{ scale: 0.97 }}
         >
@@ -111,17 +109,24 @@ function TxidInput({ id }: { id: string }) {
                 completedAt: new Date().toISOString(),
                 rejectReason: trimmed,
               })
-              tgNotify(
-                [
+              if (w?.uid) {
+                notifyUser(w.uid, [
                   '❌ Заявка на вывод отклонена',
-                  w ? `🆔 ${w.id}` : '',
-                  w ? `💵 $${w.amount.toFixed(2)} возвращены на баланс` : '',
+                  '',
+                  `🆔 ${w.id}`,
+                  `💵 $${w.amount.toFixed(2)} возвращены на реф. баланс`,
                   '',
                   `📝 Причина: ${trimmed}`,
-                ]
-                  .filter(Boolean)
-                  .join('\n'),
-              )
+                  '',
+                  'Если у вас есть вопросы — обратитесь в поддержку.',
+                ].join('\n'))
+              }
+              notifyAdmin([
+                '❌ Вывод отклонён',
+                w ? `🆔 ${w.id}` : '',
+                w ? `💵 $${w.amount.toFixed(2)} возвращены` : '',
+                `📝 ${trimmed}`,
+              ].filter(Boolean).join('\n'))
               setShowReason(false)
               setReason('')
             }}
