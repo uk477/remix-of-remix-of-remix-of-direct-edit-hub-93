@@ -879,10 +879,16 @@ export const useStore = create<AppStore>()(
     }),
     {
       name: 'fanvue-app-v7',
-      version: 10,
+      version: 11,
       migrate: (state: unknown) => {
-        // clear old mock paid orders so home banner doesn't persist
         const s = state as Partial<AppStore>
+        // v11: wipe fake mock data from earlier versions
+        if (s.user && (s.user.balance === 124.5 || s.user.full_name === 'Ivan')) {
+          s.user = { ...s.user, balance: 0, spent: 0, purchases: 0, ref_earned: 0, ref_count: 0, ref_balance: 0 }
+        }
+        if (Array.isArray(s.orders)) {
+          s.orders = s.orders.filter((o) => !o.id.startsWith('ORD-L') && !o.id.startsWith('DEP-L'))
+        }
         // ensure newly added crypto networks (e.g. ton) get default empty addresses
         s.cryptoAddresses = { ...CONFIG.addresses, ...(s.cryptoAddresses ?? {}) } as typeof s.cryptoAddresses
         if (Array.isArray(s.products)) {
