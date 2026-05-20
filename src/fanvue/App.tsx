@@ -56,6 +56,10 @@ function AppInner() {
   useEffect(() => {
     init()
     initUser()
+
+    const block = (e: Event) => e.preventDefault()
+    document.addEventListener('contextmenu', block, { passive: false })
+    return () => document.removeEventListener('contextmenu', block)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
