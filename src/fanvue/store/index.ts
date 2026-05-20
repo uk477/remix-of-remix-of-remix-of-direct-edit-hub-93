@@ -214,7 +214,7 @@ export const useStore = create<AppStore>()(
     (set, get) => ({
       lang: 'ru',
       langUserSet: false,
-      user: null,
+      user: MOCK_USER,
       categories: MOCK_CATEGORIES,
       products: MOCK_PRODUCTS,
       orders: MOCK_ORDERS,
@@ -945,6 +945,7 @@ export const useStore = create<AppStore>()(
         return s
       },
       partialize: (s) => ({
+        user: s.user,
         lang: s.lang,
         langUserSet: s.langUserSet,
         cryptoAddresses: s.cryptoAddresses,
