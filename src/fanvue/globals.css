@@ -111,7 +111,7 @@ html {
   font-size: 15px;
 }
 body {
-  width: 100vw; height: 100dvh; overflow: hidden;
+  width: 100vw; height: 100vh; height: 100vh; overflow: hidden;
   background:
     radial-gradient(140% 70% at 50% -20%, rgba(232,201,140,0.07) 0%, transparent 55%),
     radial-gradient(80% 60% at 100% 110%, rgba(151,136,196,0.04) 0%, transparent 55%),
@@ -140,7 +140,7 @@ input, textarea, select {
 /* ─── LAYOUT ─────────────────────────────────────────── */
 .app { position: relative; width: 100%; height: 100%; overflow: hidden; }
 .scroll-area {
-  width: 100%; height: calc(100dvh - 68px - env(safe-area-inset-bottom, 0px));
+  width: 100%; height: calc(100vh - 68px - env(safe-area-inset-bottom, 0px));
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -562,7 +562,7 @@ body {
 
 /* override scroll-area to match floating dock */
 .scroll-area.vault-scroll {
-  height: 100dvh;
+  height: 100vh;
   padding-bottom: 0;
 }
 
@@ -570,7 +570,7 @@ body {
 .vault-shell {
   position: relative;
   width: 100%;
-  height: 100dvh;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -661,7 +661,7 @@ body {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   width: 100%;
-  height: 100dvh;
+  height: 100vh;
   display: flex; flex-direction: column;
   padding: calc(120px + var(--tg-top)) var(--vault-px) calc(var(--dock-h) + var(--strip-h) + 28px);
 }
@@ -925,7 +925,7 @@ body {
 
 /* ─── PRODUCT DETAIL — cinematic ─────────────────────── */
 .detail-shell {
-  position: relative; width: 100%; min-height: 100dvh;
+  position: relative; width: 100%; min-height: 100vh;
   background: var(--graphite);
   overflow: hidden;
 }
@@ -988,7 +988,7 @@ body {
 .vault-page {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(18px, var(--tg-top, 18px) + 8px) var(--vault-px) calc(var(--dock-h) + 64px);
 }
 
@@ -1418,8 +1418,8 @@ body {
 body::after { display: none; }
 #root { background: var(--fv-black); }
 .app { background: var(--fv-black); }
-.scroll-area { height: calc(100dvh - var(--fv-nav-h)); }
-.scroll-area.vault-scroll { height: 100dvh; }
+.scroll-area { height: calc(100vh - var(--fv-nav-h)); }
+.scroll-area.vault-scroll { height: 100vh; }
 
 .fv-bg {
   position: fixed;
@@ -1497,7 +1497,7 @@ body::after { display: none; }
 .fv-home {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(14px, var(--tg-top, 14px)) 14px calc(var(--fv-nav-h) + 24px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
@@ -1555,7 +1555,7 @@ body::after { display: none; }
 
 .fv-hero {
   position: relative;
-  min-height: min(680px, calc(100dvh - 98px));
+  min-height: min(680px, calc(100vh - 98px));
   border-radius: 34px;
   overflow: hidden;
   background: var(--fv-panel);
@@ -1964,7 +1964,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .fv-detail-shell {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding-bottom: 24px;
   color: var(--fv-text);
   background: var(--fv-black);
@@ -2754,7 +2754,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .fv-deposit {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(14px, var(--tg-top, 14px)) 14px 24px;
   background:
     radial-gradient(70% 36% at 80% 0%, rgba(57,255,99,0.20), transparent 60%),
@@ -2856,7 +2856,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .mk {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(14px, var(--tg-top, 14px)) 16px calc(var(--fv-nav-h) + 32px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
@@ -3283,7 +3283,7 @@ body.fv-game-open .fv-nav { display: none !important; }
    ═══════════════════════════════════════════════════════════════ */
 .shop {
   position: relative; z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(10px, var(--tg-top, 10px)) 10px calc(var(--fv-nav-h) + 22px + env(safe-area-inset-bottom, 0px));
   color: var(--fv-text);
 }
@@ -4466,7 +4466,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .dpz {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(14px, var(--tg-top, 14px)) 14px calc(28px + env(safe-area-inset-bottom, 0px));
   background: #07080a;
   color: var(--fv-text);
@@ -5386,7 +5386,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .pd-shell {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(12px, var(--tg-top, 12px)) 0 0;
   color: var(--fv-text);
   background:
@@ -5782,7 +5782,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .pdb-shell {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  min-height: 100vh;
   padding: 0 0 16px;
   color: var(--fv-text);
   background: #050605;
@@ -7211,7 +7211,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .admin-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100vh;
   background: #0a0a0a;
 }
 .admin-topbar {
@@ -7321,7 +7321,7 @@ body.fv-game-open .fv-nav { display: none !important; }
   background: radial-gradient(120% 80% at 50% 0%, #14110d 0%, #08070a 60%);
   position: relative;
   overflow: hidden;
-  height: 100dvh;
+  height: 100vh;
   min-height: 0;
 }
 .adm2-aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }

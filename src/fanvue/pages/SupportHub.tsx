@@ -50,7 +50,7 @@ export default function SupportHub() {
     <PageTransition>
       <div
         style={{
-          minHeight: '100dvh',
+          minHeight: '100vh',
           padding: '24px 20px max(40px, calc(env(safe-area-inset-bottom,0px) + 28px))',
           display: 'flex',
           flexDirection: 'column',

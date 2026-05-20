@@ -39,7 +39,7 @@ const HIDE_NAV = ['/deposit', '/settings', '/admin', '/support', '/referral-cale
 function MaintenanceScreen() {
   const lang = useStore((s) => s.lang)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100dvh', padding: 32, textAlign: 'center', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: 32, textAlign: 'center', gap: 16 }}>
       <div style={{ fontSize: 56 }}>🔧</div>
       <div className="t-lg fw-black">{lang === 'ru' ? 'Технические работы' : 'Maintenance'}</div>
       <div className="t-sm t-muted">{lang === 'ru' ? 'Магазин временно недоступен. Вернитесь через несколько минут.' : 'The shop is temporarily unavailable. Please check back in a few minutes.'}</div>
@@ -111,7 +111,7 @@ function AppInner() {
       <div
         id="main-content"
         className={`scroll-area${location.pathname === '/' ? ' vault-scroll' : ''}`}
-        style={{ height: location.pathname === '/' ? '100dvh' : (showNav ? undefined : '100dvh') }}
+        style={{ height: location.pathname === '/' ? '100vh' : (showNav ? undefined : '100vh') }}
         role="main"
       >
         <Routes location={location}>

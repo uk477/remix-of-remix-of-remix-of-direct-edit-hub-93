@@ -421,7 +421,7 @@ export default function AdminSupport() {
           {openUid && chatUser && (
             <motion.div key="chat"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
-              style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 70px - 48px - 32px)', minHeight: 0 }}
+              style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 70px - 48px - 32px)', minHeight: 0 }}
             >
               {/* ── Cockpit header ── */}
               <div style={{

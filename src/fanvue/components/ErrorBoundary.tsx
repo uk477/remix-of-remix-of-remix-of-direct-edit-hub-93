@@ -38,7 +38,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '100dvh',
+            height: '100vh',
             padding: 32,
             textAlign: 'center',
             gap: 16,
