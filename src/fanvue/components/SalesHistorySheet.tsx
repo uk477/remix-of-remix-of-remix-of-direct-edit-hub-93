@@ -92,7 +92,7 @@ export default function SalesHistorySheet({ open, onClose, lang, productTitle }:
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+            transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
           >
             <div className="hist-grab" />
 

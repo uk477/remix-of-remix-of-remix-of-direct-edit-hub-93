@@ -30,6 +30,7 @@ export default function Profile() {
   const lang = useStore((s) => s.lang) as 'ru' | 'en'
   const user = useStore((s) => s.user)
   const supportUnread = useStore((s) => s.supportUnread)
+  const adminVerified = useStore((s) => s._adminVerified)
   const { haptic } = useTelegram()
   const toast = useToast()
 
@@ -411,7 +412,7 @@ export default function Profile() {
         </div>
 
         {/* Admin */}
-        {useStore.getState().isAdmin() && (
+        {adminVerified && (
           <button
             onClick={() => navigate('/admin')}
             style={{

@@ -7291,6 +7291,7 @@ body.fv-game-open .fv-nav { display: none !important; }
 .sheet {
   width: 100%;
   max-width: 560px;
+  max-height: 92dvh;
   background: #0b0b0b;
   border-top-left-radius: 22px;
   border-top-right-radius: 22px;
@@ -7299,7 +7300,10 @@ body.fv-game-open .fv-nav { display: none !important; }
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   padding: 14px 18px 24px;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   position: relative;
 }
 .sheet-handle {

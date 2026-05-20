@@ -58,12 +58,14 @@ export default function PaymentWaiting({
       setTimer((p) => {
         if (p <= 1) {
           if (intervalRef.current) clearInterval(intervalRef.current)
+          onCancel()
           return 0
         }
         return p - 1
       })
     }, 1000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Step animation: 0 → 1 after 1.5s, demo only
@@ -82,7 +84,7 @@ export default function PaymentWaiting({
         haptic('success')
         setTimeout(onSuccess, 1200)
       } else if (s === 'expired' || s === 'failed') {
-        haptic('error')
+        onCancel()
       }
     }
     pollRef.current = window.setInterval(tick, CONFIG.pollIntervalMs)

@@ -30,17 +30,17 @@ export const CRYPTO_OPTIONS: CryptoOption[] = [
 ]
 
 const MOCK_USER: User = {
-  uid: 123456789,
-  username: 'ivan_user',
-  full_name: 'Ivan',
+  uid: 0,
+  username: '',
+  full_name: '',
   lang: 'ru',
-  balance: 124.50,
-  spent: 287.30,
-  purchases: 12,
-  ref_earned: 15.20,
-  ref_count: 3,
+  balance: 0,
+  spent: 0,
+  purchases: 0,
+  ref_earned: 0,
+  ref_count: 0,
   ref_balance: 0,
-  created: '2024-01-15',
+  created: new Date().toISOString().slice(0, 10),
 }
 
 const MOCK_CATEGORIES: Category[] = [
@@ -67,26 +67,7 @@ const MOCK_PRODUCTS: Product[] = [
   },
 ]
 
-const MOCK_ORDERS: Order[] = [
-  {
-    id: 'ORD-LSXG4A-K3M2', kind: 'buy', orderNum: 1,
-    product_title: 'Fanvue Creator — Старт',
-    amount: 18.00, status: 'completed',
-    quantity: 1, created: '2024-03-10T14:22:00Z', paid_at: '2024-03-10T14:23:00Z',
-  },
-  {
-    id: 'DEP-LSUVK2-9F7B', kind: 'deposit', orderNum: 1,
-    amount: 50.00, status: 'completed',
-    provider: 'trc20', created: '2024-03-08T10:05:00Z', paid_at: '2024-03-08T10:07:00Z',
-    txid: '3EK9a8f2c1b4d9e8f1a2b3c4d5e6f7g8h9i0j1k2l3mQ72',
-  },
-  {
-    id: 'ORD-LT2N8P-X7QA', kind: 'buy', orderNum: 2,
-    product_title: 'Верификация Создателя',
-    amount: 45.00, status: 'completed',
-    quantity: 1, created: '2024-03-12T18:00:00Z', paid_at: '2024-03-12T18:02:00Z',
-  },
-]
+const MOCK_ORDERS: Order[] = []
 
 // Empty by default — bot triage greeting will be shown
 const MOCK_SUPPORT: SupportMessage[] = []
@@ -300,7 +281,7 @@ export const useStore = create<AppStore>()(
           if (deduped.length !== cur.length) set({ stickHeroScores: deduped })
         }
         try {
-          type TGUser = { id?: number; username?: string; first_name?: string; language_code?: string; photo_url?: string }
+          type TGUser = { id?: number; username?: string; first_name?: string; last_name?: string; language_code?: string; photo_url?: string }
           const tg = (window as Window & { Telegram?: { WebApp?: { initDataUnsafe?: { user?: TGUser } } } }).Telegram?.WebApp
           const tgUser = tg?.initDataUnsafe?.user
           const state = get()
@@ -310,7 +291,7 @@ export const useStore = create<AppStore>()(
               ...MOCK_USER,
               uid: tgUser.id ?? MOCK_USER.uid,
               username: tgUser.username ?? MOCK_USER.username,
-              full_name: tgUser.first_name ?? MOCK_USER.full_name,
+              full_name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || MOCK_USER.full_name,
               photo_url: tgUser.photo_url,
             }
             set({

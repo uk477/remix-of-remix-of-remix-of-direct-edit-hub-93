@@ -73,19 +73,19 @@ function authHeaders(): HeadersInit {
 async function fetchWithRetry(
   input: RequestInfo,
   init: RequestInit,
-  retries = 2,
+  retries = 1,
 ): Promise<Response> {
   for (let i = 0; i <= retries; i++) {
     try {
       const ctrl = new AbortController()
-      const timer = setTimeout(() => ctrl.abort(), 8_000)
+      const timer = setTimeout(() => ctrl.abort(), 5_000)
       const res = await fetch(input, { ...init, signal: ctrl.signal })
       clearTimeout(timer)
       if (res.ok || i === retries) return res
     } catch (e) {
       if (i === retries) throw e
     }
-    await new Promise((r) => setTimeout(r, 500 * (i + 1)))
+    await new Promise((r) => setTimeout(r, 300))
   }
   throw new Error('fetch failed')
 }

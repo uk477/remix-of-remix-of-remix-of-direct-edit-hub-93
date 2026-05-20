@@ -66,6 +66,7 @@ export default function Deposit() {
   const creditDeposit = useStore((s) => s.creditDeposit)
   const cancelPendingDeposits = useStore((s) => s.cancelPendingDeposits)
   const setOrderStatus = useStore((s) => s.setOrderStatus)
+  const [creating, setCreating] = useState(false)
 
   // Auto-expire any pending deposit older than the timeout when opening the page
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function Deposit() {
   }
 
   const handleSelectNetwork = async () => {
-    if (!network || !user) return
+    if (!network || !user || creating) return
     if (!isValidAmount(numAmount, 1, 50_000)) {
       toast.show(lang === 'ru' ? 'Некорректная сумма' : 'Invalid amount', 'error')
       return
@@ -115,6 +116,7 @@ export default function Deposit() {
       toast.show(lang === 'ru' ? 'Подождите перед следующим депозитом' : 'Wait before next deposit', 'error')
       return
     }
+    setCreating(true)
     haptic('medium')
     audit('deposit_start', user.uid, { amount: numAmount, network })
     cancelPendingDeposits(network)
@@ -125,6 +127,7 @@ export default function Deposit() {
     addOrder({ id: orderId, orderNum: depositCount, kind: 'deposit', amount: uniqueAmount, status: 'pending', provider: network, created: new Date().toISOString() })
     setPendingOrder({ id: orderId, uniqueAmount, createdAt: new Date().toISOString() })
     addNotification({ orderId, kind: 'deposit', amountUsd: numAmount, uniqueAmount, network })
+    setCreating(false)
     setStep('pay')
   }
 
