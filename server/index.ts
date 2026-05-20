@@ -27,7 +27,7 @@ app.get("/api/health", (_req, res) => {
 // ── Serve static SPA from dist/ ─────────────────────────────────────
 app.use(express.static(DIST, { maxAge: "1y", immutable: true }));
 
-app.get("*", (_req, res) => {
+app.get("/{*splat}", (_req, res) => {
   res.sendFile(path.join(DIST, "index.html"));
 });
 
