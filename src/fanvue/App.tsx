@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
+// AnimatePresence removed — caused blank screen in Telegram WebView
 import ErrorBoundary from './components/ErrorBoundary'
 import BackgroundOrbs from './components/BackgroundOrbs'
 import Navigation from './components/Navigation'
@@ -115,21 +115,19 @@ function AppInner() {
         style={{ height: location.pathname === '/' ? '100dvh' : (showNav ? undefined : '100dvh') }}
         role="main"
       >
-        <AnimatePresence mode="popLayout">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Home />} />
-            <Route path="/market" element={<Market />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/deposit" element={<Deposit />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/deposits" element={<Deposits />} />
-            <Route path="/support" element={<SupportHub />} />
-            <Route path="/support/chat" element={<Support />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/referral-calendar" element={<RefCalendar />} />
-          </Routes>
-        </AnimatePresence>
+        <Routes location={location}>
+          <Route path="/" element={<Home />} />
+          <Route path="/market" element={<Market />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/deposits" element={<Deposits />} />
+          <Route path="/support" element={<SupportHub />} />
+          <Route path="/support/chat" element={<Support />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/referral-calendar" element={<RefCalendar />} />
+        </Routes>
       </div>
       {showNav && <Navigation />}
     </div>
