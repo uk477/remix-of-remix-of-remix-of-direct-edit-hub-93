@@ -345,11 +345,7 @@ export default function NotificationBell() {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={{ top: 0, bottom: 0.4 }}
-              onDragEnd={(_, info) => { if (info.offset.y > 60) setActiveNotif(null) }}
+              transition={{ type: 'tween', duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             >
               <div className="sheet-handle" style={{ cursor: 'grab' }} />
               {(() => {

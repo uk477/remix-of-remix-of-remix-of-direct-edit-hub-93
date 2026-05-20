@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type CSSProperties, type PointerEvent } from 'react'
-import { motion, AnimatePresence, useDragControls } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { tgNotify } from '../utils/tgNotify'
@@ -133,7 +133,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
   const [createdId, setCreatedId] = useState<string | null>(null)
 
   const trackRef = useRef<HTMLDivElement>(null)
-  const dragControls = useDragControls()
+
   const swipeProgressRef = useRef(0)
   const [trackW, setTrackW] = useState(0)
   const [swipeX, setSwipeX] = useState(0)
@@ -283,15 +283,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-            drag="y"
-            dragListener={false}
-            dragControls={dragControls}
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.4 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 80) onClose()
-            }}
+            transition={{ type: 'tween', duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             style={{
               position: 'fixed',
               left: 0,
@@ -309,10 +301,10 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
-            {/* Drag handle */}
+            {/* Handle + close */}
             <div
-              onPointerDown={(e) => dragControls.start(e)}
-              style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'grab', touchAction: 'none' }}
+              onClick={onClose}
+              style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0, cursor: 'pointer' }}
             >
               <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }} />
             </div>

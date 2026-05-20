@@ -136,11 +136,7 @@ export default function OrderDetailModal({ order, onClose }: Props) {
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
-          transition={{ type: 'tween', duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.4 }}
-          onDragEnd={(_, info) => { if (info.offset.y > 60) onClose() }}
+          transition={{ type: 'tween', duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
           style={{
             width: '100%', maxWidth: 480, maxHeight: '94dvh', overflowY: 'auto',
             background: INK,

@@ -986,7 +986,6 @@ export default function Support() {
         flexDirection: "column",
         paddingTop: "var(--tg-top)",
         paddingBottom: kbHeight > 0 ? kbHeight : 0,
-        transition: "padding-bottom 100ms ease",
         overflow: "hidden",
         background: C.bg,
         color: C.text,

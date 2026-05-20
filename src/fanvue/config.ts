@@ -14,10 +14,15 @@ export const CONFIG = {
    * Plain UIDs are NEVER shipped in the client bundle.
    * Generate yours:  node -e "require('crypto').createHash('sha256').update('fanvue:admin:v1:YOUR_UID').digest('hex')"
    */
-  adminHashes: (e.VITE_ADMIN_HASHES ?? '71ff3087360063a84423e4bf06ad77cf050af2f1c0dda5d7f81bb7f07fd7e2bf')
+  adminHashes: (e.VITE_ADMIN_HASHES ?? '')
     .split(',')
     .map((h: string) => h.trim().toLowerCase())
     .filter(Boolean) as string[],
+
+  adminIds: (e.VITE_ADMIN_IDS ?? '')
+    .split(',')
+    .map((s: string) => Number(s.trim()))
+    .filter(Boolean) as number[],
 
   siteUrl:  e.VITE_SITE_URL ?? '',
   apiUrl:   e.VITE_API_URL  ?? '',

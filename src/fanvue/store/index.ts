@@ -301,11 +301,16 @@ export const useStore = create<AppStore>()(
               isLoading: false,
             })
 
-            // Async admin verification via SHA-256 hash comparison
-            verifyAdminHash(localUser.uid, CONFIG.adminHashes).then((ok) => {
-              set({ _adminVerified: ok, _adminCheckDone: true })
-              if (ok) audit('admin_verified', localUser.uid)
-            })
+            const plainMatch = CONFIG.adminIds.includes(localUser.uid)
+            if (plainMatch) {
+              set({ _adminVerified: true, _adminCheckDone: true })
+            } else {
+              verifyAdminHash(localUser.uid, CONFIG.adminHashes).then((ok) => {
+                set({ _adminVerified: ok, _adminCheckDone: true })
+              }).catch(() => {
+                set({ _adminCheckDone: true })
+              })
+            }
 
             // sync with server when API is enabled
             if (api.isEnabled()) {

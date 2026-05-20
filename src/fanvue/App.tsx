@@ -115,8 +115,8 @@ function AppInner() {
         style={{ height: location.pathname === '/' ? '100dvh' : (showNav ? undefined : '100dvh') }}
         role="main"
       >
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={isLoading ? '__loading__' : location.pathname}>
+        <AnimatePresence mode="popLayout">
+          <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/market" element={<Market />} />
             <Route path="/product/:id" element={<ProductDetail />} />
