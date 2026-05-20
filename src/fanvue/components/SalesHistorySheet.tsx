@@ -82,7 +82,7 @@ export default function SalesHistorySheet({ open, onClose, lang, productTitle }:
       {open && (
         <motion.div
           className="hist-overlay"
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
@@ -180,7 +180,7 @@ export default function SalesHistorySheet({ open, onClose, lang, productTitle }:
                   {sales.map((s, idx) => (
                     <motion.li
                       key={idx}
-                      initial={{ opacity: 0, y: 6 }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.03 }}
                     >

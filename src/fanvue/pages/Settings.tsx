@@ -373,7 +373,7 @@ Always provide your **Order ID** when contacting support.`,
     <motion.div
       className="modal-overlay"
       data-closing={closingRef.current ? 'true' : undefined}
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: visible ? 1 : 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
@@ -709,7 +709,7 @@ export default function Settings() {
               {/* anvue with logo F mark */}
               <div style={{ display: 'flex', alignItems: 'baseline', position: 'relative' }}>
                 <motion.span
-                  initial={{ opacity: 0, x: -16, rotate: -18, scale: 0.7 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                   whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.6 } }}
@@ -730,7 +730,7 @@ export default function Settings() {
                   }}
                 />
                 <motion.span
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
                   style={{
@@ -744,7 +744,7 @@ export default function Settings() {
               </div>
 
               <motion.div
-                initial={{ opacity: 0, y: 14 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.35 }}
                 style={{

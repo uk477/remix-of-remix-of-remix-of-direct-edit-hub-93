@@ -187,7 +187,7 @@ export default function Deposit() {
           {step === 'amount' && (
             <motion.section
               key="amount" className="dpz-card"
-              initial={{ opacity: 0, y: 16 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.32, ease: EASE }}
@@ -226,7 +226,7 @@ export default function Deposit() {
                 {numAmount > 0 && numAmount < 5 && (
                   <motion.p
                     className="dpz-warn"
-                    initial={{ opacity: 0, y: -4 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                   >
@@ -261,7 +261,7 @@ export default function Deposit() {
           {step === 'network' && (
             <motion.section
               key="network" className="dpz-card"
-              initial={{ opacity: 0, y: 16 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.32, ease: EASE }}
@@ -290,7 +290,7 @@ export default function Deposit() {
           {step === 'pay' && cryptoOption && pendingOrder && (
             <motion.section
               key="pay" className="dpz-card dpz-card--pay"
-              initial={{ opacity: 0, scale: 0.97 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.45, ease: EASE }}
@@ -315,7 +315,7 @@ export default function Deposit() {
           {step === 'success' && pendingOrder && (
             <motion.section
               key="success" className="dpz-card dpz-success"
-              initial={{ opacity: 0, scale: 0.92 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: EASE }}
             >
@@ -369,7 +369,7 @@ export function NetworkPicker({
           <motion.div
             key={g.coin}
             className={`dpz-coin-wrap${open ? ' is-open' : ''}${groupSel ? ' is-sel' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.35, ease: EASE }}
           >
@@ -411,7 +411,7 @@ export function NetworkPicker({
               {open && !single && (
                 <motion.div
                   className="dpz-nets"
-                  initial={{ height: 0, opacity: 0 }}
+                  initial={false}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.28, ease: EASE }}
@@ -424,7 +424,7 @@ export function NetworkPicker({
                           key={n.id}
                           className={`dpz-net${isSel ? ' is-sel' : ''}`}
                           onClick={() => onSelect(n.id)}
-                          initial={{ opacity: 0, x: -6 }}
+                          initial={false}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: ni * 0.04, duration: 0.22, ease: EASE }}
                           whileTap={{ scale: 0.98 }}
@@ -592,7 +592,7 @@ export function PayPanel({
             className="dpz-pay-hero-num dpz-pay-hero-num--btn"
             onClick={onCopyAmount}
             key={String(cryptoAmount)}
-            initial={{ y: 6, opacity: 0 }}
+            initial={false}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.36, ease: EASE }}
             whileTap={{ scale: 0.97 }}
@@ -608,7 +608,7 @@ export function PayPanel({
 
         <motion.div
           className="dpz-pay-qr"
-          initial={{ scale: 0.94, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.4, ease: EASE }}
         >
@@ -638,7 +638,7 @@ export function PayPanel({
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={copied ? 'ok' : 'cp'}
-                initial={{ opacity: 0, y: 4 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}

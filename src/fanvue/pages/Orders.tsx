@@ -95,7 +95,7 @@ export default function Orders() {
       >
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -185,7 +185,7 @@ export default function Orders() {
         <AnimatePresence mode="wait">
           <motion.div
             key={filter}
-            initial={{ opacity: 0, y: 6 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}

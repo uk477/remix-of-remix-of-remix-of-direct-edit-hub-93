@@ -25,7 +25,7 @@ export default function QuantitySelector({
         <motion.span
           key={value}
           className="qty-val"
-          initial={{ scale: 0.7, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         >

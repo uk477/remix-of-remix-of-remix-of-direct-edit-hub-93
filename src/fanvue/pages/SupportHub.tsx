@@ -84,7 +84,7 @@ export default function SupportHub() {
         {/* Header */}
         <motion.header
           style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-          initial={{ opacity: 0, y: -10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease }}
         >
@@ -127,7 +127,7 @@ export default function SupportHub() {
         {/* Title */}
         <motion.div
           style={{ position: 'relative', zIndex: 1, marginTop: 4 }}
-          initial={{ opacity: 0, y: 14 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease, delay: 0.05 }}
         >
@@ -171,7 +171,7 @@ export default function SupportHub() {
           {/* In-app chat */}
           <motion.button
             onClick={openChat}
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease, delay: 0.15 }}
             whileHover={{ y: -2 }}
@@ -311,7 +311,7 @@ export default function SupportHub() {
           {/* Telegram direct */}
           <motion.button
             onClick={openTg}
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease, delay: 0.25 }}
             whileHover={{ y: -2 }}
@@ -403,7 +403,7 @@ export default function SupportHub() {
 
         {/* Bottom note */}
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
           style={{

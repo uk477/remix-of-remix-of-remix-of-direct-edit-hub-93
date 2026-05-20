@@ -105,7 +105,7 @@ function TerminalHeader({ title, subtitle, statusLabel }: { title: string; subti
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <motion.span
-          initial={{ opacity: 0, y: -4 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           style={{
             padding: '3px 8px', borderRadius: 4,
@@ -129,7 +129,7 @@ function TerminalHeader({ title, subtitle, statusLabel }: { title: string; subti
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <motion.h2
-          initial={{ opacity: 0, y: 6 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           style={{
@@ -163,7 +163,7 @@ function OrderRefBlock({ orderId, onCopy, labelKey }: { orderId: string; onCopy:
     <motion.button
       onClick={onCopy}
       whileTap={{ scale: 0.985 }}
-      initial={{ opacity: 0, y: 6 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
       style={{
@@ -214,7 +214,7 @@ function ActionButtons({ onChat, tgUrl, chatLabel, tgLabel, telegramPrimary = fa
         <motion.button
           onClick={onChat}
           whileTap={{ scale: 0.98 }}
-          initial={{ opacity: 0, y: 6 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
           style={{
@@ -231,7 +231,7 @@ function ActionButtons({ onChat, tgUrl, chatLabel, tgLabel, telegramPrimary = fa
       <motion.a
         href={tgUrl} target="_blank" rel="noopener noreferrer"
         whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0, y: 6 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
         style={{
@@ -310,7 +310,7 @@ function BrandCredCard({
     : {}
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
       style={{
@@ -481,7 +481,7 @@ export default function DeliveryBlock({ data, orderId }: { data: string; orderId
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => haptic('light')}
-              initial={{ opacity: 0, y: 6 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.26 }}
               whileTap={{ scale: 0.98 }}
@@ -580,7 +580,7 @@ export function ManualDeliveryBlock({
 
       {/* Tech specs grid */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={false}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.14 }}
         style={{

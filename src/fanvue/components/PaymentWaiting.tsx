@@ -128,7 +128,7 @@ export default function PaymentWaiting({
         </div>
         <motion.div
           key={Math.floor(timer / 10)}
-          initial={{ scale: 0.95, opacity: 0.7 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           className="badge"
           style={{
@@ -153,7 +153,7 @@ export default function PaymentWaiting({
       {/* QR — client-side generated, always visible */}
       <motion.div
         className="qr-frame mb-4"
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 22 }}
       >
@@ -184,7 +184,7 @@ export default function PaymentWaiting({
         </div>
         <motion.div
           key={cryptoAmount}
-          initial={{ scale: 0.92, opacity: 0.6 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           style={{
             fontSize: 36, fontWeight: 900, letterSpacing: '-0.02em',
@@ -212,7 +212,7 @@ export default function PaymentWaiting({
           <AnimatePresence mode="wait">
             <motion.span
               key={copied ? 'ok' : 'cp'}
-              initial={{ opacity: 0, y: 4 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
@@ -235,7 +235,7 @@ export default function PaymentWaiting({
             <motion.div
               key={i}
               className="status-step"
-              initial={{ opacity: 0, x: -10 }}
+              initial={false}
               animate={{ opacity: reached ? 1 : 0.35, x: 0 }}
               transition={{ delay: i * 0.05 }}
             >

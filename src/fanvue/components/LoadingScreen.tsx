@@ -5,7 +5,7 @@ export default function LoadingScreen() {
     <div className="fv-loader">
       <motion.div
         className="fv-loader-mark"
-        initial={{ scale: 0.86, opacity: 0 }}
+        initial={false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       >

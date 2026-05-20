@@ -110,7 +110,7 @@ export default function ReferralCard() {
 
         {/* Ref balance — always visible */}
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           style={{
             background: user.ref_balance > 0
@@ -193,15 +193,15 @@ export default function ReferralCard() {
 
           <AnimatePresence mode="wait">
             {refReward.claimed ? (
-              <motion.div key="claimed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="t-sm t-brand fw-bold">
+              <motion.div key="claimed" initial={false} animate={{ opacity: 1 }} className="t-sm t-brand fw-bold">
                 ✓ {t('ref_claimed')}
               </motion.div>
             ) : isComplete ? (
-              <motion.div key="complete" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="t-sm fw-bold" style={{ color: 'var(--success)' }}>
+              <motion.div key="complete" initial={false} animate={{ opacity: 1 }} className="t-sm fw-bold" style={{ color: 'var(--success)' }}>
                 🎉 {lang === 'ru' ? 'Цель достигнута! +$100 бонус!' : 'Goal reached! +$100 bonus!'}
               </motion.div>
             ) : (
-              <motion.div key="needed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="t-xs t-muted">
+              <motion.div key="needed" initial={false} animate={{ opacity: 1 }} className="t-xs t-muted">
                 {t('ref_needed')} {needed} {t('ref_referrals')}
               </motion.div>
             )}
@@ -262,7 +262,7 @@ export default function ReferralCard() {
             <AnimatePresence mode="wait">
               <motion.span
                 key={copied ? 'ok' : 'copy'}
-                initial={{ opacity: 0, y: 4 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}

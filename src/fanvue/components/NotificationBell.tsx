@@ -131,7 +131,7 @@ export default function NotificationBell() {
           {unread > 0 && (
             <motion.div
               key="badge"
-              initial={{ scale: 0, opacity: 0 }}
+              initial={false}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 500, damping: 20 }}
@@ -162,7 +162,7 @@ export default function NotificationBell() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, zIndex: 45 }}
@@ -175,7 +175,7 @@ export default function NotificationBell() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.94 }}
+            initial={false}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.94 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
@@ -219,7 +219,7 @@ export default function NotificationBell() {
               return (
                 <motion.div
                   key={n.orderId}
-                  initial={{ opacity: 0, x: -6 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.03 }}
                   style={{
@@ -335,7 +335,7 @@ export default function NotificationBell() {
         {activeNotif && (
           <motion.div
             className="modal-overlay"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(e) => { if (e.target === e.currentTarget) setActiveNotif(null) }}

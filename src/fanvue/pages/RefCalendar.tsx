@@ -138,7 +138,7 @@ export default function RefCalendar() {
       <div className="page">
 
         {/* Header */}
-        <motion.div className="row-between mb-4" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className="row-between mb-4" initial={false} animate={{ opacity: 1, y: 0 }}>
           <motion.button
             onClick={() => navigate(-1)}
             style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t-muted)' }}
@@ -164,7 +164,7 @@ export default function RefCalendar() {
         {/* Monthly earnings card */}
         <motion.div
           className="balance-card mb-4"
-          initial={{ opacity: 0, scale: 0.96 }}
+          initial={false}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.05 }}
           style={{ padding: '18px 20px' }}
@@ -216,11 +216,11 @@ export default function RefCalendar() {
 
           <AnimatePresence mode="wait">
             {progress >= GOAL ? (
-              <motion.div key="done" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="t-sm fw-bold" style={{ color: '#FFD700' }}>
+              <motion.div key="done" initial={false} animate={{ opacity: 1, y: 0 }} className="t-sm fw-bold" style={{ color: '#FFD700' }}>
                 🎉 {lang === 'ru' ? `Цель! $${GOAL * PER_REF} + $${MONTHLY_BONUS} бонус = $${MAX_MONTHLY}!` : `Goal! $${GOAL * PER_REF} + $${MONTHLY_BONUS} bonus = $${MAX_MONTHLY}!`}
               </motion.div>
             ) : (
-              <motion.div key="progress" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="t-xs" style={{ opacity: 0.75 }}>
+              <motion.div key="progress" initial={false} animate={{ opacity: 1 }} className="t-xs" style={{ opacity: 0.75 }}>
                 {lang === 'ru'
                   ? `Ещё ${GOAL - progress} покупателей = +$${(GOAL - progress) * PER_REF} + 🎁 $${MONTHLY_BONUS} бонус`
                   : `${GOAL - progress} more buyers = +$${(GOAL - progress) * PER_REF} + 🎁 $${MONTHLY_BONUS} bonus`}
@@ -232,7 +232,7 @@ export default function RefCalendar() {
         {/* How it works — 3 steps */}
         <motion.div
           className="mb-4"
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
         >
@@ -243,7 +243,7 @@ export default function RefCalendar() {
             {howSteps.map((step, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -12 }}
+                initial={false}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + i * 0.06 }}
                 style={{
@@ -282,7 +282,7 @@ export default function RefCalendar() {
         </motion.div>
 
         {/* Calendar header */}
-        <motion.div className="row-between mb-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+        <motion.div className="row-between mb-3" initial={false} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
           <motion.button
             onClick={prevMonth}
             style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}
@@ -318,7 +318,7 @@ export default function RefCalendar() {
             return (
               <motion.div
                 key={day}
-                initial={{ opacity: 0, scale: 0.7 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.015, type: 'spring', stiffness: 300, damping: 20 }}
                 whileTap={isFuture ? {} : { scale: 0.88 }}
@@ -339,7 +339,7 @@ export default function RefCalendar() {
                 )}
                 <AnimatePresence mode="wait">
                   {isOpen && count > 0 ? (
-                    <motion.div key="open" initial={{ rotateY: 90, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} transition={{ duration: 0.3 }}
+                    <motion.div key="open" initial={false} animate={{ rotateY: 0, opacity: 1 }} transition={{ duration: 0.3 }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, zIndex: 1 }}
                     >
                       <DayEmoji count={count} />
@@ -347,7 +347,7 @@ export default function RefCalendar() {
                       <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', fontWeight: 600, lineHeight: 1 }}>{day}</span>
                     </motion.div>
                   ) : (
-                    <motion.div key="closed" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    <motion.div key="closed" initial={false} animate={{ opacity: 1 }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}
                     >
                       {isFuture
@@ -374,7 +374,7 @@ export default function RefCalendar() {
         <motion.div
           className="col gap-2"
           style={{ marginTop: 20, padding: '14px', background: 'var(--surface-2)', borderRadius: 14 }}
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
@@ -398,7 +398,7 @@ export default function RefCalendar() {
         {/* Rules accordion */}
         <motion.div
           style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', border: '1.5px solid var(--b-default)' }}
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
         >
@@ -439,7 +439,7 @@ export default function RefCalendar() {
           <AnimatePresence>
             {rulesOpen && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
+                initial={false}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -471,7 +471,7 @@ export default function RefCalendar() {
                     {rules.map((rule, i) => (
                       <motion.div
                         key={i}
-                        initial={{ opacity: 0, x: -8 }}
+                        initial={false}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.04 }}
                         style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}

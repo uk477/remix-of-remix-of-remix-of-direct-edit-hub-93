@@ -46,7 +46,7 @@ export default function ReferralList({ open, onClose }: Props) {
       {open && (
         <>
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
@@ -227,7 +227,7 @@ export default function ReferralList({ open, onClose }: Props) {
                       return (
                         <motion.div
                           key={ref.uid}
-                          initial={{ opacity: 0, y: 8 }}
+                          initial={false}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.035, type: 'spring', stiffness: 320, damping: 26 }}
                           style={{

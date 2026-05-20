@@ -1223,7 +1223,7 @@ function Header({
 
   return (
     <motion.header
-      initial={{ opacity: 0, y: -4 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.24, ease }}
       style={{
@@ -1287,7 +1287,7 @@ function Header({
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={status}
-            initial={{ opacity: 0, y: 4 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.18 }}
@@ -1382,7 +1382,7 @@ function SystemMessage({
     const locked = false;
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.32, ease }}
         style={{
@@ -1398,7 +1398,7 @@ function SystemMessage({
             key={c.id}
             onClick={() => !locked && onPickCategory(c)}
             disabled={locked}
-            initial={{ opacity: 0, y: 6 }}
+            initial={false}
             animate={{ opacity: locked ? 0.4 : 1, y: 0 }}
             transition={{ duration: 0.16, ease }}
             whileTap={locked ? undefined : { scale: 0.97 }}
@@ -1451,7 +1451,7 @@ function SystemMessage({
     const parent = getFlowParent(flowKey);
     return (
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease }}
         style={{
@@ -1466,7 +1466,7 @@ function SystemMessage({
           <motion.button
             key={opt.id}
             onClick={() => onFlowAnswer(flowKey, opt)}
-            initial={{ opacity: 0, y: 4 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
@@ -1492,7 +1492,7 @@ function SystemMessage({
         {parent && (
           <motion.button
             onClick={() => onFlowBack(flowKey)}
-            initial={{ opacity: 0, y: 4 }}
+            initial={false}
             animate={{ opacity: 0.85, y: 0 }}
             transition={{ duration: 0.14, ease }}
             whileTap={{ scale: 0.98 }}
@@ -1526,7 +1526,7 @@ function SystemMessage({
     const ru = lang === "ru";
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.32, ease }}
         style={{
@@ -1608,7 +1608,7 @@ function SystemMessage({
     const ru = lang === "ru";
     return (
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.36, ease }}
         style={{
@@ -1777,7 +1777,7 @@ function SystemMessage({
 function SysPill({ text, sub, accent }: { text: string; sub?: string; accent?: boolean }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.24, ease }}
       style={{
@@ -1832,7 +1832,7 @@ function MessageGroup({
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 4 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.14, ease }}
@@ -1895,7 +1895,7 @@ function DeletedPlaceholder({
 }) {
   return (
     <motion.button
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       onClick={onReveal}
       style={{
@@ -1963,7 +1963,7 @@ function Bubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.12, ease }}
       onPointerDown={startPress}
@@ -2129,7 +2129,7 @@ function ReadCheck({ read }: { read: boolean }) {
 function TypingBubble() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6, scale: 0.96 }}
+      initial={false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.2 }}
@@ -2211,7 +2211,7 @@ function Composer({
       <AnimatePresence>
         {replyTo && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={false}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             style={{
@@ -2252,7 +2252,7 @@ function Composer({
       <AnimatePresence>
         {pendingFiles.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
+            initial={false}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             style={{ display: "flex", gap: 8, padding: "10px 14px 0", overflowX: "auto" }}
@@ -2355,12 +2355,12 @@ function Composer({
             {attachOpen && (
               <>
                 <motion.div
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   onClick={() => setAttachOpen(false)}
                   style={{ position: "fixed", inset: 0, zIndex: 40 }}
                 />
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.16 }}
@@ -2527,7 +2527,7 @@ function MessageActionSheet({
   const isOwn = msg.sender === "user";
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18, ease }}
@@ -2545,7 +2545,7 @@ function MessageActionSheet({
       }}
     >
       <motion.div
-        initial={{ y: 40, opacity: 0, scale: 0.98 }}
+        initial={false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 40, opacity: 0, scale: 0.98 }}
         transition={{ type: "spring", stiffness: 380, damping: 34 }}
@@ -2737,7 +2737,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
@@ -2790,7 +2790,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
 
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}
@@ -2818,7 +2818,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
 
         {/* Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           style={{ display: "flex", gap: 8, marginBottom: 22 }}
@@ -2881,7 +2881,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
+                      initial={false}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
@@ -2897,7 +2897,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
         </motion.div>
 
         <motion.a
-          initial={{ opacity: 0, y: 8 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           whileTap={{ scale: 0.98 }}
@@ -2953,7 +2953,7 @@ function InfoSheet({ t, onClose, onCloseTicket }: { t: (ru: string, en: string) 
 
         {onCloseTicket && (
           <motion.button
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
             onClick={onCloseTicket}

@@ -21,7 +21,7 @@ export default function SearchBar({
         {value && (
           <motion.button
             className="search-clear"
-            initial={{ scale: 0, opacity: 0 }}
+            initial={false}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.15 }}

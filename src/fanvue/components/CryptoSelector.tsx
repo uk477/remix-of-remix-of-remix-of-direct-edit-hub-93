@@ -109,7 +109,7 @@ export default function CryptoSelector({
                 border: `1.5px solid ${groupSelected ? group.color : 'var(--b-default)'}`,
               }}
               onClick={() => handleCoinTap(group)}
-              initial={{ opacity: 0, x: -16 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05, duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               whileTap={{ scale: 0.98 }}
@@ -134,7 +134,7 @@ export default function CryptoSelector({
                   {selectedNet && (
                     <motion.span
                       key={selectedNet.label}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={false}
                       animate={{ opacity: 1, scale: 1 }}
                       style={{
                         fontSize: 10, fontWeight: 700, color: group.color,
@@ -160,7 +160,7 @@ export default function CryptoSelector({
             <AnimatePresence>
               {isExpanded && hasSub && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
+                  initial={false}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
@@ -176,7 +176,7 @@ export default function CryptoSelector({
                       return (
                         <motion.div
                           key={net.id}
-                          initial={{ opacity: 0, x: -10 }}
+                          initial={false}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: ni * 0.04, duration: 0.18 }}
                           onClick={() => onSelect(net.id)}

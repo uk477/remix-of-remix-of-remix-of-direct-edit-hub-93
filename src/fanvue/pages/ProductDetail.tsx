@@ -215,7 +215,7 @@ export default function ProductDetail() {
               navigate('/')
             }}
             aria-label="Back"
-            initial={{ opacity: 0, x: -12 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, ease: EASE }}
             whileTap={{ scale: 0.94 }}
@@ -247,7 +247,7 @@ export default function ProductDetail() {
         <section className="pdb-hero">
           <motion.div
             className="pdb-cat"
-            initial={{ opacity: 0, y: 8 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
           >
@@ -261,7 +261,7 @@ export default function ProductDetail() {
               <motion.span
                 key={`${word}-${i}`}
                 className={`pdb-title-w${i === 0 ? ' is-fill' : ' is-stroke'}`}
-                initial={{ opacity: 0, y: 36, skewY: 4 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, skewY: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 + i * 0.09 }}
               >
@@ -271,7 +271,7 @@ export default function ProductDetail() {
             <motion.span
               className="pdb-title-cursor"
               aria-hidden
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: [0, 1, 1, 0] }}
               transition={{ duration: 1.1, repeat: Infinity, delay: 0.6 }}
             />
@@ -279,7 +279,7 @@ export default function ProductDetail() {
 
           <motion.p
             className="pdb-desc"
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE, delay: 0.45 }}
           >
@@ -289,7 +289,7 @@ export default function ProductDetail() {
 
           <motion.div
             className="pdb-price"
-            initial={{ opacity: 0, y: 14 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: EASE, delay: 0.55 }}
           >
@@ -300,7 +300,7 @@ export default function ProductDetail() {
             <div className="pdb-price-figure">
               <motion.span
                 key={total.toFixed(2)}
-                initial={{ y: 14, opacity: 0, filter: 'blur(8px)' }}
+                initial={false}
                 animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                 transition={{ duration: 0.42, ease: EASE }}
               >
@@ -311,7 +311,7 @@ export default function ProductDetail() {
                   <motion.div
                     key={discountPct}
                     className="pdb-price-save"
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -8 }}
                   >
@@ -345,7 +345,7 @@ export default function ProductDetail() {
               <AnimatePresence mode="popLayout">
                 <motion.b
                   key={qty}
-                  initial={{ y: 18, opacity: 0 }}
+                  initial={false}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -18, opacity: 0 }}
                   transition={{ duration: 0.22, ease: EASE }}
@@ -376,7 +376,7 @@ export default function ProductDetail() {
                   className={`pdb-tier${active ? ' is-on' : ''}`}
                   onClick={() => { haptic('light'); setQty(Math.min(maxQty, tier.min)) }}
                   whileTap={{ scale: 0.96 }}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: EASE, delay: 0.1 + idx * 0.06 }}
                 >
@@ -402,7 +402,7 @@ export default function ProductDetail() {
                   key={item.id}
                   className="pdb-sim-row"
                   onClick={() => navigate(`/product/${item.id}`)}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, ease: EASE, delay: 0.05 + i * 0.05 }}
                   whileTap={{ scale: 0.99 }}
@@ -421,7 +421,7 @@ export default function ProductDetail() {
 
         <motion.div
           className="pdb-dock"
-          initial={{ y: 80, opacity: 0 }}
+          initial={false}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.55, ease: EASE, delay: 0.25 }}
         >
@@ -459,7 +459,7 @@ export default function ProductDetail() {
         {showPayment && (
           <motion.div
             className="fv-sheet-overlay"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(event) => {
@@ -489,7 +489,7 @@ export default function ProductDetail() {
               {payStep === 'select' && (
                 <motion.div
                   className="fv-pay-select"
-                  initial={{ opacity: 0, y: 14 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.42, ease: EASE }}
                 >
@@ -505,7 +505,7 @@ export default function ProductDetail() {
                     className={`fv-pay-card fv-pay-card--balance${!hasEnoughBalance ? ' is-low' : ''}`}
                     onClick={hasEnoughBalance ? handleBuyWithBalance : undefined}
                     disabled={!hasEnoughBalance}
-                    initial={{ opacity: 0, y: 18 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.06, duration: 0.4, ease: EASE }}
                     whileTap={hasEnoughBalance ? { scale: 0.985 } : undefined}
@@ -538,7 +538,7 @@ export default function ProductDetail() {
                   <motion.button
                     className="fv-pay-card fv-pay-card--crypto"
                     onClick={() => { haptic('light'); setPayStep('crypto_net') }}
-                    initial={{ opacity: 0, y: 18 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.12, duration: 0.4, ease: EASE }}
                     whileTap={{ scale: 0.985 }}
@@ -572,7 +572,7 @@ export default function ProductDetail() {
 
               {payStep === 'crypto_net' && (
                 <motion.div
-                  initial={{ opacity: 0, y: 14 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.42, ease: EASE }}
                 >
@@ -603,7 +603,7 @@ export default function ProductDetail() {
               {payStep === 'crypto_pay' && cryptoOption && pendingOrder && (
                 <motion.div
                   className="dpz dpz--inline"
-                  initial={{ opacity: 0, scale: 0.97 }}
+                  initial={false}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4, ease: EASE }}
                 >
@@ -649,7 +649,7 @@ export default function ProductDetail() {
 
                     {/* kicker */}
                     <motion.div
-                      initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{ delay: 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                       style={{ marginBottom: 18 }}
@@ -672,7 +672,7 @@ export default function ProductDetail() {
 
                     {/* heading */}
                     <motion.div
-                      initial={{ opacity: 0, y: 28, filter: 'blur(10px)' }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{ delay: 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                       style={{ marginBottom: 32 }}
@@ -707,7 +707,7 @@ export default function ProductDetail() {
                     )}
 
                     <motion.button
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.45, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                       whileTap={{ scale: 0.97 }}

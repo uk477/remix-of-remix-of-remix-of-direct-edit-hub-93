@@ -267,7 +267,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
       {open && (
         <>
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
@@ -363,7 +363,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 {step === 'amount' && (
                   <motion.div
                     key="amount"
-                    initial={{ opacity: 0, x: 16 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -16 }}
                   >
@@ -593,7 +593,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 {step === 'network' && (
                   <motion.div
                     key="network"
-                    initial={{ opacity: 0, x: 16 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -16 }}
                   >
@@ -670,7 +670,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 {step === 'address' && (
                   <motion.div
                     key="address"
-                    initial={{ opacity: 0, x: 16 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -16 }}
                   >
@@ -744,7 +744,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 {step === 'confirm' && (
                   <motion.div
                     key="confirm"
-                    initial={{ opacity: 0, x: 16 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -16 }}
                   >
@@ -916,7 +916,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 {step === 'done' && (
                   <motion.div
                     key="done"
-                    initial={{ opacity: 0, scale: 0.96 }}
+                    initial={false}
                     animate={{ opacity: 1, scale: 1 }}
                   >
                     <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -1071,7 +1071,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                 return (
                   <>
                     <motion.div
-                      initial={{ opacity: 0 }}
+                      initial={false}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       onClick={() => setDetailId(null)}
@@ -1081,7 +1081,7 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                       }}
                     />
                     <motion.div
-                      initial={{ y: 40, opacity: 0 }}
+                      initial={false}
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: 20, opacity: 0 }}
                       transition={{ type: 'spring', damping: 28, stiffness: 320 }}

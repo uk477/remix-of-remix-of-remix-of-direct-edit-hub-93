@@ -48,7 +48,7 @@ function StatusBar({ status }: { status: Order['status'] }) {
                     ? '0 0 12px rgba(255,165,0,0.4)'
                     : done ? '0 0 8px rgba(73,242,100,0.3)' : 'none',
                 }}
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={false}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.1, type: 'spring', stiffness: 300, damping: 20 }}
               >
@@ -151,7 +151,7 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
     <AnimatePresence>
       <motion.div
         className="modal-overlay"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       >
         <motion.div
@@ -202,7 +202,7 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
           {/* Completed state */}
           {isCompleted && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               style={{
                 textAlign: 'center', padding: '20px 16px',
@@ -226,7 +226,7 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
             <AnimatePresence mode="wait">
               {!showSupportPreview ? (
                 <motion.div key="prompt"
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  initial={false} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                 >
                   <div style={{
                     background: 'rgba(255,165,0,0.08)',
@@ -303,7 +303,7 @@ export default function OrderTrackingSheet({ order, onClose }: Props) {
                 </motion.div>
               ) : (
                 <motion.div key="confirm"
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  initial={false} animate={{ opacity: 1, y: 0 }}
                   className="col gap-3"
                 >
                   {/* Preview of auto-message */}

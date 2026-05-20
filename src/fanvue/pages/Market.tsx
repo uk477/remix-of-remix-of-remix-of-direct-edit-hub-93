@@ -92,7 +92,7 @@ function ProductEditSheet({
   return (
     <motion.div
       className="modal-overlay"
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
@@ -347,7 +347,7 @@ export default function Market() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeCat ?? 'all'}-${sort}-${search}`}
-              initial={{ opacity: 0, y: 8 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
@@ -379,7 +379,7 @@ export default function Market() {
                       <ProductCard product={p} index={i} disableNav={editMode} />
                       {editMode && (
                         <motion.div
-                          initial={{ opacity: 0 }}
+                          initial={false}
                           animate={{ opacity: 1 }}
                           style={{
                             position: 'absolute', inset: 0, borderRadius: 16,

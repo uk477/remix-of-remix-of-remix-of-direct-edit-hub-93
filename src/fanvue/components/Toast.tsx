@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <motion.div
               key={t.id}
               className="toast-item"
-              initial={{ y: -50, opacity: 0, scale: 0.9 }}
+              initial={false}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -30, opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}

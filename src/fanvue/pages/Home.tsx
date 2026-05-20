@@ -128,9 +128,8 @@ export default function Home() {
         <motion.div
           className="shop-hero-brand"
           aria-label="Fanvue Market"
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: EASE }}
         >
           <motion.img
             src={fanvueGlyph}
@@ -152,7 +151,7 @@ export default function Home() {
           <motion.span
             className="shop-hero-brand-sep"
             aria-hidden
-            initial={{ opacity: 0, scaleY: 0.4 }}
+            initial={false}
             animate={{ opacity: 1, scaleY: 1 }}
             transition={{ duration: 0.5, ease: EASE, delay: 0.12 }}
           />
@@ -161,7 +160,7 @@ export default function Home() {
             {'MARKET'.split('').map((ch, i) => (
               <motion.span
                 key={i}
-                initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.44, ease: EASE, delay: 0.18 + i * 0.035 }}
               >
@@ -176,7 +175,7 @@ export default function Home() {
 
         <motion.div
           className="shop-hero-bal"
-          initial={{ opacity: 0, y: 8 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
         >
@@ -234,7 +233,7 @@ export default function Home() {
                   key={r.id}
                   className="shop-hero-topup-ripple"
                   style={{ left: r.x, top: r.y }}
-                  initial={{ opacity: 0.55, scale: 0 }}
+                  initial={false}
                   animate={{ opacity: 0, scale: 5 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
@@ -265,7 +264,7 @@ export default function Home() {
       <motion.div
         className="shop-live"
         style={{ gridTemplateColumns: '0.9fr 1.12fr 1fr' }}
-        initial={{ opacity: 0, y: 6 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
       >
@@ -275,7 +274,7 @@ export default function Home() {
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.b
                 key={online}
-                initial={{ y: -8, opacity: 0, filter: 'blur(4px)' }}
+                initial={false}
                 animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                 exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
                 transition={{ duration: 0.32, ease: EASE }}
@@ -290,7 +289,7 @@ export default function Home() {
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.b
                 key={Math.round(shownTotal)}
-                initial={{ y: -6, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 6, opacity: 0 }}
                 transition={{ duration: 0.18, ease: EASE }}
@@ -368,7 +367,7 @@ export default function Home() {
             {recentSales.map((s, i) => (
               <motion.li
                 key={s.ts}
-                initial={{ opacity: 0, x: -8 }}
+                initial={false}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.04 * i, duration: 0.35, ease: EASE }}
@@ -425,7 +424,7 @@ export default function Home() {
         {eggPhase === 'loading' && (
           <motion.div
             key="egg-loading"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
@@ -437,7 +436,7 @@ export default function Home() {
             }}
           >
             <motion.div
-              initial={{ scale: 0.6, rotate: -180, opacity: 0 }}
+              initial={false}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 220, damping: 18 }}
               style={{
@@ -453,7 +452,7 @@ export default function Home() {
             </div>
             <div style={{ width: 140, height: 3, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
               <motion.div
-                initial={{ x: '-100%' }}
+                initial={false}
                 animate={{ x: '100%' }}
                 transition={{ duration: 1.1, ease: 'easeInOut' }}
                 style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg,transparent,#39ff63,transparent)' }}
@@ -524,7 +523,7 @@ function LotCard({
     <motion.article
       ref={ref}
       className={`shop-lot ${variant}${isOut ? ' is-out' : ''}`}
-      initial={{ opacity: 0, y: 30 }}
+      initial={false}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.6, ease: EASE, delay: index * 0.08 }}
@@ -620,7 +619,7 @@ function TrustItem({ index = 0, glyph, title, sub, live = false }: { index?: num
   return (
     <motion.div
       className={`shop-trust-item${live ? ' is-live' : ''}`}
-      initial={{ opacity: 0, y: 14, scale: 0.96 }}
+      initial={false}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.55, ease: EASE, delay: 0.06 * index }}
