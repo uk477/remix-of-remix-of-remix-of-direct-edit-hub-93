@@ -224,7 +224,7 @@ export const useStore = create<AppStore>()(
       userTyping: false,
       adminTyping: false,
       cart: null,
-      isLoading: true,
+      isLoading: false,
       referrals: [],
       realSales: [],
       _adminVerified: false,
